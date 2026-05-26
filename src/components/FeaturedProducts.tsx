@@ -54,7 +54,7 @@ export function FeaturedProducts() {
 }
 
 function ProductCard({ product: p }: { product: typeof products[number]; index: number }) {
-  const tilt = usePremiumTilt<HTMLArticleElement, HTMLImageElement>({ rotate: 7, depth: 18 });
+  const tilt = usePremiumTilt<HTMLArticleElement, HTMLImageElement, HTMLDivElement>({ rotate: 7, depth: 18 });
 
   return (
     <article
@@ -70,10 +70,12 @@ function ProductCard({ product: p }: { product: typeof products[number]; index: 
         } as React.CSSProperties
       }
     >
+      <div ref={tilt.lightRef} className="pcard__light" />
       <div className="pcard__ring" />
 
       <div className="pcard__float-zone">
         <img ref={tilt.depthRef} src={p.img} alt={p.name} className="pcard__img" />
+        <div className="pcard__img-glow" />
 
         {p.tag && <span className="pcard__tag">{p.tag}</span>}
 
@@ -111,6 +113,8 @@ const STYLES = `
   .pcard {
     --tilt-rx: 0deg;
     --tilt-ry: 0deg;
+    --shadow-x: 0px;
+    --shadow-y: 30px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -129,11 +133,30 @@ const STYLES = `
     will-change: transform;
   }
 
+  .pcard__light {
+    position: absolute;
+    top: -150px;
+    left: -150px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle 120px at center,
+      rgba(var(--accent-rgb), 0.16) 0%,
+      transparent 80%
+    );
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    will-change: transform, opacity;
+    transform-style: preserve-3d;
+  }
+
   .pcard:hover {
     border-color: rgba(var(--accent-rgb), 0.28);
     box-shadow:
       0 0 0 1px rgba(var(--accent-rgb), 0.15),
-      0 30px 80px -16px rgba(0,0,0,0.85),
+      var(--shadow-x, 0px) var(--shadow-y, 30px) 80px -16px rgba(0,0,0,0.85),
       0 0 80px -20px rgba(var(--accent-rgb), 0.35);
   }
 
@@ -168,13 +191,18 @@ const STYLES = `
     object-position: center;
     transform: translate3d(0px, 0px, 24px) scale(1.02);
     transform-origin: center;
-    filter: none;
-    mix-blend-mode: normal;
     will-change: transform;
   }
 
-  .pcard:hover .pcard__img {
-    transform: translate3d(0px, 0px, 32px) scale(1.055);
+  .pcard__img-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+    opacity: var(--img-light-opacity, 0);
+    pointer-events: none;
+    z-index: 3;
+    transform: translateZ(33px);
+    will-change: opacity;
   }
 
   .pcard__tag {
@@ -322,7 +350,7 @@ const STYLES = `
     .pcard,
     .pcard__img {
       transition-duration: 0.01ms;
-      transform: none;
+      transform: none !important;
     }
   }
 `;

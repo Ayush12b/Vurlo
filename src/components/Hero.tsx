@@ -14,9 +14,9 @@ export function Hero() {
       onPointerMove={hero.onPointerMove}
       onPointerLeave={hero.onPointerLeave}
     >
-      <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-purple-600 opacity-25 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
+      <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-purple-600 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
 
-      <div className="hero-ambient-secondary absolute top-1/3 left-2/3 w-[500px] h-[500px] bg-cyan-500 opacity-15 blur-[120px] rounded-full" />
+      <div className="hero-ambient-secondary absolute top-1/3 left-2/3 w-[500px] h-[500px] bg-cyan-500 blur-[120px] rounded-full" />
 
       <div
         className="hero-grid-parallax absolute inset-0 opacity-[0.03]"
@@ -125,11 +125,18 @@ export function Hero() {
 
         .hero-ambient-primary {
           transform: translate3d(calc(-50% + var(--hero-glow-x, 0px)), calc(-50% + var(--hero-glow-y, 0px)), 0);
-          transition: transform 0.18s ease-out;
-          will-change: transform;
+          opacity: 0.25;
+          animation: heroGlow1 12s ease-in-out infinite;
+          will-change: transform, opacity;
         }
 
-        .hero-ambient-secondary,
+        .hero-ambient-secondary {
+          transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0);
+          opacity: 0.15;
+          animation: heroGlow2 16s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+
         .hero-product-glow {
           transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0);
           transition: transform 0.18s ease-out;
@@ -139,6 +146,28 @@ export function Hero() {
         .hero-product-premium {
           animation: premiumFloat 6s ease-in-out infinite;
           will-change: transform;
+        }
+
+        @keyframes heroGlow1 {
+          0%, 100% {
+            transform: translate3d(calc(-50% + var(--hero-glow-x, 0px)), calc(-50% + var(--hero-glow-y, 0px)), 0) scale(1);
+            opacity: 0.22;
+          }
+          50% {
+            transform: translate3d(calc(-50% + var(--hero-glow-x, 0px) + 24px), calc(-50% + var(--hero-glow-y, 0px) - 18px), 0) scale(1.06);
+            opacity: 0.28;
+          }
+        }
+
+        @keyframes heroGlow2 {
+          0%, 100% {
+            transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0) scale(1);
+            opacity: 0.12;
+          }
+          50% {
+            transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45 - 18px), calc(var(--hero-glow-y, 0px) * -0.35 + 24px), 0) scale(0.94);
+            opacity: 0.17;
+          }
         }
 
         .premium-hero-cta,
