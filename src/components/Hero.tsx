@@ -125,15 +125,15 @@ export function Hero() {
 
         .hero-ambient-primary {
           transform: translate3d(calc(-50% + var(--hero-glow-x, 0px)), calc(-50% + var(--hero-glow-y, 0px)), 0);
-          opacity: 0.25;
-          animation: heroGlow1 12s ease-in-out infinite;
+          opacity: 0.18;
+          animation: heroGlow1 22s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
         .hero-ambient-secondary {
           transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0);
-          opacity: 0.15;
-          animation: heroGlow2 16s ease-in-out infinite;
+          opacity: 0.10;
+          animation: heroGlow2 30s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
@@ -151,22 +151,22 @@ export function Hero() {
         @keyframes heroGlow1 {
           0%, 100% {
             transform: translate3d(calc(-50% + var(--hero-glow-x, 0px)), calc(-50% + var(--hero-glow-y, 0px)), 0) scale(1);
-            opacity: 0.22;
+            opacity: 0.15;
           }
           50% {
-            transform: translate3d(calc(-50% + var(--hero-glow-x, 0px) + 24px), calc(-50% + var(--hero-glow-y, 0px) - 18px), 0) scale(1.06);
-            opacity: 0.28;
+            transform: translate3d(calc(-50% + var(--hero-glow-x, 0px) + 12px), calc(-50% + var(--hero-glow-y, 0px) - 9px), 0) scale(1.03);
+            opacity: 0.20;
           }
         }
 
         @keyframes heroGlow2 {
           0%, 100% {
             transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0) scale(1);
-            opacity: 0.12;
+            opacity: 0.08;
           }
           50% {
-            transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45 - 18px), calc(var(--hero-glow-y, 0px) * -0.35 + 24px), 0) scale(0.94);
-            opacity: 0.17;
+            transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45 - 9px), calc(var(--hero-glow-y, 0px) * -0.35 + 12px), 0) scale(0.96);
+            opacity: 0.12;
           }
         }
 

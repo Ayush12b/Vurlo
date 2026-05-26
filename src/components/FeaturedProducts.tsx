@@ -142,7 +142,7 @@ const STYLES = `
     border-radius: 50%;
     background: radial-gradient(
       circle 120px at center,
-      rgba(var(--accent-rgb), 0.16) 0%,
+      rgba(var(--accent-rgb), 0.12) 0%,
       transparent 80%
     );
     pointer-events: none;
@@ -157,14 +157,14 @@ const STYLES = `
     box-shadow:
       0 0 0 1px rgba(var(--accent-rgb), 0.15),
       var(--shadow-x, 0px) var(--shadow-y, 30px) 80px -16px rgba(0,0,0,0.85),
-      0 0 80px -20px rgba(var(--accent-rgb), 0.35);
+      0 0 80px -20px rgba(var(--accent-rgb), 0.22);
   }
 
   .pcard__ring {
     position: absolute;
     inset: -1px;
     border-radius: 23px;
-    background: radial-gradient(ellipse at top, rgba(var(--accent-rgb), 0.18), transparent 65%);
+    background: radial-gradient(ellipse at top, rgba(var(--accent-rgb), 0.12), transparent 65%);
     opacity: 0;
     transition: opacity 0.45s ease;
     pointer-events: none;
@@ -180,6 +180,21 @@ const STYLES = `
     z-index: 2;
     transform: translateZ(18px);
     transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .pcard:nth-child(1) .pcard__float-zone { animation: cardFloat 12s ease-in-out infinite; }
+  .pcard:nth-child(2) .pcard__float-zone { animation: cardFloat 12s ease-in-out infinite -3s; }
+  .pcard:nth-child(3) .pcard__float-zone { animation: cardFloat 12s ease-in-out infinite -6s; }
+  .pcard:nth-child(4) .pcard__float-zone { animation: cardFloat 12s ease-in-out infinite -9s; }
+
+  @keyframes cardFloat {
+    0%, 100% {
+      transform: translateZ(18px) translateY(0px) scale(1);
+    }
+    50% {
+      transform: translateZ(18px) translateY(-3px) scale(1.006);
+    }
   }
 
   .pcard__img {

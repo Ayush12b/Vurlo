@@ -39,6 +39,7 @@ export function usePremiumTilt<
   const current = useRef({
     rotateX: 0,
     rotateY: 0,
+    cardScale: 1,
     imageX: 0,
     imageY: 0,
     imageZ: 24,
@@ -54,6 +55,7 @@ export function usePremiumTilt<
   const target = useRef({
     rotateX: 0,
     rotateY: 0,
+    cardScale: 1,
     imageX: 0,
     imageY: 0,
     imageZ: 24,
@@ -75,6 +77,7 @@ export function usePremiumTilt<
     const lerpAmount = 0.08; // smooth floaty delay
     current.current.rotateX = lerp(current.current.rotateX, target.current.rotateX, lerpAmount);
     current.current.rotateY = lerp(current.current.rotateY, target.current.rotateY, lerpAmount);
+    current.current.cardScale = lerp(current.current.cardScale, target.current.cardScale, lerpAmount);
     current.current.imageX = lerp(current.current.imageX, target.current.imageX, lerpAmount);
     current.current.imageY = lerp(current.current.imageY, target.current.imageY, lerpAmount);
     current.current.imageZ = lerp(current.current.imageZ, target.current.imageZ, lerpAmount);
@@ -86,7 +89,7 @@ export function usePremiumTilt<
     current.current.shadowY = lerp(current.current.shadowY, target.current.shadowY, lerpAmount);
     current.current.imgLightOpacity = lerp(current.current.imgLightOpacity, target.current.imgLightOpacity, lerpAmount);
 
-    card.style.transform = `perspective(1000px) rotateX(${current.current.rotateX.toFixed(2)}deg) rotateY(${current.current.rotateY.toFixed(2)}deg)`;
+    card.style.transform = `perspective(1000px) rotateX(${current.current.rotateX.toFixed(2)}deg) rotateY(${current.current.rotateY.toFixed(2)}deg) scale(${current.current.cardScale.toFixed(4)})`;
     card.style.setProperty("--shadow-x", `${current.current.shadowX.toFixed(2)}px`);
     card.style.setProperty("--shadow-y", `${current.current.shadowY.toFixed(2)}px`);
     card.style.setProperty("--img-light-opacity", `${current.current.imgLightOpacity.toFixed(3)}`);
@@ -105,6 +108,7 @@ export function usePremiumTilt<
     const stillMoving =
       Math.abs(current.current.rotateX - target.current.rotateX) > epsilon ||
       Math.abs(current.current.rotateY - target.current.rotateY) > epsilon ||
+      Math.abs(current.current.cardScale - target.current.cardScale) > epsilon ||
       Math.abs(current.current.imageX - target.current.imageX) > epsilon ||
       Math.abs(current.current.imageY - target.current.imageY) > epsilon ||
       Math.abs(current.current.imageZ - target.current.imageZ) > epsilon ||
@@ -141,6 +145,7 @@ export function usePremiumTilt<
     target.current.lightX = enterX;
     target.current.lightY = enterY;
     target.current.lightOpacity = 1;
+    target.current.cardScale = 1.015;
     target.current.imgLightOpacity = 0.7;
     
     start();
@@ -159,6 +164,7 @@ export function usePremiumTilt<
 
       target.current.rotateX = (0.5 - y) * rotate;
       target.current.rotateY = (x - 0.5) * rotate;
+      target.current.cardScale = 1.015;
       target.current.imageX = (x - 0.5) * depth;
       target.current.imageY = (y - 0.5) * depth;
       target.current.imageZ = 32;
@@ -182,6 +188,7 @@ export function usePremiumTilt<
     target.current = {
       rotateX: 0,
       rotateY: 0,
+      cardScale: 1,
       imageX: 0,
       imageY: 0,
       imageZ: 24,
