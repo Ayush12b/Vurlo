@@ -1,5 +1,5 @@
 import { ShoppingBag, ArrowUpRight, Sparkles } from "lucide-react";
-import { usePremiumTilt } from "@/hooks/use-premium-interactions";
+import { usePremiumTilt, useScrollReveal, useMagnetic } from "@/hooks/use-premium-interactions";
 import p1 from "@/assets/product-1.jpg";
 import p2 from "@/assets/product-2.jpg";
 import p3 from "@/assets/product-3.jpg";
@@ -53,13 +53,17 @@ export function FeaturedProducts() {
   );
 }
 
-function ProductCard({ product: p }: { product: typeof products[number]; index: number }) {
-  const tilt = usePremiumTilt<HTMLArticleElement, HTMLImageElement, HTMLDivElement>({ rotate: 7, depth: 18 });
+function ProductCard({ product: p, index }: { product: typeof products[number]; index: number }) {
+  const tilt = usePremiumTilt<HTMLArticleElement, HTMLImageElement, HTMLDivElement>({ rotateX: 6, rotateY: 8, depth: 15 });
+  const viewBtn = useMagnetic<HTMLButtonElement>({ strength: 3, scale: 1.01 });
+  const cartBtn = useMagnetic<HTMLButtonElement>({ strength: 3, scale: 1.02 });
+
+  useScrollReveal(tilt.cardRef, index * 100);
 
   return (
     <article
       ref={tilt.cardRef}
-      className="pcard group"
+      className="pcard group reveal-fade-in"
       onPointerEnter={tilt.onPointerEnter}
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
@@ -72,34 +76,40 @@ function ProductCard({ product: p }: { product: typeof products[number]; index: 
     >
       <div ref={tilt.lightRef} className="pcard__light" />
       <div className="pcard__ring" />
-
+ 
       <div className="pcard__float-zone">
         <img ref={tilt.depthRef} src={p.img} alt={p.name} className="pcard__img" />
         <div className="pcard__img-glow" />
-
+ 
         {p.tag && <span className="pcard__tag">{p.tag}</span>}
-
+ 
         <div className="pcard__hover-cta">
           <button
+            ref={viewBtn.ref}
             className="pcard__view-btn"
+            onPointerMove={viewBtn.onPointerMove}
+            onPointerLeave={viewBtn.onPointerLeave}
           >
             <ArrowUpRight className="h-3.5 w-3.5" />
             Quick View
           </button>
         </div>
       </div>
-
+ 
       <div className="pcard__body">
         <div className="pcard__sep" />
-
+ 
         <div className="flex items-start justify-between gap-2 pt-4 pb-3 px-4">
           <div>
             <p className="pcard__name">{p.name}</p>
             <p className="pcard__price">${p.price}</p>
           </div>
           <button
+            ref={cartBtn.ref}
             className="pcard__cart"
             aria-label="Add to cart"
+            onPointerMove={cartBtn.onPointerMove}
+            onPointerLeave={cartBtn.onPointerLeave}
           >
             <ShoppingBag className="h-3.5 w-3.5" />
           </button>

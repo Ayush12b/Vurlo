@@ -27,14 +27,16 @@ export function usePremiumTilt<
   TCard extends HTMLElement,
   TDepth extends HTMLElement,
   TLight extends HTMLElement = HTMLElement,
->(options?: { rotate?: number; depth?: number }) {
+>(options?: { rotateX?: number; rotateY?: number; depth?: number }) {
   const cardRef = useRef<TCard>(null);
   const depthRef = useRef<TDepth>(null);
   const lightRef = useRef<TLight>(null);
   const rectRef = useRef<DOMRect | null>(null);
   const raf = useRef<number | null>(null);
-  const rotate = options?.rotate ?? 7;
-  const depth = options?.depth ?? 18;
+  
+  const rotateXLimit = options?.rotateX ?? 6;
+  const rotateYLimit = options?.rotateY ?? 8;
+  const depth = options?.depth ?? 15;
 
   const current = useRef({
     rotateX: 0,
@@ -43,7 +45,7 @@ export function usePremiumTilt<
     imageX: 0,
     imageY: 0,
     imageZ: 24,
-    imageScale: 1.02,
+    imageScale: 1.01,
     lightX: 0,
     lightY: 0,
     lightOpacity: 0,
@@ -59,7 +61,7 @@ export function usePremiumTilt<
     imageX: 0,
     imageY: 0,
     imageZ: 24,
-    imageScale: 1.02,
+    imageScale: 1.01,
     lightX: 0,
     lightY: 0,
     lightOpacity: 0,
@@ -162,13 +164,13 @@ export function usePremiumTilt<
       const x = mouseX / rect.width;
       const y = mouseY / rect.height;
 
-      target.current.rotateX = (0.5 - y) * rotate;
-      target.current.rotateY = (x - 0.5) * rotate;
+      target.current.rotateX = (0.5 - y) * rotateXLimit;
+      target.current.rotateY = (x - 0.5) * rotateYLimit;
       target.current.cardScale = 1.015;
       target.current.imageX = (x - 0.5) * depth;
       target.current.imageY = (y - 0.5) * depth;
-      target.current.imageZ = 32;
-      target.current.imageScale = 1.055;
+      target.current.imageZ = 30;
+      target.current.imageScale = 1.03;
       
       target.current.lightX = mouseX;
       target.current.lightY = mouseY;
@@ -180,7 +182,7 @@ export function usePremiumTilt<
 
       start();
     },
-    [depth, rotate, start],
+    [depth, rotateXLimit, rotateYLimit, start],
   );
 
   const onPointerLeave = useCallback((event: ReactPointerEvent<TCard>) => {
@@ -192,7 +194,7 @@ export function usePremiumTilt<
       imageX: 0,
       imageY: 0,
       imageZ: 24,
-      imageScale: 1.02,
+      imageScale: 1.01,
       lightX: current.current.lightX,
       lightY: current.current.lightY,
       lightOpacity: 0,
