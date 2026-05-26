@@ -142,3 +142,21 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Hero heading stagger reveal */
+.hero-heading span {
+  display: block;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.hero-heading.is-visible span {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-heading.is-visible span:nth-child(1) { transition-delay: 80ms; }
+.hero-heading.is-visible span:nth-child(2) { transition-delay: 180ms; }
+.hero-heading.is-visible span:nth-child(3) { transition-delay: 280ms; }

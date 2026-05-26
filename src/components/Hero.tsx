@@ -1,11 +1,22 @@
+import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
-import { useHeroParallax, useMagnetic } from "@/hooks/use-premium-interactions";
+import { useHeroParallax, useMagnetic, useScrollReveal } from "@/hooks/use-premium-interactions";
 import heroProduct from "@/assets/hero-product.jpg";
 
 export function Hero() {
   const hero = useHeroParallax<HTMLElement>();
   const primaryCta = useMagnetic<HTMLAnchorElement>({ strength: 7, scale: 1.045 });
   const secondaryCta = useMagnetic<HTMLAnchorElement>({ strength: 5, scale: 1.025 });
+
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const subtextRef = useRef<HTMLParagraphElement>(null);
+  const ctasRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  useScrollReveal(headingRef, 0);
+  useScrollReveal(subtextRef, 150);
+  useScrollReveal(ctasRef, 300);
+  useScrollReveal(statsRef, 450);
 
   return (
     <section
@@ -35,7 +46,8 @@ export function Hero() {
           </div>
 
           <h1
-            className="font-display leading-[1.02] tracking-tight"
+            ref={headingRef}
+            className="font-display leading-[1.02] tracking-tight hero-heading"
             style={{ fontSize: "clamp(3rem, 7vw, 6rem)", fontWeight: 800 }}
           >
             <span className="block text-white/90">Built for</span>
@@ -53,16 +65,19 @@ export function Hero() {
             </span>
           </h1>
 
-          <p className="text-lg leading-relaxed text-white/60 max-w-md font-light tracking-wide">
+          <p
+            ref={subtextRef}
+            className="text-lg leading-relaxed text-white/60 max-w-md font-light tracking-wide reveal-fade-in"
+          >
             Premium tech. Clean design. Future-ready essentials,
             engineered for the people building tomorrow.
           </p>
 
-          <div className="flex items-center gap-6 pt-4">
+          <div ref={ctasRef} className="flex items-center gap-6 pt-4 reveal-fade-in">
             <a
               ref={primaryCta.ref}
               href="#shop"
-              className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-9 py-4 text-sm font-semibold text-white overflow-hidden transition-transform duration-300"
+              className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-9 py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
                 boxShadow:
@@ -87,7 +102,7 @@ export function Hero() {
             </a>
           </div>
 
-          <div className="flex gap-12 pt-6 border-t border-white/[0.08]">
+          <div ref={statsRef} className="flex gap-12 pt-6 border-t border-white/[0.08] reveal-fade-in">
             {[
               ["120k+", "Customers"],
               ["4.9 stars", "Rated"],
@@ -144,7 +159,7 @@ export function Hero() {
         }
 
         .hero-product-premium {
-          animation: premiumFloat 6s ease-in-out infinite;
+          animation: premiumFloat 14s ease-in-out infinite;
           will-change: transform;
         }
 
@@ -173,13 +188,15 @@ export function Hero() {
         .premium-hero-cta,
         .premium-text-link {
           will-change: transform;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .premium-hero-cta:hover {
+          transform: translateY(-2px) !important;
           box-shadow:
             0 0 0 1px rgba(139,92,246,0.34),
-            0 14px 46px rgba(109,40,217,0.58),
-            0 0 38px rgba(34,211,238,0.2) !important;
+            0 10px 36px rgba(109,40,217,0.48),
+            0 0 30px rgba(34,211,238,0.18) !important;
         }
 
         @keyframes premiumFloat {
@@ -187,7 +204,7 @@ export function Hero() {
             transform: translate3d(var(--hero-product-x, 0px), var(--hero-product-y, 0px), 0) scale(1.18);
           }
           50% {
-            transform: translate3d(var(--hero-product-x, 0px), calc(var(--hero-product-y, 0px) - 22px), 0) scale(1.18);
+            transform: translate3d(var(--hero-product-x, 0px), calc(var(--hero-product-y, 0px) - 8px), 0) scale(1.18);
           }
         }
 

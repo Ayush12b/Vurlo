@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ShoppingBag, ArrowUpRight, Sparkles } from "lucide-react";
 import { usePremiumTilt, useScrollReveal, useMagnetic } from "@/hooks/use-premium-interactions";
 import p1 from "@/assets/product-1.jpg";
@@ -13,6 +14,9 @@ const products = [
 ];
 
 export function FeaturedProducts() {
+  const headingRef = useRef<HTMLDivElement>(null);
+  useScrollReveal(headingRef, 0);
+
   return (
     <section id="shop" className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-16 sm:px-6 md:py-20">
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -20,7 +24,7 @@ export function FeaturedProducts() {
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-cyan-500/[0.03] blur-[100px]" />
       </div>
 
-      <div className="mb-12 flex items-end justify-between gap-6 md:mb-16">
+      <div ref={headingRef} className="mb-12 flex items-end justify-between gap-6 md:mb-16 reveal-fade-in">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.03] px-3 py-1.5 backdrop-blur-sm">
             <Sparkles className="h-3 w-3 text-violet-400" />
@@ -138,8 +142,8 @@ const STYLES = `
     transform: perspective(1000px) rotateX(var(--tilt-rx)) rotateY(var(--tilt-ry));
     transform-style: preserve-3d;
     transition:
-      box-shadow 0.45s cubic-bezier(0.23, 1, 0.32, 1),
-      border-color 0.35s ease;
+      box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform;
   }
 
@@ -176,7 +180,7 @@ const STYLES = `
     border-radius: 23px;
     background: radial-gradient(ellipse at top, rgba(var(--accent-rgb), 0.12), transparent 65%);
     opacity: 0;
-    transition: opacity 0.45s ease;
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
     z-index: 0;
   }
@@ -257,7 +261,7 @@ const STYLES = `
     z-index: 6;
     opacity: 0;
     transform: translateY(4px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .pcard:hover .pcard__hover-cta {
@@ -278,7 +282,7 @@ const STYLES = `
     font-weight: 600;
     letter-spacing: 0.04em;
     backdrop-filter: blur(12px);
-    transition: background 0.2s, box-shadow 0.2s;
+    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .pcard__view-btn:hover {
@@ -306,7 +310,7 @@ const STYLES = `
     );
     transform: scaleX(0.4);
     transform-origin: left;
-    transition: transform 0.5s cubic-bezier(0.23,1,0.32,1);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .pcard:hover .pcard__sep { transform: scaleX(1); }
@@ -340,7 +344,7 @@ const STYLES = `
     background: rgba(var(--accent-rgb), 0.07);
     border: 1px solid rgba(var(--accent-rgb), 0.18);
     color: var(--accent);
-    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .pcard__cart:hover {
@@ -362,7 +366,7 @@ const STYLES = `
     );
     background-size: 200% 100%;
     background-position: -100% 0;
-    transition: background-position 0.65s ease;
+    transition: background-position 0.65s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
     z-index: 4;
   }
