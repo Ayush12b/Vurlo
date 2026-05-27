@@ -74,7 +74,7 @@ export function Hero() {
 
           <div
             ref={ctasRef}
-            className="flex flex-wrap items-center gap-4 sm:gap-6 pt-4 reveal-fade-in"
+            className="flex flex-wrap md:flex-nowrap items-center gap-4 sm:gap-6 pt-4 reveal-fade-in"
           >
             <a
               ref={primaryCta.ref}
@@ -105,7 +105,7 @@ export function Hero() {
 
           <div
             ref={statsRef}
-            className="flex flex-wrap gap-6 md:gap-12 pt-6 border-t border-white/[0.08] reveal-fade-in"
+            className="flex flex-wrap md:flex-nowrap gap-6 md:gap-12 pt-6 border-t border-white/[0.08] reveal-fade-in"
           >
             {[
               ["120k+", "Customers"],
@@ -195,6 +195,13 @@ export function Hero() {
           max-height: 100% !important;
           object-fit: contain !important;
           margin-bottom: 0;
+        }
+
+        @media (min-width: 768px) {
+          .hero-product-premium {
+            height: 100% !important;
+            object-fit: cover !important;
+          }
         }
 
         @keyframes heroGlow1 {

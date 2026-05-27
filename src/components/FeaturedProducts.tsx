@@ -216,9 +216,9 @@ export function FeaturedProducts() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} index={i} />)
+          ? Array.from({ length: 3 }).map((_, i) => <ProductCardSkeleton key={i} index={i} />)
           : filteredProducts?.map((p, i) => (
               <ProductCard
                 key={p.id}
@@ -276,15 +276,17 @@ function ProductCardSkeleton({ index }: { index: number }) {
       <div className="pcard__float-zone">
         <Skeleton className="w-full h-full bg-white/[0.03]" />
       </div>
-      <div className="pcard__body">
+      <div className="pcard__body flex-1 flex flex-col justify-between">
         <div className="pcard__sep" style={{ transform: "scaleX(1)" }} />
-        <div className="flex items-start justify-between gap-3 pt-5 pb-5 px-5">
-          <div className="space-y-2 flex-1">
+        <div className="flex-1 flex flex-col justify-between p-5 pt-4">
+          <div className="space-y-2 mb-4">
             <Skeleton className="h-4 w-3/4 bg-white/10" />
-            <Skeleton className="h-4 w-1/3 bg-white/10" />
           </div>
-          <div className="pcard__cart opacity-50 pointer-events-none">
-            <ShoppingBag className="h-3.5 w-3.5" />
+          <div className="flex items-center justify-between gap-3 mt-auto">
+            <Skeleton className="h-4 w-1/3 bg-white/10" />
+            <div className="pcard__cart opacity-50 pointer-events-none">
+              <ShoppingBag className="h-3.5 w-3.5" />
+            </div>
           </div>
         </div>
       </div>
@@ -366,43 +368,43 @@ function ProductCard({ product: p, index }: ProductCardProps) {
         </div>
       </div>
 
-      <div className="pcard__body">
+      <div className="pcard__body flex-1 flex flex-col justify-between">
         <div className="pcard__sep" />
 
-        <div className="flex items-start justify-between gap-3 pt-5 pb-5 px-5">
-          <div>
-            <p className="pcard__name">{p.name}</p>
+        <div className="flex-1 flex flex-col justify-between p-5 pt-4">
+          <p className="pcard__name mb-4">{p.name}</p>
+          <div className="flex items-center justify-between gap-3 mt-auto">
             <p className="pcard__price">₹{formatPrice(p.price)}</p>
+            <button
+              ref={cartBtn.ref}
+              className={`pcard__cart ${adding ? "opacity-50 pointer-events-none" : ""}`}
+              aria-label="Add to cart"
+              disabled={adding}
+              onPointerMove={cartBtn.onPointerMove}
+              onPointerLeave={cartBtn.onPointerLeave}
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (adding) return;
+                setAdding(true);
+                try {
+                  await addToCart({
+                    productId: p.id,
+                    name: p.name,
+                    price: typeof p.price === "number" ? p.price : parseFloat(String(p.price)) || 0,
+                    image: p.img,
+                  });
+                } finally {
+                  setAdding(false);
+                }
+              }}
+            >
+              {adding ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ShoppingBag className="h-3.5 w-3.5" />
+              )}
+            </button>
           </div>
-          <button
-            ref={cartBtn.ref}
-            className={`pcard__cart ${adding ? "opacity-50 pointer-events-none" : ""}`}
-            aria-label="Add to cart"
-            disabled={adding}
-            onPointerMove={cartBtn.onPointerMove}
-            onPointerLeave={cartBtn.onPointerLeave}
-            onClick={async (e) => {
-              e.stopPropagation();
-              if (adding) return;
-              setAdding(true);
-              try {
-                await addToCart({
-                  productId: p.id,
-                  name: p.name,
-                  price: typeof p.price === "number" ? p.price : parseFloat(String(p.price)) || 0,
-                  image: p.img,
-                });
-              } finally {
-                setAdding(false);
-              }
-            }}
-          >
-            {adding ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <ShoppingBag className="h-3.5 w-3.5" />
-            )}
-          </button>
         </div>
       </div>
     </article>
@@ -431,6 +433,7 @@ const STYLES = `
       box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
       border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform;
+    height: 100%;
   }
 
   .pcard__light {
@@ -475,7 +478,7 @@ const STYLES = `
 
   .pcard__float-zone {
     position: relative;
-    height: clamp(250px, 22vw, 300px);
+    height: 220px;
     overflow: hidden;
     z-index: 2;
     transform: translateZ(18px);
@@ -593,6 +596,9 @@ const STYLES = `
     border-radius: 0 0 22px 22px;
     background: linear-gradient(180deg, rgba(255,255,255,0.025) 0%, transparent 100%);
     transform: translateZ(14px);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0%;
   }
 
   .pcard__sep {
