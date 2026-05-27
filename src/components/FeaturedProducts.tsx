@@ -1,37 +1,182 @@
-import { useRef } from "react";
-import { ShoppingBag, ArrowUpRight, Sparkles } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { ShoppingBag, ArrowUpRight, Sparkles, Search, Loader2 } from "lucide-react";
 import { usePremiumTilt, useScrollReveal, useMagnetic } from "@/hooks/use-premium-interactions";
+import { useCart } from "@/hooks/use-cart";
+import { useQuery } from "@tanstack/react-query";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import p1 from "@/assets/product-1.jpg";
 import p2 from "@/assets/product-2.jpg";
 import p3 from "@/assets/product-3.jpg";
 import p4 from "@/assets/product-4.jpg";
 
-const products = [
-  { name: "Aurora Headphones", price: 349, img: p1, tag: "New", accent: "#22d3ee", accentRgb: "34,211,238" },
-  { name: "Pulse Smartwatch", price: 289, img: p2, tag: "Hot", accent: "#a78bfa", accentRgb: "167,139,250" },
-  { name: "Halo Charging Pad", price: 79, img: p3, tag: null, accent: "#34d399", accentRgb: "52,211,153" },
-  { name: "Echo Pro Buds", price: 199, img: p4, tag: "Limited", accent: "#fb923c", accentRgb: "251,146,60" },
+const localImages: Record<string, string> = {
+  "product-1.jpg": p1,
+  "product-2.jpg": p2,
+  "product-3.jpg": p3,
+  "product-4.jpg": p4,
+  "/src/assets/product-1.jpg": p1,
+  "/src/assets/product-2.jpg": p2,
+  "/src/assets/product-3.jpg": p3,
+  "/src/assets/product-4.jpg": p4,
+  "/assets/product-1.jpg": p1,
+  "/assets/product-2.jpg": p2,
+  "/assets/product-3.jpg": p3,
+  "/assets/product-4.jpg": p4,
+  "/product-1.jpg": p1,
+  "/product-2.jpg": p2,
+  "/product-3.jpg": p3,
+  "/product-4.jpg": p4,
+};
+
+const FALLBACKS = {
+  earbuds:
+    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80",
+  charger:
+    "https://images.unsplash.com/photo-1622445262465-2481c4574875?w=600&auto=format&fit=crop&q=80",
+  vacuum:
+    "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&auto=format&fit=crop&q=80",
+  default:
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
+};
+
+export function getProductSpecificFallback(productName?: string): string {
+  if (!productName) return FALLBACKS.default;
+  const nameLower = productName.toLowerCase();
+
+  if (
+    nameLower.includes("earbud") ||
+    nameLower.includes("earbuds") ||
+    nameLower.includes("buds") ||
+    nameLower.includes("headphone") ||
+    nameLower.includes("audio")
+  ) {
+    return FALLBACKS.earbuds;
+  }
+  if (
+    nameLower.includes("charging pad") ||
+    nameLower.includes("charger") ||
+    nameLower.includes("pad") ||
+    nameLower.includes("charging") ||
+    nameLower.includes("power bank")
+  ) {
+    return FALLBACKS.charger;
+  }
+  if (
+    nameLower.includes("vacuum") ||
+    nameLower.includes("cleaner") ||
+    nameLower.includes("sweep")
+  ) {
+    return FALLBACKS.vacuum;
+  }
+  return FALLBACKS.default;
+}
+
+export function resolveProductImage(path: string | undefined, productName?: string): string {
+  const fallback = getProductSpecificFallback(productName);
+
+  if (!path || path.trim() === "") {
+    return fallback;
+  }
+
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+
+  const cleaned = path.trim();
+  if (localImages[cleaned]) {
+    return localImages[cleaned];
+  }
+
+  const filename = cleaned.split("/").pop();
+  if (filename && localImages[filename]) {
+    return localImages[filename];
+  }
+
+  if (path.startsWith("/")) {
+    return path;
+  }
+
+  return fallback;
+}
+
+const formatPrice = (price: number | string) => {
+  const num = typeof price === "number" ? price : parseFloat(String(price));
+  if (isNaN(num)) return String(price);
+  return new Intl.NumberFormat("en-IN").format(num);
+};
+
+interface FirestoreProduct {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  tag?: string | null;
+  accent?: string;
+  accentRgb?: string;
+}
+
+const ACCENT_PALETTES = [
+  { accent: "#22d3ee", accentRgb: "34,211,238" }, // Cyan
+  { accent: "#a78bfa", accentRgb: "167,139,250" }, // Violet
+  { accent: "#34d399", accentRgb: "52,211,153" }, // Emerald
+  { accent: "#fb923c", accentRgb: "251,146,60" }, // Orange
 ];
 
 export function FeaturedProducts() {
   const headingRef = useRef<HTMLDivElement>(null);
   useScrollReveal(headingRef, 0);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: dbProducts, isLoading } = useQuery<FirestoreProduct[]>({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const querySnapshot = await getDocs(collection(db, "products"));
+      return querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || "",
+          price: data.price ?? 0,
+          image: data.image || "",
+          tag: data.tag || null,
+          accent: data.accent,
+          accentRgb: data.accentRgb,
+        };
+      });
+    },
+  });
+
+  const filteredProducts = dbProducts?.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
-    <section id="shop" className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-16 sm:px-6 md:py-20">
+    <section
+      id="shop"
+      className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-16 sm:px-6 md:py-20"
+    >
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 left-1/3 w-[600px] h-[600px] rounded-full bg-violet-600/[0.04] blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-cyan-500/[0.03] blur-[100px]" />
       </div>
 
-      <div ref={headingRef} className="mb-12 flex items-end justify-between gap-6 md:mb-16 reveal-fade-in">
+      <div
+        ref={headingRef}
+        className="mb-12 flex items-end justify-between gap-6 md:mb-16 reveal-fade-in"
+      >
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.03] px-3 py-1.5 backdrop-blur-sm">
             <Sparkles className="h-3 w-3 text-violet-400" />
-            <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/50">Featured Collection</span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/50">
+              Featured Collection
+            </span>
           </div>
           <h2 className="font-display text-4xl font-bold tracking-tight text-white/90 leading-[1.05] sm:text-5xl md:text-6xl">
-            Engineered<br />
+            Engineered
+            <br />
             <span className="bg-gradient-to-r from-violet-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent">
               to stand out.
             </span>
@@ -46,10 +191,67 @@ export function FeaturedProducts() {
         </a>
       </div>
 
+      {/* Premium Search Bar */}
+      <div
+        className="mb-10 max-w-md reveal-fade-in"
+        style={{ "--reveal-delay": "100ms" } as React.CSSProperties}
+      >
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+          <input
+            type="text"
+            placeholder="Search products by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-violet-500/40 text-white rounded-xl placeholder:text-white/20 h-10 pl-10 pr-10 text-xs tracking-wide focus:outline-none transition-all duration-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-white/40 hover:text-white/80 transition-colors duration-200 px-1 cursor-pointer focus:outline-none"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-        {products.map((p, i) => (
-          <ProductCard key={p.name} product={p} index={i} />
-        ))}
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} index={i} />)
+          : filteredProducts?.map((p, i) => (
+              <ProductCard
+                key={p.id}
+                product={{
+                  id: p.id,
+                  name: p.name,
+                  price: p.price,
+                  img: p.image,
+                  tag: p.tag || null,
+                  accent: p.accent || ACCENT_PALETTES[i % ACCENT_PALETTES.length].accent,
+                  accentRgb: p.accentRgb || ACCENT_PALETTES[i % ACCENT_PALETTES.length].accentRgb,
+                }}
+                index={i}
+              />
+            ))}
+        {!isLoading && (!dbProducts || dbProducts.length === 0) && (
+          <div className="col-span-full py-12 text-center text-white/40">No products found.</div>
+        )}
+        {!isLoading &&
+          dbProducts &&
+          dbProducts.length > 0 &&
+          filteredProducts &&
+          filteredProducts.length === 0 && (
+            <div className="col-span-full py-16 text-center text-white/35 flex flex-col items-center justify-center gap-3 border border-white/[0.04] bg-white/[0.01] rounded-2xl">
+              <Search className="h-6 w-6 text-white/20" />
+              <div>
+                <p className="text-sm font-semibold text-white/60">No products match your search</p>
+                <p className="text-xs text-white/35 mt-1">
+                  Try looking for different keywords or clear the filter.
+                </p>
+              </div>
+            </div>
+          )}
       </div>
 
       <style>{STYLES}</style>
@@ -57,10 +259,68 @@ export function FeaturedProducts() {
   );
 }
 
-function ProductCard({ product: p, index }: { product: typeof products[number]; index: number }) {
-  const tilt = usePremiumTilt<HTMLArticleElement, HTMLImageElement, HTMLDivElement>({ rotateX: 6, rotateY: 8, depth: 15 });
+function ProductCardSkeleton({ index }: { index: number }) {
+  const palette = ACCENT_PALETTES[index % ACCENT_PALETTES.length];
+
+  return (
+    <div
+      className="pcard"
+      style={
+        {
+          "--accent": palette.accent,
+          "--accent-rgb": palette.accentRgb,
+        } as React.CSSProperties
+      }
+    >
+      <div className="pcard__ring" style={{ opacity: 0.3 }} />
+      <div className="pcard__float-zone">
+        <Skeleton className="w-full h-full bg-white/[0.03]" />
+      </div>
+      <div className="pcard__body">
+        <div className="pcard__sep" style={{ transform: "scaleX(1)" }} />
+        <div className="flex items-start justify-between gap-3 pt-5 pb-5 px-5">
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-3/4 bg-white/10" />
+            <Skeleton className="h-4 w-1/3 bg-white/10" />
+          </div>
+          <div className="pcard__cart opacity-50 pointer-events-none">
+            <ShoppingBag className="h-3.5 w-3.5" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ProductCardProps {
+  product: {
+    id: string;
+    name: string;
+    price: number | string;
+    img: string;
+    tag: string | null;
+    accent: string;
+    accentRgb: string;
+  };
+  index: number;
+}
+
+function ProductCard({ product: p, index }: ProductCardProps) {
+  const [adding, setAdding] = useState(false);
+  const tilt = usePremiumTilt<HTMLElement, HTMLImageElement, HTMLDivElement>({
+    rotateX: 6,
+    rotateY: 8,
+    depth: 15,
+  });
   const viewBtn = useMagnetic<HTMLButtonElement>({ strength: 3, scale: 1.01 });
   const cartBtn = useMagnetic<HTMLButtonElement>({ strength: 3, scale: 1.02 });
+  const { addToCart } = useCart();
+
+  const [imgSrc, setImgSrc] = useState(() => resolveProductImage(p.img, p.name));
+
+  useEffect(() => {
+    setImgSrc(resolveProductImage(p.img, p.name));
+  }, [p.img, p.name]);
 
   useScrollReveal(tilt.cardRef, index * 100);
 
@@ -80,13 +340,19 @@ function ProductCard({ product: p, index }: { product: typeof products[number]; 
     >
       <div ref={tilt.lightRef} className="pcard__light" />
       <div className="pcard__ring" />
- 
+
       <div className="pcard__float-zone">
-        <img ref={tilt.depthRef} src={p.img} alt={p.name} className="pcard__img" />
+        <img
+          ref={tilt.depthRef}
+          src={imgSrc}
+          alt={p.name}
+          className="pcard__img"
+          onError={() => setImgSrc(getProductSpecificFallback(p.name))}
+        />
         <div className="pcard__img-glow" />
- 
+
         {p.tag && <span className="pcard__tag">{p.tag}</span>}
- 
+
         <div className="pcard__hover-cta">
           <button
             ref={viewBtn.ref}
@@ -99,23 +365,43 @@ function ProductCard({ product: p, index }: { product: typeof products[number]; 
           </button>
         </div>
       </div>
- 
+
       <div className="pcard__body">
         <div className="pcard__sep" />
- 
-        <div className="flex items-start justify-between gap-2 pt-4 pb-3 px-4">
+
+        <div className="flex items-start justify-between gap-3 pt-5 pb-5 px-5">
           <div>
             <p className="pcard__name">{p.name}</p>
-            <p className="pcard__price">${p.price}</p>
+            <p className="pcard__price">₹{formatPrice(p.price)}</p>
           </div>
           <button
             ref={cartBtn.ref}
-            className="pcard__cart"
+            className={`pcard__cart ${adding ? "opacity-50 pointer-events-none" : ""}`}
             aria-label="Add to cart"
+            disabled={adding}
             onPointerMove={cartBtn.onPointerMove}
             onPointerLeave={cartBtn.onPointerLeave}
+            onClick={async (e) => {
+              e.stopPropagation();
+              if (adding) return;
+              setAdding(true);
+              try {
+                await addToCart({
+                  productId: p.id,
+                  name: p.name,
+                  price: typeof p.price === "number" ? p.price : parseFloat(String(p.price)) || 0,
+                  image: p.img,
+                });
+              } finally {
+                setAdding(false);
+              }
+            }}
           >
-            <ShoppingBag className="h-3.5 w-3.5" />
+            {adding ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <ShoppingBag className="h-3.5 w-3.5" />
+            )}
           </button>
         </div>
       </div>
@@ -195,6 +481,10 @@ const STYLES = `
     transform: translateZ(18px);
     transform-style: preserve-3d;
     will-change: transform;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
   }
 
   .pcard:nth-child(1) .pcard__float-zone { animation: cardFloat 12s ease-in-out infinite; }
@@ -218,9 +508,16 @@ const STYLES = `
     max-width: none;
     object-fit: cover;
     object-position: center;
-    transform: translate3d(0px, 0px, 24px) scale(1.02);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translate3d(0px, 0px, 24px) scale(1);
     transform-origin: center;
     will-change: transform;
+  }
+
+  .pcard:hover .pcard__img {
+    transform: translate3d(0px, 0px, 32px) scale(1.08);
   }
 
   .pcard__img-glow {
@@ -316,21 +613,19 @@ const STYLES = `
   .pcard:hover .pcard__sep { transform: scaleX(1); }
 
   .pcard__name {
-    font-size: 13.5px;
+    font-size: 14.5px;
     font-weight: 600;
-    color: rgba(255,255,255,0.82);
-    letter-spacing: -0.01em;
+    color: rgba(255, 255, 255, 0.92);
+    letter-spacing: -0.015em;
     line-height: 1.3;
   }
 
   .pcard__price {
-    margin-top: 3px;
-    font-size: 13px;
-    font-weight: 700;
-    background: linear-gradient(90deg, var(--accent), rgba(255,255,255,0.55));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin-top: 5px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.01em;
   }
 
   .pcard__cart {

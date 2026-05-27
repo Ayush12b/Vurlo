@@ -55,8 +55,7 @@ export function Hero() {
             <span
               className="block"
               style={{
-                background:
-                  "linear-gradient(110deg, #a78bfa 0%, #6366f1 50%, #22d3ee 100%)",
+                background: "linear-gradient(110deg, #a78bfa 0%, #6366f1 50%, #22d3ee 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -69,8 +68,8 @@ export function Hero() {
             ref={subtextRef}
             className="text-lg leading-relaxed text-white/60 max-w-md font-light tracking-wide reveal-fade-in"
           >
-            Premium tech. Clean design. Future-ready essentials,
-            engineered for the people building tomorrow.
+            Premium tech. Clean design. Future-ready essentials, engineered for the people building
+            tomorrow.
           </p>
 
           <div ref={ctasRef} className="flex items-center gap-6 pt-4 reveal-fade-in">
@@ -80,8 +79,7 @@ export function Hero() {
               className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-9 py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
-                boxShadow:
-                  "0 0 0 1px rgba(139,92,246,0.3), 0 10px 40px rgba(109,40,217,0.5)",
+                boxShadow: "0 0 0 1px rgba(139,92,246,0.3), 0 10px 40px rgba(109,40,217,0.5)",
               }}
               onPointerMove={primaryCta.onPointerMove}
               onPointerLeave={primaryCta.onPointerLeave}
@@ -102,7 +100,10 @@ export function Hero() {
             </a>
           </div>
 
-          <div ref={statsRef} className="flex gap-12 pt-6 border-t border-white/[0.08] reveal-fade-in">
+          <div
+            ref={statsRef}
+            className="flex gap-12 pt-6 border-t border-white/[0.08] reveal-fade-in"
+          >
             {[
               ["120k+", "Customers"],
               ["4.9 stars", "Rated"],
@@ -116,7 +117,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative flex justify-center items-center">
+        <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden">
           <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
 
           <img
@@ -158,9 +159,38 @@ export function Hero() {
           will-change: transform;
         }
 
+        .hero-img-wrapper {
+          position: relative;
+          overflow: hidden;
+          width: 100%;
+          height: clamp(320px, 45vw, 550px);
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          margin-bottom: 0;
+          padding-bottom: 0;
+        }
+
+        .hero-img-wrapper::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 120px;
+          background: linear-gradient(to top, #050507 0%, transparent 100%);
+          pointer-events: none;
+          z-index: 2;
+        }
+
         .hero-product-premium {
           animation: premiumFloat 14s ease-in-out infinite;
           will-change: transform;
+          display: block;
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          margin-bottom: 0;
         }
 
         @keyframes heroGlow1 {

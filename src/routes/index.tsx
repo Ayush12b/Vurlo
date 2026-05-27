@@ -13,14 +13,17 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "VURLO - Built for What's Next" },
-      { name: "description", content: "Premium tech. Clean design. Future-ready essentials from VURLO." },
+      {
+        name: "description",
+        content: "Premium tech. Clean design. Future-ready essentials from VURLO.",
+      },
     ],
   }),
 });
 
 function Index() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-background text-foreground">
+    <main className="min-h-screen overflow-x-hidden bg-background text-foreground page-transition">
       <Navbar />
       <Hero />
       <FeaturedProducts />

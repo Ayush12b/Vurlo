@@ -1,18 +1,66 @@
-import { Search, ShoppingCart, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Search, ShoppingCart, Menu, X, LogOut, User as UserIcon, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth, DEFAULT_AVATAR } from "@/hooks/use-auth";
+import { AuthModal } from "@/components/AuthModal";
+import { useCart } from "@/hooks/use-cart";
+import { resolveProductImage } from "@/components/FeaturedProducts";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const links = ["Home", "Shop", "Categories", "Contact"];
 
 export function Navbar() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { user, profileName, profilePhoto, authModalOpen, setAuthModalOpen, logout, loading } =
+    useAuth();
+  const { cartItems, cartCount, updateQuantity, removeFromCart, placeOrder } = useCart();
+  const [animateCart, setAnimateCart] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
+
+  const handleCheckout = async () => {
+    setPlacingOrder(true);
+    try {
+      const orderId = await placeOrder();
+      setCartOpen(false);
+      navigate({ to: "/order-success", search: { orderId } });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
+
+  useEffect(() => {
+    if (cartCount > 0) {
+      setAnimateCart(true);
+      const timer = setTimeout(() => setAnimateCart(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [cartCount]);
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
 
         .vurlo-navbar {
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'Inter', sans-serif;
         }
 
         .vurlo-logo {
@@ -93,6 +141,38 @@ export function Navbar() {
           font-family: 'Syne', sans-serif;
         }
 
+        @keyframes badge-pop {
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.35);
+            box-shadow: 0 0 12px rgba(138, 46, 255, 0.6);
+            background: linear-gradient(135deg, #a78bfa, #8a2eff);
+            color: #ffffff;
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+
+        .animate-badge-pop {
+          animation: badge-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes cart-bounce {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.12) translateY(-2px);
+          }
+        }
+
+        .animate-cart-bounce {
+          animation: cart-bounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
         .vurlo-logo-text {
           font-family: 'Syne', sans-serif;
           font-weight: 800;
@@ -142,38 +222,233 @@ export function Navbar() {
         <div className="vurlo-inner">
           <header className="vurlo-glass">
             <nav className="flex items-center justify-between px-6 h-[60px]">
-
               {/* Logo */}
-              <a href="#" className="vurlo-logo-text">
-                VURLO<span className="vurlo-logo-dot" />
-              </a>
+              <Link to="/" className="vurlo-logo-text">
+                VURLO
+                <span className="vurlo-logo-dot" />
+              </Link>
 
               {/* Links */}
               <ul className="desktop items-center gap-10">
                 {links.map((l) => (
                   <li key={l}>
-                    <a href={`#${l.toLowerCase()}`} className="vurlo-nav-link">
-                      {l}
-                    </a>
+                    {l === "Contact" ? (
+                      <Link to="/contact" className="vurlo-nav-link">
+                        {l}
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/"
+                        hash={l === "Home" ? undefined : l.toLowerCase()}
+                        className="vurlo-nav-link"
+                      >
+                        {l}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
 
               {/* Right */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <button className="vurlo-icon-btn">
                   <Search size={16} />
                 </button>
 
-                <button className="vurlo-icon-btn relative">
-                  <ShoppingCart size={16} />
-                  <span className="vurlo-cart-badge">2</span>
-                </button>
+                <Sheet open={cartOpen} onOpenChange={setCartOpen}>
+                  <SheetTrigger asChild>
+                    <button
+                      className={`vurlo-icon-btn relative cursor-pointer focus:outline-none ${animateCart ? "animate-cart-bounce" : ""}`}
+                    >
+                      <ShoppingCart size={16} />
+                      {cartCount > 0 && (
+                        <span
+                          className={`vurlo-cart-badge ${animateCart ? "animate-badge-pop" : ""}`}
+                        >
+                          {cartCount}
+                        </span>
+                      )}
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-md bg-black/95 border-l border-white/[0.08] text-white p-6 shadow-[-10px_0_40px_rgba(0,0,0,0.8),0_0_20px_rgba(138,46,255,0.08)] backdrop-blur-xl flex flex-col h-full animate-in slide-in-from-right duration-300">
+                    <SheetHeader className="pb-4 border-b border-white/[0.08]">
+                      <SheetTitle className="text-xl font-bold tracking-tight text-white/90">
+                        Shopping Bag
+                      </SheetTitle>
+                      <SheetDescription className="text-white/50 text-xs">
+                        Review your selected tech essentials
+                      </SheetDescription>
+                    </SheetHeader>
 
-                <button
-                  className="vurlo-icon-btn mobile"
-                  onClick={() => setOpen(!open)}
-                >
+                    {/* Cart Items List */}
+                    <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+                      {cartItems.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-4 animate-in fade-in duration-300">
+                          <div className="w-12 h-12 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/30">
+                            <ShoppingCart size={20} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-white/70">
+                              Your cart is empty
+                            </p>
+                            <p className="text-xs text-white/40 mt-1">
+                              Add items from the collection to get started.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setCartOpen(false)}
+                            className="inline-flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/20 px-6 py-2 text-xs font-semibold text-white/80 hover:text-white transition duration-200 cursor-pointer focus:outline-none"
+                          >
+                            Continue Shopping
+                          </button>
+                        </div>
+                      ) : (
+                        cartItems.map((item) => (
+                          <div
+                            key={item.productId}
+                            className="flex items-center gap-3.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition duration-200"
+                          >
+                            <img
+                              src={resolveProductImage(item.image, item.name)}
+                              alt={item.name}
+                              className="w-12 h-12 rounded-lg object-cover bg-white/[0.03] border border-white/[0.06]"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = resolveProductImage(
+                                  "",
+                                  item.name,
+                                );
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-white/90 truncate leading-snug">
+                                {item.name}
+                              </p>
+                              <p className="text-xs font-bold text-violet-400 mt-1">
+                                ₹{item.price.toLocaleString("en-IN")}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {/* Quantity Controls */}
+                              <div className="flex items-center border border-white/[0.08] bg-white/[0.02] rounded-lg overflow-hidden h-7">
+                                <button
+                                  onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                                  className="w-6 h-full flex items-center justify-center hover:bg-white/[0.06] transition text-white/60 hover:text-white text-xs cursor-pointer focus:outline-none"
+                                >
+                                  -
+                                </button>
+                                <span className="w-5 text-center text-[10px] font-bold text-white/80 select-none">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                                  className="w-6 h-full flex items-center justify-center hover:bg-white/[0.06] transition text-white/60 hover:text-white text-xs cursor-pointer focus:outline-none"
+                                >
+                                  +
+                                </button>
+                              </div>
+                              {/* Remove Button */}
+                              <button
+                                onClick={() => removeFromCart(item.productId)}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center border border-white/[0.06] hover:border-red-500/20 hover:bg-red-500/10 text-white/40 hover:text-red-400 transition cursor-pointer focus:outline-none"
+                                aria-label="Remove item"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Cart Footer */}
+                    {cartItems.length > 0 && (
+                      <div className="border-t border-white/[0.08] pt-4 mt-auto space-y-4">
+                        <div className="flex justify-between items-center px-1">
+                          <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                            Subtotal
+                          </span>
+                          <span className="text-lg font-bold text-white/90">
+                            ₹
+                            {cartItems
+                              .reduce((acc, item) => acc + item.price * item.quantity, 0)
+                              .toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                        <button
+                          onClick={handleCheckout}
+                          disabled={placingOrder}
+                          className="w-full text-xs font-bold uppercase tracking-wider h-11 rounded-xl text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] flex items-center justify-center gap-2"
+                          style={{
+                            background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
+                          }}
+                        >
+                          {placingOrder ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-white" />
+                          ) : (
+                            "Secure Checkout"
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </SheetContent>
+                </Sheet>
+
+                {/* Auth Button Desktop */}
+                <div className="hidden md:flex items-center ml-2">
+                  {loading ? (
+                    <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-white/40" />
+                    </div>
+                  ) : user ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex items-center justify-center rounded-full p-0.5 border border-white/10 hover:border-violet-500/30 transition-all duration-300 shadow-[0_0_10px_rgba(138,46,255,0.08)] hover:shadow-[0_0_15px_rgba(138,46,255,0.25)] scale-100 hover:scale-[1.05] cursor-pointer focus:outline-none">
+                          <img
+                            src={profilePhoto || DEFAULT_AVATAR}
+                            alt={profileName || "User"}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56 bg-black/95 border border-white/[0.08] text-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(138,46,255,0.1)] p-1.5 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="px-2.5 py-2">
+                          <p className="text-xs font-semibold text-white/90 truncate leading-tight">
+                            {profileName || "User"}
+                          </p>
+                        </div>
+                        <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
+                        <DropdownMenuItem
+                          asChild
+                          className="text-xs font-medium text-white/70 hover:text-white hover:bg-white/[0.04] focus:bg-white/[0.04] focus:text-white rounded-lg px-2.5 py-2 cursor-pointer transition-colors duration-150"
+                        >
+                          <Link to="/profile">Profile</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="text-xs font-medium text-white/70 hover:text-white hover:bg-white/[0.04] focus:bg-white/[0.04] focus:text-white rounded-lg px-2.5 py-2 cursor-pointer transition-colors duration-150"
+                        >
+                          <Link to="/orders">My Orders</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
+                        <DropdownMenuItem
+                          onClick={logout}
+                          className="text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:bg-red-500/10 focus:text-red-300 rounded-lg px-2.5 py-2 cursor-pointer transition-colors duration-150"
+                        >
+                          Logout
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <button
+                      onClick={() => setAuthModalOpen(true)}
+                      className="px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider text-white/90 border border-white/[0.08] bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06] transition duration-300 cursor-pointer"
+                    >
+                      Login
+                    </button>
+                  )}
+                </div>
+
+                <button className="vurlo-icon-btn mobile" onClick={() => setOpen(!open)}>
                   {open ? <X size={16} /> : <Menu size={16} />}
                 </button>
               </div>
@@ -182,21 +457,93 @@ export function Navbar() {
 
           {/* Mobile menu */}
           {open && (
-            <div className="mobile-menu px-6 py-4 mobile">
-              {links.map((l) => (
-                <a
-                  key={l}
-                  href={`#${l.toLowerCase()}`}
-                  className="block py-3 text-white/60"
-                  onClick={() => setOpen(false)}
-                >
-                  {l}
-                </a>
-              ))}
+            <div className="mobile-menu px-6 py-4 mobile flex-col gap-1 border border-white/[0.06] border-t-0 rounded-b-2xl">
+              {links.map((l) =>
+                l === "Contact" ? (
+                  <Link
+                    key={l}
+                    to="/contact"
+                    className="block py-3 text-white/60 hover:text-white transition duration-200"
+                    onClick={() => setOpen(false)}
+                  >
+                    {l}
+                  </Link>
+                ) : (
+                  <Link
+                    key={l}
+                    to="/"
+                    hash={l === "Home" ? undefined : l.toLowerCase()}
+                    className="block py-3 text-white/60 hover:text-white transition duration-200"
+                    onClick={() => setOpen(false)}
+                  >
+                    {l}
+                  </Link>
+                ),
+              )}
+
+              {/* Auth Mobile Action */}
+              <div className="border-t border-white/[0.05] mt-2 pt-3">
+                {loading ? (
+                  <div className="flex items-center gap-2.5 px-1 py-2">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-white/40" />
+                    <span className="text-xs text-white/40">Resolving session...</span>
+                  </div>
+                ) : user ? (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-2.5 pb-1">
+                      <img
+                        src={profilePhoto || DEFAULT_AVATAR}
+                        alt={profileName || "User"}
+                        className="w-7 h-7 rounded-full border border-white/10 object-cover"
+                      />
+                      <div>
+                        <div className="text-xs font-semibold text-white/80 truncate">
+                          {profileName || "User"}
+                        </div>
+                      </div>
+                    </div>
+                    <Link
+                      to="/profile"
+                      className="block text-xs font-medium text-white/60 hover:text-white py-1.5 transition duration-200"
+                      onClick={() => setOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      to="/orders"
+                      className="block text-xs font-medium text-white/60 hover:text-white py-1.5 transition duration-200"
+                      onClick={() => setOpen(false)}
+                    >
+                      My Orders
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setOpen(false);
+                      }}
+                      className="block w-full text-left py-2 text-red-400 font-semibold text-xs uppercase tracking-wider cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setAuthModalOpen(true);
+                      setOpen(false);
+                    }}
+                    className="block w-full text-left py-2 text-white/90 font-semibold text-xs uppercase tracking-wider cursor-pointer"
+                  >
+                    Login / Sign Up
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </>
   );
 }

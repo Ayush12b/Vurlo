@@ -16,7 +16,11 @@ export function Categories() {
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {cats.map(({ name, count, icon: Icon }) => (
-          <a key={name} href="#" className="card-glow-hover group rounded-2xl border border-border bg-card p-8">
+          <a
+            key={name}
+            href="#"
+            className="card-glow-hover group rounded-2xl border border-border bg-card p-8"
+          >
             <div className="h-12 w-12 rounded-xl bg-background grid place-items-center mb-6 group-hover:bg-gradient-brand transition-colors">
               <Icon className="h-6 w-6" />
             </div>

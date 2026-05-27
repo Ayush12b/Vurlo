@@ -1,9 +1,21 @@
 import { Star } from "lucide-react";
 
 const reviews = [
-  { name: "Alex Chen", role: "Product Designer", text: "VURLO's build quality is unreal. Feels like holding the future." },
-  { name: "Mira Patel", role: "Engineer", text: "Clean, fast, premium. Easily the best tech purchase this year." },
-  { name: "Jordan Lee", role: "Creator", text: "The attention to detail is on another level. Worth every cent." },
+  {
+    name: "Alex Chen",
+    role: "Product Designer",
+    text: "VURLO's build quality is unreal. Feels like holding the future.",
+  },
+  {
+    name: "Mira Patel",
+    role: "Engineer",
+    text: "Clean, fast, premium. Easily the best tech purchase this year.",
+  },
+  {
+    name: "Jordan Lee",
+    role: "Creator",
+    text: "The attention to detail is on another level. Worth every cent.",
+  },
 ];
 
 export function Testimonials() {

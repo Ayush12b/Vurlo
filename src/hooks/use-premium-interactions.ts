@@ -33,7 +33,7 @@ export function usePremiumTilt<
   const lightRef = useRef<TLight>(null);
   const rectRef = useRef<DOMRect | null>(null);
   const raf = useRef<number | null>(null);
-  
+
   const rotateXLimit = options?.rotateX ?? 6;
   const rotateYLimit = options?.rotateY ?? 8;
   const depth = options?.depth ?? 15;
@@ -79,17 +79,33 @@ export function usePremiumTilt<
     const lerpAmount = 0.08; // smooth floaty delay
     current.current.rotateX = lerp(current.current.rotateX, target.current.rotateX, lerpAmount);
     current.current.rotateY = lerp(current.current.rotateY, target.current.rotateY, lerpAmount);
-    current.current.cardScale = lerp(current.current.cardScale, target.current.cardScale, lerpAmount);
+    current.current.cardScale = lerp(
+      current.current.cardScale,
+      target.current.cardScale,
+      lerpAmount,
+    );
     current.current.imageX = lerp(current.current.imageX, target.current.imageX, lerpAmount);
     current.current.imageY = lerp(current.current.imageY, target.current.imageY, lerpAmount);
     current.current.imageZ = lerp(current.current.imageZ, target.current.imageZ, lerpAmount);
-    current.current.imageScale = lerp(current.current.imageScale, target.current.imageScale, lerpAmount);
+    current.current.imageScale = lerp(
+      current.current.imageScale,
+      target.current.imageScale,
+      lerpAmount,
+    );
     current.current.lightX = lerp(current.current.lightX, target.current.lightX, lerpAmount);
     current.current.lightY = lerp(current.current.lightY, target.current.lightY, lerpAmount);
-    current.current.lightOpacity = lerp(current.current.lightOpacity, target.current.lightOpacity, lerpAmount);
+    current.current.lightOpacity = lerp(
+      current.current.lightOpacity,
+      target.current.lightOpacity,
+      lerpAmount,
+    );
     current.current.shadowX = lerp(current.current.shadowX, target.current.shadowX, lerpAmount);
     current.current.shadowY = lerp(current.current.shadowY, target.current.shadowY, lerpAmount);
-    current.current.imgLightOpacity = lerp(current.current.imgLightOpacity, target.current.imgLightOpacity, lerpAmount);
+    current.current.imgLightOpacity = lerp(
+      current.current.imgLightOpacity,
+      target.current.imgLightOpacity,
+      lerpAmount,
+    );
 
     card.style.transform = `perspective(1000px) rotateX(${current.current.rotateX.toFixed(2)}deg) rotateY(${current.current.rotateY.toFixed(2)}deg) scale(${current.current.cardScale.toFixed(4)})`;
     card.style.setProperty("--shadow-x", `${current.current.shadowX.toFixed(2)}px`);
@@ -132,26 +148,29 @@ export function usePremiumTilt<
     }
   }, [render]);
 
-  const onPointerEnter = useCallback((event: ReactPointerEvent<TCard>) => {
-    if (event.pointerType === "touch") return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    rectRef.current = rect;
-    event.currentTarget.style.transition = "none";
-    if (depthRef.current) depthRef.current.style.transition = "none";
-    
-    // Set initial enter coordinates immediately to avoid jumps/snapping
-    const enterX = event.clientX - rect.left;
-    const enterY = event.clientY - rect.top;
-    current.current.lightX = enterX;
-    current.current.lightY = enterY;
-    target.current.lightX = enterX;
-    target.current.lightY = enterY;
-    target.current.lightOpacity = 1;
-    target.current.cardScale = 1.015;
-    target.current.imgLightOpacity = 0.7;
-    
-    start();
-  }, [start]);
+  const onPointerEnter = useCallback(
+    (event: ReactPointerEvent<TCard>) => {
+      if (event.pointerType === "touch") return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      rectRef.current = rect;
+      event.currentTarget.style.transition = "none";
+      if (depthRef.current) depthRef.current.style.transition = "none";
+
+      // Set initial enter coordinates immediately to avoid jumps/snapping
+      const enterX = event.clientX - rect.left;
+      const enterY = event.clientY - rect.top;
+      current.current.lightX = enterX;
+      current.current.lightY = enterY;
+      target.current.lightX = enterX;
+      target.current.lightY = enterY;
+      target.current.lightOpacity = 1;
+      target.current.cardScale = 1.03;
+      target.current.imgLightOpacity = 0.7;
+
+      start();
+    },
+    [start],
+  );
 
   const onPointerMove = useCallback(
     (event: ReactPointerEvent<TCard>) => {
@@ -166,16 +185,16 @@ export function usePremiumTilt<
 
       target.current.rotateX = (0.5 - y) * rotateXLimit;
       target.current.rotateY = (x - 0.5) * rotateYLimit;
-      target.current.cardScale = 1.015;
+      target.current.cardScale = 1.03;
       target.current.imageX = (x - 0.5) * depth;
       target.current.imageY = (y - 0.5) * depth;
       target.current.imageZ = 30;
-      target.current.imageScale = 1.03;
-      
+      target.current.imageScale = 1.08;
+
       target.current.lightX = mouseX;
       target.current.lightY = mouseY;
       target.current.lightOpacity = 1;
-      
+
       target.current.shadowX = -(x - 0.5) * 16;
       target.current.shadowY = 30 - (y - 0.5) * 16;
       target.current.imgLightOpacity = 0.7 + (0.5 - y) * 0.3;
@@ -185,25 +204,28 @@ export function usePremiumTilt<
     [depth, rotateXLimit, rotateYLimit, start],
   );
 
-  const onPointerLeave = useCallback((event: ReactPointerEvent<TCard>) => {
-    rectRef.current = null;
-    target.current = {
-      rotateX: 0,
-      rotateY: 0,
-      cardScale: 1,
-      imageX: 0,
-      imageY: 0,
-      imageZ: 24,
-      imageScale: 1.01,
-      lightX: current.current.lightX,
-      lightY: current.current.lightY,
-      lightOpacity: 0,
-      shadowX: 0,
-      shadowY: 30,
-      imgLightOpacity: 0,
-    };
-    start();
-  }, [start]);
+  const onPointerLeave = useCallback(
+    (event: ReactPointerEvent<TCard>) => {
+      rectRef.current = null;
+      target.current = {
+        rotateX: 0,
+        rotateY: 0,
+        cardScale: 1,
+        imageX: 0,
+        imageY: 0,
+        imageZ: 24,
+        imageScale: 1.01,
+        lightX: current.current.lightX,
+        lightY: current.current.lightY,
+        lightOpacity: 0,
+        shadowX: 0,
+        shadowY: 30,
+        imgLightOpacity: 0,
+      };
+      start();
+    },
+    [start],
+  );
 
   return { cardRef, depthRef, lightRef, onPointerEnter, onPointerMove, onPointerLeave };
 }
@@ -273,7 +295,7 @@ export function useMagnetic<TElement extends HTMLElement>(options?: {
 }
 
 export function useScrollReveal<TElement extends HTMLElement>(
-  ref: RefObject<TElement>,
+  ref: RefObject<TElement | null>,
   delay = 0,
 ) {
   useEffect(() => {
@@ -319,7 +341,10 @@ export function useHeroParallax<TElement extends HTMLElement>() {
       setVar(element, "--hero-product-y", `${(y * 8).toFixed(2)}px`);
     }
 
-    if (Math.abs(current.current.x - target.current.x) > 0.002 || Math.abs(current.current.y - target.current.y) > 0.002) {
+    if (
+      Math.abs(current.current.x - target.current.x) > 0.002 ||
+      Math.abs(current.current.y - target.current.y) > 0.002
+    ) {
       raf.current = requestAnimationFrame(render);
     } else {
       raf.current = null;

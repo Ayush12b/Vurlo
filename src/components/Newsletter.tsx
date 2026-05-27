@@ -8,7 +8,10 @@ export function Newsletter() {
           <p className="mt-4 text-muted-foreground max-w-md mx-auto">
             Early access to drops, exclusive offers, and stories from the edge of tech.
           </p>
-          <form onSubmit={(e) => e.preventDefault()} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+          >
             <input
               type="email"
               required
