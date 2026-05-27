@@ -72,7 +72,10 @@ export function Hero() {
             tomorrow.
           </p>
 
-          <div ref={ctasRef} className="flex items-center gap-6 pt-4 reveal-fade-in">
+          <div
+            ref={ctasRef}
+            className="flex flex-wrap items-center gap-4 sm:gap-6 pt-4 reveal-fade-in"
+          >
             <a
               ref={primaryCta.ref}
               href="#shop"
@@ -102,7 +105,7 @@ export function Hero() {
 
           <div
             ref={statsRef}
-            className="flex gap-12 pt-6 border-t border-white/[0.08] reveal-fade-in"
+            className="flex flex-wrap gap-6 md:gap-12 pt-6 border-t border-white/[0.08] reveal-fade-in"
           >
             {[
               ["120k+", "Customers"],
@@ -188,8 +191,9 @@ export function Hero() {
           will-change: transform;
           display: block;
           width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
+          height: auto !important;
+          max-height: 100% !important;
+          object-fit: contain !important;
           margin-bottom: 0;
         }
 

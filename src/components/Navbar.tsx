@@ -448,8 +448,11 @@ export function Navbar() {
                   )}
                 </div>
 
-                <button className="vurlo-icon-btn mobile" onClick={() => setOpen(!open)}>
-                  {open ? <X size={16} /> : <Menu size={16} />}
+                <button
+                  className="vurlo-icon-btn mobile active:scale-90 transition-transform"
+                  onClick={() => setOpen(!open)}
+                >
+                  {open ? <X size={20} /> : <Menu size={20} />}
                 </button>
               </div>
             </nav>
