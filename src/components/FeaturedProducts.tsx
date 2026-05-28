@@ -42,63 +42,24 @@ const FALLBACKS = {
     "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
 };
 
-export function getProductSpecificFallback(productName?: string): string {
+function getProductSpecificFallback(productName?: string): string {
   if (!productName) return FALLBACKS.default;
   const nameLower = productName.toLowerCase();
-
-  if (
-    nameLower.includes("earbud") ||
-    nameLower.includes("earbuds") ||
-    nameLower.includes("buds") ||
-    nameLower.includes("headphone") ||
-    nameLower.includes("audio")
-  ) {
-    return FALLBACKS.earbuds;
-  }
-  if (
-    nameLower.includes("charging pad") ||
-    nameLower.includes("charger") ||
-    nameLower.includes("pad") ||
-    nameLower.includes("charging") ||
-    nameLower.includes("power bank")
-  ) {
-    return FALLBACKS.charger;
-  }
-  if (
-    nameLower.includes("vacuum") ||
-    nameLower.includes("cleaner") ||
-    nameLower.includes("sweep")
-  ) {
-    return FALLBACKS.vacuum;
-  }
+  if (nameLower.includes("earbud") || nameLower.includes("earbuds") || nameLower.includes("buds") || nameLower.includes("headphone") || nameLower.includes("audio")) return FALLBACKS.earbuds;
+  if (nameLower.includes("charging pad") || nameLower.includes("charger") || nameLower.includes("pad") || nameLower.includes("charging") || nameLower.includes("power bank")) return FALLBACKS.charger;
+  if (nameLower.includes("vacuum") || nameLower.includes("cleaner") || nameLower.includes("sweep")) return FALLBACKS.vacuum;
   return FALLBACKS.default;
 }
 
 export function resolveProductImage(path: string | undefined, productName?: string): string {
   const fallback = getProductSpecificFallback(productName);
-
-  if (!path || path.trim() === "") {
-    return fallback;
-  }
-
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
-  }
-
+  if (!path || path.trim() === "") return fallback;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
   const cleaned = path.trim();
-  if (localImages[cleaned]) {
-    return localImages[cleaned];
-  }
-
+  if (localImages[cleaned]) return localImages[cleaned];
   const filename = cleaned.split("/").pop();
-  if (filename && localImages[filename]) {
-    return localImages[filename];
-  }
-
-  if (path.startsWith("/")) {
-    return path;
-  }
-
+  if (filename && localImages[filename]) return localImages[filename];
+  if (path.startsWith("/")) return path;
   return fallback;
 }
 
@@ -106,6 +67,45 @@ const formatPrice = (price: number | string) => {
   const num = typeof price === "number" ? price : parseFloat(String(price));
   if (isNaN(num)) return String(price);
   return new Intl.NumberFormat("en-IN").format(num);
+};
+
+const IMAGE_ADJUSTMENTS: Record<string, { scale: number; objectPosition: string }> = {
+  "product-1.jpg": { scale: 1.85, objectPosition: "56% 48%" },   // headphones: push harder, shift right-center
+  "product-2.jpg": { scale: 1.60, objectPosition: "50% 58%" },   // charging pad: fill edges, anchor lower
+  "product-3.jpg": { scale: 1.20, objectPosition: "44% 56%" },   // watch: pull back, anchor lower so face shows
+  "product-4.jpg": { scale: 1.35, objectPosition: "50% 50%" },
+};
+
+const getFilename = (path: string | undefined): string => {
+  if (!path) return "";
+  const parts = path.split("/");
+  return parts[parts.length - 1] || "";
+};
+
+const getAdjustmentStyle = (path: string | undefined): React.CSSProperties => {
+  const filename = getFilename(path);
+  const adj = IMAGE_ADJUSTMENTS[filename];
+
+  const makeStyle = (s: number, pos: string): React.CSSProperties => ({
+    transform: `scale(${s})`,
+    transformOrigin: "center center",
+    objectPosition: pos,
+    objectFit: "cover" as const,
+    width: "100%",
+    height: "100%",
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+  });
+
+  if (adj) return makeStyle(adj.scale, adj.objectPosition);
+
+  const pathLower = path?.toLowerCase() || "";
+  if (pathLower.includes("1590658268037")) return makeStyle(1.85, "56% 48%");
+  if (pathLower.includes("1622445262465")) return makeStyle(1.60, "50% 58%");
+  if (pathLower.includes("1558317374"))    return makeStyle(1.20, "44% 56%");
+
+  return makeStyle(1.0, "center");
 };
 
 interface FirestoreProduct {
@@ -119,10 +119,10 @@ interface FirestoreProduct {
 }
 
 const ACCENT_PALETTES = [
-  { accent: "#22d3ee", accentRgb: "34,211,238" }, // Cyan
-  { accent: "#a78bfa", accentRgb: "167,139,250" }, // Violet
-  { accent: "#34d399", accentRgb: "52,211,153" }, // Emerald
-  { accent: "#fb923c", accentRgb: "251,146,60" }, // Orange
+  { accent: "#22d3ee", accentRgb: "34,211,238" },
+  { accent: "#a78bfa", accentRgb: "167,139,250" },
+  { accent: "#34d399", accentRgb: "52,211,153" },
+  { accent: "#fb923c", accentRgb: "251,146,60" },
 ];
 
 export function FeaturedProducts() {
@@ -264,7 +264,7 @@ function ProductCardSkeleton({ index }: { index: number }) {
 
   return (
     <div
-      className="pcard"
+      className="pcard flex flex-col h-full p-5"
       style={
         {
           "--accent": palette.accent,
@@ -273,16 +273,16 @@ function ProductCardSkeleton({ index }: { index: number }) {
       }
     >
       <div className="pcard__ring" style={{ opacity: 0.3 }} />
-      <div className="pcard__float-zone">
-        <Skeleton className="w-full h-full bg-white/[0.03]" />
+      <div className="pcard__float-zone relative w-full h-56 overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
+        <Skeleton className="absolute inset-0 w-full h-full bg-white/[0.03]" />
       </div>
-      <div className="pcard__body flex-1 flex flex-col justify-between">
-        <div className="pcard__sep" style={{ transform: "scaleX(1)" }} />
-        <div className="flex-1 flex flex-col justify-between p-5 pt-4">
+      <div className="pcard__body flex flex-col flex-1 mt-4">
+        <div className="pcard__sep mb-4" style={{ transform: "scaleX(1)" }} />
+        <div className="flex flex-col flex-1">
           <div className="space-y-2 mb-4">
             <Skeleton className="h-4 w-3/4 bg-white/10" />
           </div>
-          <div className="flex items-center justify-between gap-3 mt-auto">
+          <div className="mt-auto flex items-center justify-between">
             <Skeleton className="h-4 w-1/3 bg-white/10" />
             <div className="pcard__cart opacity-50 pointer-events-none">
               <ShoppingBag className="h-3.5 w-3.5" />
@@ -329,7 +329,7 @@ function ProductCard({ product: p, index }: ProductCardProps) {
   return (
     <article
       ref={tilt.cardRef}
-      className="pcard group reveal-fade-in"
+      className="pcard group reveal-fade-in flex flex-col h-full p-5"
       onPointerEnter={tilt.onPointerEnter}
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
@@ -343,14 +343,21 @@ function ProductCard({ product: p, index }: ProductCardProps) {
       <div ref={tilt.lightRef} className="pcard__light" />
       <div className="pcard__ring" />
 
-      <div className="pcard__float-zone">
+      {/* Ambient glow orb behind image */}
+      <div className="pcard__img-orb" />
+
+      <div className="pcard__float-zone relative w-full h-56 overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
         <img
           ref={tilt.depthRef}
           src={imgSrc}
           alt={p.name}
-          className="pcard__img"
+          className="pcard__img absolute inset-0 w-full h-full object-cover"
+          style={getAdjustmentStyle(p.img)}
           onError={() => setImgSrc(getProductSpecificFallback(p.name))}
         />
+
+        {/* Vignette overlay for depth */}
+        <div className="pcard__vignette" />
         <div className="pcard__img-glow" />
 
         {p.tag && <span className="pcard__tag">{p.tag}</span>}
@@ -368,12 +375,12 @@ function ProductCard({ product: p, index }: ProductCardProps) {
         </div>
       </div>
 
-      <div className="pcard__body flex-1 flex flex-col justify-between">
-        <div className="pcard__sep" />
+      <div className="pcard__body flex flex-col flex-1 mt-4">
+        <div className="pcard__sep mb-4" />
 
-        <div className="flex-1 flex flex-col justify-between p-5 pt-4">
+        <div className="flex flex-col flex-1">
           <p className="pcard__name mb-4">{p.name}</p>
-          <div className="flex items-center justify-between gap-3 mt-auto">
+          <div className="mt-auto flex items-center justify-between">
             <p className="pcard__price">₹{formatPrice(p.price)}</p>
             <button
               ref={cartBtn.ref}
@@ -415,25 +422,63 @@ const STYLES = `
   .pcard {
     --tilt-rx: 0deg;
     --tilt-ry: 0deg;
-    --shadow-x: 0px;
-    --shadow-y: 30px;
     position: relative;
     display: flex;
     flex-direction: column;
-    border-radius: 22px;
-    background: linear-gradient(175deg, #0f0f18 0%, #090910 100%);
-    border: 1px solid rgba(255,255,255,0.06);
-    min-width: 0;
-    cursor: pointer;
+    border-radius: 20px;
+    background: linear-gradient(170deg, #0d0d1c 0%, #070710 100%);
+    border: 1px solid rgba(255,255,255,0.065);
     isolation: isolate;
     overflow: hidden;
-    transform: perspective(1000px) rotateX(var(--tilt-rx)) rotateY(var(--tilt-ry));
+    transform: perspective(1000px) rotateX(var(--tilt-rx)) rotateY(var(--tilt-ry)) translateY(0px);
     transform-style: preserve-3d;
     transition:
-      box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-      border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      border-color 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     will-change: transform;
     height: 100%;
+    box-shadow:
+      0 2px 16px rgba(0,0,0,0.4),
+      0 1px 0 rgba(255,255,255,0.035) inset;
+    cursor: pointer;
+  }
+
+  .pcard:hover {
+    border-color: rgba(var(--accent-rgb), 0.28);
+    transform: perspective(1000px) rotateX(var(--tilt-rx)) rotateY(var(--tilt-ry)) translateY(-5px);
+    box-shadow:
+      0 0 0 1px rgba(var(--accent-rgb), 0.14),
+      0 24px 48px -12px rgba(0,0,0,0.7),
+      0 0 60px -20px rgba(var(--accent-rgb), 0.22),
+      0 1px 0 rgba(255,255,255,0.05) inset;
+  }
+
+  /* ── Ambient orb glow behind the image ── */
+  .pcard__img-orb {
+    position: absolute;
+    top: -8%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 65%;
+    height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(var(--accent-rgb), 0.12) 0%,
+      rgba(var(--accent-rgb), 0.04) 50%,
+      transparent 75%
+    );
+    filter: blur(24px);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.6;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  .pcard:hover .pcard__img-orb {
+    opacity: 0.9;
+    transform: translateX(-50%) scaleX(1.1) scaleY(1.08);
   }
 
   .pcard__light {
@@ -445,7 +490,7 @@ const STYLES = `
     border-radius: 50%;
     background: radial-gradient(
       circle 120px at center,
-      rgba(var(--accent-rgb), 0.12) 0%,
+      rgba(var(--accent-rgb), 0.14) 0%,
       transparent 80%
     );
     pointer-events: none;
@@ -455,19 +500,15 @@ const STYLES = `
     transform-style: preserve-3d;
   }
 
-  .pcard:hover {
-    border-color: rgba(var(--accent-rgb), 0.28);
-    box-shadow:
-      0 0 0 1px rgba(var(--accent-rgb), 0.15),
-      var(--shadow-x, 0px) var(--shadow-y, 30px) 80px -16px rgba(0,0,0,0.85),
-      0 0 80px -20px rgba(var(--accent-rgb), 0.22);
+  .pcard:hover .pcard__light {
+    opacity: 1;
   }
 
   .pcard__ring {
     position: absolute;
     inset: -1px;
     border-radius: 23px;
-    background: radial-gradient(ellipse at top, rgba(var(--accent-rgb), 0.12), transparent 65%);
+    background: radial-gradient(ellipse at top, rgba(var(--accent-rgb), 0.14), transparent 65%);
     opacity: 0;
     transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
@@ -478,16 +519,23 @@ const STYLES = `
 
   .pcard__float-zone {
     position: relative;
-    height: 220px;
-    overflow: hidden;
     z-index: 2;
-    transform: translateZ(18px);
+    transform: translateZ(14px);
     transform-style: preserve-3d;
     will-change: transform;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 6px 24px rgba(0,0,0,0.45),
+      0 0 0 1px rgba(255,255,255,0.035);
+    transition: box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .pcard:hover .pcard__float-zone {
+    box-shadow:
+      0 12px 36px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(var(--accent-rgb), 0.12),
+      0 0 40px -10px rgba(var(--accent-rgb), 0.25);
   }
 
   .pcard:nth-child(1) .pcard__float-zone { animation: cardFloat 12s ease-in-out infinite; }
@@ -506,32 +554,61 @@ const STYLES = `
 
   .pcard__img {
     display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    max-width: none;
     object-fit: cover;
-    object-position: center;
     border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    transform: translate3d(0px, 0px, 24px) scale(1);
-    transform-origin: center;
-    will-change: transform;
+    transform-origin: center center;
+    will-change: transform, filter;
+    filter: brightness(0.92) saturate(1.05) contrast(1.02);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .pcard:hover .pcard__img {
-    transform: translate3d(0px, 0px, 32px) scale(1.08);
+    /* Override getAdjustmentStyle scale — bake hover scale into filter approach */
+    filter: brightness(1.04) saturate(1.12) contrast(1.0);
+  }
+
+  /* Vignette for cinematic depth */
+  .pcard__vignette {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background:
+      radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+  }
+
+  .pcard:hover .pcard__vignette {
+    opacity: 0.45;
   }
 
   .pcard__img-glow {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+    background: linear-gradient(
+      135deg,
+      rgba(255,255,255,0.07) 0%,
+      transparent 55%,
+      rgba(var(--accent-rgb), 0.04) 100%
+    );
     opacity: var(--img-light-opacity, 0);
     pointer-events: none;
     z-index: 3;
     transform: translateZ(33px);
     will-change: opacity;
+    border-radius: 12px;
+    transition: opacity 0.3s ease;
+  }
+
+  .pcard:hover .pcard__img-glow {
+    opacity: 1;
   }
 
   .pcard__tag {
@@ -544,11 +621,12 @@ const STYLES = `
     text-transform: uppercase;
     letter-spacing: 0.13em;
     color: var(--accent);
-    background: rgba(var(--accent-rgb), 0.1);
-    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    background: rgba(var(--accent-rgb), 0.12);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
     padding: 3px 9px;
     border-radius: 999px;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.2);
   }
 
   .pcard__hover-cta {
@@ -560,7 +638,7 @@ const STYLES = `
     padding-bottom: 12px;
     z-index: 6;
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
     transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -573,84 +651,112 @@ const STYLES = `
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 6px 16px;
+    padding: 7px 18px;
     border-radius: 999px;
-    background: rgba(var(--accent-rgb), 0.12);
-    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    background: rgba(var(--accent-rgb), 0.14);
+    border: 1px solid rgba(var(--accent-rgb), 0.4);
     color: var(--accent);
     font-size: 10.5px;
     font-weight: 600;
     letter-spacing: 0.04em;
-    backdrop-filter: blur(12px);
-    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(16px);
+    transition:
+      background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow:
+      0 2px 12px rgba(var(--accent-rgb), 0.15),
+      inset 0 1px 0 rgba(255,255,255,0.08);
   }
 
   .pcard__view-btn:hover {
-    background: rgba(var(--accent-rgb), 0.22);
-    box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
+    background: rgba(var(--accent-rgb), 0.24);
+    box-shadow:
+      0 0 24px rgba(var(--accent-rgb), 0.4),
+      0 4px 16px rgba(var(--accent-rgb), 0.2),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+    transform: scale(1.03);
   }
 
   .pcard__body {
     position: relative;
     z-index: 2;
-    border-radius: 0 0 22px 22px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.025) 0%, transparent 100%);
-    transform: translateZ(14px);
+    transform: translateZ(10px);
     display: flex;
     flex-direction: column;
     flex: 1 1 0%;
+    padding: 4px 2px 2px;
+    gap: 0;
   }
 
   .pcard__sep {
     height: 1px;
-    margin: 0 16px;
+    margin: 0 4px 14px;
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(var(--accent-rgb), 0.25) 40%,
-      rgba(var(--accent-rgb), 0.25) 60%,
+      rgba(var(--accent-rgb), 0.22) 40%,
+      rgba(var(--accent-rgb), 0.22) 60%,
       transparent
     );
-    transform: scaleX(0.4);
+    transform: scaleX(0.5);
     transform-origin: left;
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
-  .pcard:hover .pcard__sep { transform: scaleX(1); }
+  .pcard:hover .pcard__sep {
+    transform: scaleX(1);
+  }
 
   .pcard__name {
-    font-size: 14.5px;
+    font-size: 13.5px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.92);
-    letter-spacing: -0.015em;
-    line-height: 1.3;
+    color: rgba(255, 255, 255, 0.88);
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    margin-bottom: 12px;
+    transition: color 0.2s ease;
+  }
+
+  .pcard:hover .pcard__name {
+    color: rgba(255, 255, 255, 0.96);
   }
 
   .pcard__price {
-    margin-top: 5px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 800;
     color: var(--accent);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.3);
+    transition: text-shadow 0.25s ease;
+  }
+
+  .pcard:hover .pcard__price {
+    text-shadow: 0 0 22px rgba(var(--accent-rgb), 0.55);
   }
 
   .pcard__cart {
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(var(--accent-rgb), 0.07);
-    border: 1px solid rgba(var(--accent-rgb), 0.18);
+    background: rgba(var(--accent-rgb), 0.06);
+    border: 1px solid rgba(var(--accent-rgb), 0.15);
     color: var(--accent);
-    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition:
+      background 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+      border-color 0.2s ease;
   }
 
   .pcard__cart:hover {
-    background: rgba(var(--accent-rgb), 0.18);
-    box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.25);
+    background: rgba(var(--accent-rgb), 0.16);
+    border-color: rgba(var(--accent-rgb), 0.36);
+    box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.28);
     transform: scale(1.1);
   }
 
@@ -658,16 +764,16 @@ const STYLES = `
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 22px;
+    border-radius: 20px;
     background: linear-gradient(
-      110deg,
+      115deg,
       transparent 30%,
-      rgba(255,255,255,0.055) 50%,
+      rgba(255,255,255,0.03) 50%,
       transparent 70%
     );
     background-size: 200% 100%;
     background-position: -100% 0;
-    transition: background-position 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background-position 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     pointer-events: none;
     z-index: 4;
   }
@@ -676,11 +782,39 @@ const STYLES = `
     background-position: 200% 0;
   }
 
+  /* Glass top-edge highlight */
+  .pcard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.12) 30%,
+      rgba(255,255,255,0.18) 50%,
+      rgba(255,255,255,0.12) 70%,
+      transparent
+    );
+    border-radius: 22px 22px 0 0;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0.6;
+    transition: opacity 0.35s ease;
+  }
+
+  .pcard:hover::before {
+    opacity: 1;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .pcard,
     .pcard__img {
       transition-duration: 0.01ms;
       transform: none !important;
+      animation: none !important;
     }
   }
 `;

@@ -1,24 +1,38 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // User Profiles & Private Carts
     match /users/{userId} {
+      // Users can only read or write their own profile document
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
+      // Users can only view or edit items inside their own shopping cart
       match /cart/{productId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
 
+    // Orders Collection
     match /orders/{orderId} {
+      // Authenticated users can place/create orders under their own userId
       allow create: if request.auth != null 
         && request.resource.data.userId == request.auth.uid;
+        
+      // Users can only view/read their own order history records
       allow read: if request.auth != null 
         && resource.data.userId == request.auth.uid;
+        
+      // Block all updates or deletions to order records (write-once ledger)
       allow update, delete: if false;
     }
 
+    // Public Product Catalog
     match /products/{productId} {
+      // Anyone can fetch or list the product catalog publicly
       allow read: if true;
+      
+      // Clients are completely prohibited from writing or editing products (must be done via admin/backend)
       allow write: if false;
     }
   }
