@@ -1,10 +1,11 @@
 import { Cpu, Headphones, Watch, Zap } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 const cats = [
-  { name: "Gadgets", count: 42, icon: Cpu },
-  { name: "Audio", count: 28, icon: Headphones },
-  { name: "Wearables", count: 16, icon: Watch },
-  { name: "Smart Devices", count: 33, icon: Zap },
+  { name: "Gadgets", icon: Cpu },
+  { name: "Audio", icon: Headphones },
+  { name: "Wearables", icon: Watch },
+  { name: "Smart Devices", icon: Zap },
 ];
 
 export function Categories() {
@@ -15,18 +16,18 @@ export function Categories() {
         <h2 className="font-display text-4xl md:text-5xl font-bold">Shop by collection.</h2>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        {cats.map(({ name, count, icon: Icon }) => (
-          <a
+        {cats.map(({ name, icon: Icon }) => (
+          <Link
             key={name}
-            href="#"
+            to="/search"
+            search={{ category: name }}
             className="card-glow-hover group rounded-2xl border border-border bg-card p-8"
           >
             <div className="h-12 w-12 rounded-xl bg-background grid place-items-center mb-6 group-hover:bg-gradient-brand transition-colors">
               <Icon className="h-6 w-6" />
             </div>
             <h3 className="font-display text-xl font-semibold">{name}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{count} products</p>
-          </a>
+          </Link>
         ))}
       </div>
     </section>

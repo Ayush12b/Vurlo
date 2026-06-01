@@ -94,9 +94,9 @@ function ProfileContent() {
           Back to Collection
         </Link>
         <h1 className="font-display text-3xl font-bold tracking-tight text-white/90 sm:text-4xl">
-          My Account Settings
+          Profile Settings
         </h1>
-        <p className="text-sm text-white/45">Manage your display name and login information</p>
+        <p className="text-sm text-white/45">Update your personal details and account settings.</p>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-[#0f0f18] to-[#090910] shadow-[0_4px_30px_rgba(0,0,0,0.4)] p-8">
@@ -111,7 +111,7 @@ function ProfileContent() {
             <div className="text-center sm:text-left space-y-1">
               <h3 className="text-sm font-semibold text-white/90">Profile Picture</h3>
               <p className="text-xs text-white/40">
-                Default avatar matched to your authenticated login.
+                Avatar synchronized from your account credentials.
               </p>
             </div>
           </div>
@@ -119,32 +119,34 @@ function ProfileContent() {
           <div className="space-y-4">
             {/* Display Name Input */}
             <div className="space-y-2">
-              <label className="text-[10px] font-semibold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
-                <UserIcon className="h-3 w-3 text-violet-400" />
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                 Display Name
               </label>
-              <Input
-                type="text"
-                placeholder="Your display name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={saving}
-                className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-11 px-4 text-sm"
-              />
+              <div className="relative focus-glow rounded-xl">
+                <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+                <Input
+                  type="text"
+                  placeholder="e.g., Ayush Sharma"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={saving}
+                  className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-xl placeholder:text-white/20 h-11 pl-10 pr-4 text-sm transition-all"
+                />
+              </div>
             </div>
 
             {/* Email Address Read-Only */}
             <div className="space-y-2">
-              <label className="text-[10px] font-semibold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
-                <Mail className="h-3 w-3 text-violet-400" />
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
                 Email Address
               </label>
-              <div className="relative">
+              <div className="relative rounded-xl">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
                 <Input
                   type="email"
                   value={user?.email || ""}
                   disabled
-                  className="bg-white/[0.01] border-white/[0.04] text-white/40 rounded-xl select-none h-11 px-4 text-sm cursor-not-allowed"
+                  className="bg-white/[0.01] border border-white/[0.04] text-white/40 rounded-xl select-none h-11 pl-10 pr-24 text-sm cursor-not-allowed"
                 />
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[9px] font-bold text-white/25 uppercase tracking-wider bg-white/[0.03] border border-white/[0.05] px-2 py-0.5 rounded-full select-none">
                   <ShieldCheck className="h-2.5 w-2.5 text-violet-400" />

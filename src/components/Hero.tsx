@@ -51,7 +51,7 @@ export function Hero() {
             style={{ fontSize: "clamp(3rem, 7vw, 6rem)", fontWeight: 800 }}
           >
             <span className="block text-white/90">Built for</span>
-            <span className="block text-white/90">What's</span>
+            <span className="block text-white/90">Focused</span>
             <span
               className="block"
               style={{
@@ -60,21 +60,21 @@ export function Hero() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              Next.
+              Work.
             </span>
           </h1>
 
           <p
             ref={subtextRef}
-            className="text-lg leading-relaxed text-white/60 max-w-md font-light tracking-wide reveal-fade-in"
+            className="text-lg leading-relaxed text-white/60 max-w-md font-light tracking-wide"
           >
-            Premium tech. Clean design. Future-ready essentials, engineered for the people building
-            tomorrow.
+            Minimalist desk tools, high-fidelity audio, and workspace essentials designed to help
+            you focus and create.
           </p>
 
           <div
             ref={ctasRef}
-            className="flex flex-wrap md:flex-nowrap items-center gap-4 sm:gap-6 pt-4 reveal-fade-in"
+            className="flex flex-wrap md:flex-nowrap items-center gap-4 sm:gap-6 pt-4"
           >
             <a
               ref={primaryCta.ref}
@@ -88,7 +88,7 @@ export function Hero() {
               onPointerLeave={primaryCta.onPointerLeave}
             >
               <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.25),transparent_70%)]" />
-              <span className="relative">Shop Now</span>
+              <span className="relative">Shop Gear</span>
               <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
             </a>
 
@@ -99,18 +99,18 @@ export function Hero() {
               onPointerMove={secondaryCta.onPointerMove}
               onPointerLeave={secondaryCta.onPointerLeave}
             >
-              Explore &gt;
+              Explore Setup &gt;
             </a>
           </div>
 
           <div
             ref={statsRef}
-            className="flex flex-wrap md:flex-nowrap gap-6 md:gap-12 pt-6 border-t border-white/[0.08] reveal-fade-in"
+            className="flex flex-wrap md:flex-nowrap gap-6 md:gap-12 pt-6 border-t border-white/[0.08]"
           >
             {[
-              ["120k+", "Customers"],
-              ["4.9 stars", "Rated"],
-              ["48h", "Delivery"],
+              ["4.9★", "Setup Review"],
+              ["2-Year", "Warranty"],
+              ["Free", "Shipping"],
             ].map(([n, l]) => (
               <div key={l}>
                 <div className="text-2xl font-semibold text-white/90">{n}</div>

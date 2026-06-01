@@ -5,14 +5,16 @@ import {
   setDoc,
   collection,
   deleteDoc,
-  addDoc,
   writeBatch,
   serverTimestamp,
   getDoc,
+  increment,
+  runTransaction,
 } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
+import { getProductImage } from "@/utils/product";
 
 export interface CartItem {
   productId: string;
@@ -28,22 +30,93 @@ interface CartContextType {
   addToCart: (product: Omit<CartItem, "quantity">) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
-  placeOrder: () => Promise<string | undefined>;
+  placeOrder: (shippingDetails: {
+    name: string;
+    address: string;
+    city: string;
+    pinCode: string;
+    phone: string;
+  }) => Promise<string | undefined>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { user, setAuthModalOpen } = useAuth();
+  const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  // Listen to Firestore cart subcollection in real-time
+  // Listen to Firestore cart subcollection in real-time or fall back to localStorage
   useEffect(() => {
     if (!user) {
-      setCartItems([]);
+      // Guest User cart loading from local storage
+      try {
+        const local = localStorage.getItem("vurlo_local_cart");
+        if (local) {
+          setCartItems(JSON.parse(local));
+        } else {
+          setCartItems([]);
+        }
+      } catch (e) {
+        console.error("Error parsing local cart:", e);
+        setCartItems([]);
+      }
       return;
     }
 
+    // Merging local cart on login
+    const performMerge = async () => {
+      const localStr = localStorage.getItem("vurlo_local_cart");
+      if (!localStr) return;
+      try {
+        const localItems: CartItem[] = JSON.parse(localStr);
+        if (localItems.length > 0) {
+          const batch = writeBatch(db);
+          for (const item of localItems) {
+            // Get product stock
+            const productRef = doc(db, "products", item.productId);
+            const productSnap = await getDoc(productRef);
+            let stock = 10;
+            if (productSnap.exists()) {
+              stock = productSnap.data().stock !== undefined ? productSnap.data().stock : 10;
+            }
+
+            const itemRef = doc(db, "users", user.uid, "cart", item.productId);
+            const itemSnap = await getDoc(itemRef);
+            if (itemSnap.exists()) {
+              const dbQty = itemSnap.data().quantity ?? 0;
+              const mergedQty = Math.min(stock, dbQty + item.quantity);
+              batch.set(
+                itemRef,
+                {
+                  name: item.name,
+                  price: item.price,
+                  image: item.image,
+                  quantity: mergedQty,
+                },
+                { merge: true },
+              );
+            } else {
+              const mergedQty = Math.min(stock, item.quantity);
+              batch.set(itemRef, {
+                name: item.name,
+                price: item.price,
+                image: item.image,
+                quantity: mergedQty,
+              });
+            }
+          }
+          await batch.commit();
+          localStorage.removeItem("vurlo_local_cart");
+          toast.success("Merged guest items with your account bag!");
+        }
+      } catch (error) {
+        console.error("Error merging cart on login:", error);
+      }
+    };
+
+    performMerge();
+
+    // Setup real-time listener for Firestore cart
     const cartColRef = collection(db, "users", user.uid, "cart");
     const unsubscribe = onSnapshot(
       cartColRef,
@@ -55,7 +128,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             productId: docSnap.id,
             name: data.name || "",
             price: data.price ?? 0,
-            image: data.image || "",
+            image: getProductImage(data),
             quantity: data.quantity ?? 1,
           });
         });
@@ -70,11 +143,72 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const addToCart = async (product: Omit<CartItem, "quantity">) => {
-    if (!user) {
-      setAuthModalOpen(true);
+    const MAX_QTY = 10;
+    // 1. Fetch current product stock
+    let stock = 10;
+    try {
+      const productRef = doc(db, "products", product.productId);
+      const productSnap = await getDoc(productRef);
+      if (productSnap.exists()) {
+        const data = productSnap.data();
+        stock = data.stock !== undefined ? Number(data.stock) : 10;
+      }
+    } catch (e) {
+      console.error("Error fetching product stock:", e);
+    }
+
+    if (stock <= 0) {
+      toast.error(`${product.name} is Sold Out.`);
       return;
     }
 
+    // 2. Non-logged-in guest flow
+    if (!user) {
+      try {
+        const local = localStorage.getItem("vurlo_local_cart");
+        let items: CartItem[] = [];
+        if (local) {
+          items = JSON.parse(local);
+        }
+
+        const existingItem = items.find((i) => i.productId === product.productId);
+        if (existingItem) {
+          const newQty = existingItem.quantity + 1;
+          if (newQty > MAX_QTY) {
+            toast.error(`Cannot add more. Maximum quantity per product is ${MAX_QTY}.`);
+            return;
+          }
+          if (newQty > stock) {
+            toast.error(`Cannot add more. Only ${stock} items available in stock.`);
+            return;
+          }
+          existingItem.quantity = newQty;
+        } else {
+          if (1 > MAX_QTY) {
+            toast.error(`Cannot add. Maximum quantity per product is ${MAX_QTY}.`);
+            return;
+          }
+          if (1 > stock) {
+            toast.error(`Cannot add. Only ${stock} items available in stock.`);
+            return;
+          }
+          items.push({ ...product, quantity: 1 });
+        }
+
+        localStorage.setItem("vurlo_local_cart", JSON.stringify(items));
+        setCartItems(items);
+        toast.success(`${product.name} added to bag`, {
+          description: "Review details in your shopping bag.",
+          duration: 2500,
+        });
+      } catch (e) {
+        console.error("Error adding to guest cart:", e);
+        toast.error("Failed to add item to local bag.");
+      }
+      return;
+    }
+
+    // 3. Logged-in user Firestore flow
     try {
       if (!product.productId) {
         console.error("addToCart: productId is required");
@@ -85,14 +219,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (itemSnap.exists()) {
         const currentQty = itemSnap.data().quantity ?? 0;
+        const newQty = currentQty + 1;
+        if (newQty > MAX_QTY) {
+          toast.error(`Cannot add more. Maximum quantity per product is ${MAX_QTY}.`);
+          return;
+        }
+        if (newQty > stock) {
+          toast.error(`Cannot add more. Only ${stock} items available in stock.`);
+          return;
+        }
         await setDoc(
           itemDocRef,
           {
-            quantity: currentQty + 1,
+            quantity: newQty,
           },
           { merge: true },
         );
       } else {
+        if (1 > MAX_QTY) {
+          toast.error(`Cannot add. Maximum quantity per product is ${MAX_QTY}.`);
+          return;
+        }
+        if (1 > stock) {
+          toast.error(`Cannot add. Only ${stock} items available in stock.`);
+          return;
+        }
         await setDoc(itemDocRef, {
           name: product.name,
           price: product.price,
@@ -111,20 +262,87 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateQuantity = async (productId: string, quantity: number) => {
-    if (!user) return;
+    const MAX_QTY = 10;
+    // 1. Guest flow
+    if (!user) {
+      try {
+        const local = localStorage.getItem("vurlo_local_cart");
+        if (!local) return;
+        const items: CartItem[] = JSON.parse(local);
+        const itemIdx = items.findIndex((i) => i.productId === productId);
+        if (itemIdx === -1) return;
 
+        if (quantity <= 0) {
+          items.splice(itemIdx, 1);
+        } else {
+          // Check stock
+          const productRef = doc(db, "products", productId);
+          const productSnap = await getDoc(productRef);
+          let stock = 10;
+          if (productSnap.exists()) {
+            stock = productSnap.data().stock !== undefined ? Number(productSnap.data().stock) : 10;
+          }
+
+          if (quantity > MAX_QTY) {
+            toast.error(`Maximum quantity per product is ${MAX_QTY}.`);
+            items[itemIdx].quantity = Math.min(stock, MAX_QTY);
+          } else if (quantity > stock) {
+            toast.error(`Cannot update. Only ${stock} items available in stock.`);
+            items[itemIdx].quantity = stock;
+          } else {
+            items[itemIdx].quantity = quantity;
+          }
+        }
+
+        localStorage.setItem("vurlo_local_cart", JSON.stringify(items));
+        setCartItems(items);
+      } catch (e) {
+        console.error("Error updating local cart quantity:", e);
+      }
+      return;
+    }
+
+    // 2. Logged-in Firestore flow
     try {
       const itemDocRef = doc(db, "users", user.uid, "cart", productId);
       if (quantity <= 0) {
         await deleteDoc(itemDocRef);
       } else {
-        await setDoc(
-          itemDocRef,
-          {
-            quantity,
-          },
-          { merge: true },
-        );
+        // Check stock
+        const productRef = doc(db, "products", productId);
+        const productSnap = await getDoc(productRef);
+        let stock = 10;
+        if (productSnap.exists()) {
+          stock = productSnap.data().stock !== undefined ? Number(productSnap.data().stock) : 10;
+        }
+
+        if (quantity > MAX_QTY) {
+          toast.error(`Maximum quantity per product is ${MAX_QTY}.`);
+          await setDoc(
+            itemDocRef,
+            {
+              quantity: Math.min(stock, MAX_QTY),
+            },
+            { merge: true },
+          );
+        } else if (quantity > stock) {
+          toast.error(`Cannot update. Only ${stock} items available in stock.`);
+          await setDoc(
+            itemDocRef,
+            {
+              quantity: stock,
+            },
+            { merge: true },
+          );
+        } else {
+          await setDoc(
+            itemDocRef,
+            {
+              quantity,
+            },
+            { merge: true },
+          );
+        }
       }
     } catch (error) {
       console.error("Error updating cart item quantity in Firestore:", error);
@@ -132,10 +350,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeFromCart = async (productId: string) => {
-    if (!user) return;
-
     const item = cartItems.find((i) => i.productId === productId);
     const name = item ? item.name : "Item";
+
+    if (!user) {
+      try {
+        const local = localStorage.getItem("vurlo_local_cart");
+        if (local) {
+          let items: CartItem[] = JSON.parse(local);
+          items = items.filter((i) => i.productId !== productId);
+          localStorage.setItem("vurlo_local_cart", JSON.stringify(items));
+          setCartItems(items);
+          toast.info(`${name} removed from bag`, { duration: 2000 });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      return;
+    }
 
     try {
       const itemDocRef = doc(db, "users", user.uid, "cart", productId);
@@ -148,45 +380,83 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const placeOrder = async (): Promise<string | undefined> => {
+  const placeOrder = async (shippingDetails: {
+    name: string;
+    address: string;
+    city: string;
+    pinCode: string;
+    phone: string;
+  }): Promise<string | undefined> => {
     if (!user || cartItems.length === 0) return;
 
+    const updatedProducts: { productId: string; quantity: number }[] = [];
+    const fetchedItems: {
+      productId: string;
+      name: string;
+      price: number;
+      image: string;
+      quantity: number;
+    }[] = [];
+
     try {
-      // Fetch fresh prices from 'products' collection to prevent price manipulation
-      const fetchedItems = await Promise.all(
-        cartItems.map(async (item) => {
-          const productDocRef = doc(db, "products", item.productId);
-          const productDocSnap = await getDoc(productDocRef);
-          if (!productDocSnap.exists()) {
+      // 1. Sequentially run a Firestore transaction per product to decrement stock safely
+      for (const item of cartItems) {
+        const freshItem = await runTransaction(db, async (transaction) => {
+          const productRef = doc(db, "products", item.productId);
+          const productSnap = await transaction.get(productRef);
+          if (!productSnap.exists()) {
             throw new Error(`Product "${item.name}" was not found in our catalog.`);
           }
-          const productData = productDocSnap.data();
+          const productData = productSnap.data();
           const freshPrice = productData.price ?? 0;
+          const stock = productData.stock !== undefined ? Number(productData.stock) : 10;
+
+          if (stock < item.quantity) {
+            throw new Error(`Product "${item.name}" only has ${stock} items left in stock.`);
+          }
+
+          transaction.update(productRef, {
+            stock: stock - item.quantity,
+          });
+
           return {
             productId: item.productId,
             name: productData.name || item.name,
             price: freshPrice,
-            image: productData.image || item.image,
+            image: getProductImage(productData) || item.image,
             quantity: item.quantity,
           };
-        }),
-      );
+        });
+
+        fetchedItems.push(freshItem);
+        updatedProducts.push({ productId: item.productId, quantity: item.quantity });
+      }
 
       const totalAmount = fetchedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-      const orderDocRef = await addDoc(collection(db, "orders"), {
+
+      // Perform batch writes
+      const batch = writeBatch(db);
+
+      // Create new order doc ID
+      const orderColRef = collection(db, "orders");
+      const orderDocRef = doc(orderColRef);
+
+      batch.set(orderDocRef, {
         userId: user.uid,
+        userEmail: user.email || "",
         items: fetchedItems,
         totalAmount,
         status: "pending",
+        shippingDetails,
         createdAt: serverTimestamp(),
       });
 
-      // Clear cart using batch delete
-      const batch = writeBatch(db);
+      // Clear cart items
       cartItems.forEach((item) => {
         const itemRef = doc(db, "users", user.uid, "cart", item.productId);
         batch.delete(itemRef);
       });
+
       await batch.commit();
 
       toast.success("Order placed successfully!", {
@@ -197,6 +467,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return orderDocRef.id;
     } catch (error) {
       console.error("Error placing order:", error);
+
+      // Compensation rollbacks for completed stock updates
+      for (const updated of updatedProducts) {
+        try {
+          await runTransaction(db, async (transaction) => {
+            const productRef = doc(db, "products", updated.productId);
+            const productSnap = await transaction.get(productRef);
+            if (productSnap.exists()) {
+              const currentStock =
+                productSnap.data().stock !== undefined ? Number(productSnap.data().stock) : 10;
+              transaction.update(productRef, {
+                stock: currentStock + updated.quantity,
+              });
+            }
+          });
+        } catch (rollbackError) {
+          console.error(`Rollback failed for product ${updated.productId}:`, rollbackError);
+        }
+      }
+
       const message =
         error instanceof Error ? error.message : "Failed to place order. Please try again.";
       toast.error(message);

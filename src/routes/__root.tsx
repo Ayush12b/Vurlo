@@ -67,6 +67,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+import { WishlistProvider } from "@/hooks/use-wishlist";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -74,8 +76,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
-          <Outlet />
-          <Toaster />
+          <WishlistProvider>
+            <Outlet />
+            <Toaster />
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>

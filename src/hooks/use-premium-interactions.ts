@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { PointerEvent as ReactPointerEvent, RefObject } from "react";
 
+const isTouchDevice = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
+
 type TiltTarget = {
   rotateX: number;
   rotateY: number;
@@ -150,7 +152,7 @@ export function usePremiumTilt<
 
   const onPointerEnter = useCallback(
     (event: ReactPointerEvent<TCard>) => {
-      if (event.pointerType === "touch") return;
+      if (isTouchDevice || event.pointerType === "touch") return;
       const rect = event.currentTarget.getBoundingClientRect();
       rectRef.current = rect;
       event.currentTarget.style.transition = "none";
@@ -174,7 +176,7 @@ export function usePremiumTilt<
 
   const onPointerMove = useCallback(
     (event: ReactPointerEvent<TCard>) => {
-      if (event.pointerType === "touch") return;
+      if (isTouchDevice || event.pointerType === "touch") return;
       const rect = rectRef.current;
       if (!rect) return;
 
@@ -206,6 +208,7 @@ export function usePremiumTilt<
 
   const onPointerLeave = useCallback(
     (event: ReactPointerEvent<TCard>) => {
+      if (isTouchDevice) return;
       rectRef.current = null;
       target.current = {
         rotateX: 0,
@@ -226,6 +229,15 @@ export function usePremiumTilt<
     },
     [start],
   );
+
+  useEffect(() => {
+    render();
+    return () => {
+      if (raf.current !== null) {
+        cancelAnimationFrame(raf.current);
+      }
+    };
+  }, [render]);
 
   return { cardRef, depthRef, lightRef, onPointerEnter, onPointerMove, onPointerLeave };
 }
@@ -268,7 +280,7 @@ export function useMagnetic<TElement extends HTMLElement>(options?: {
 
   const onPointerMove = useCallback(
     (event: ReactPointerEvent<TElement>) => {
-      if (event.pointerType === "touch") return;
+      if (isTouchDevice || event.pointerType === "touch") return;
       const rect = event.currentTarget.getBoundingClientRect();
       target.current = {
         x: ((event.clientX - rect.left) / rect.width - 0.5) * strength,
@@ -281,6 +293,7 @@ export function useMagnetic<TElement extends HTMLElement>(options?: {
   );
 
   const onPointerLeave = useCallback(() => {
+    if (isTouchDevice) return;
     target.current = { x: 0, y: 0, scale: 1 };
     start();
   }, [start]);
@@ -302,7 +315,10 @@ export function useScrollReveal<TElement extends HTMLElement>(
     const element = ref.current;
     if (!element) return;
 
+    // Immediately mark as visible — prevents StrictMode race condition
+    // where IntersectionObserver cleanup fires before entry, leaving elements hidden
     element.style.setProperty("--reveal-delay", `${delay}ms`);
+    element.classList.add("is-visible");
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -311,7 +327,7 @@ export function useScrollReveal<TElement extends HTMLElement>(
           observer.unobserve(element);
         }
       },
-      { threshold: 0.22, rootMargin: "0px 0px -8% 0px" },
+      { threshold: 0.1, rootMargin: "0px 0px 0px 0px" },
     );
 
     observer.observe(element);
@@ -357,7 +373,7 @@ export function useHeroParallax<TElement extends HTMLElement>() {
 
   const onPointerMove = useCallback(
     (event: ReactPointerEvent<TElement>) => {
-      if (event.pointerType === "touch") return;
+      if (isTouchDevice || event.pointerType === "touch") return;
       const rect = event.currentTarget.getBoundingClientRect();
       target.current = {
         x: (event.clientX - rect.left) / rect.width - 0.5,
@@ -369,6 +385,7 @@ export function useHeroParallax<TElement extends HTMLElement>() {
   );
 
   const onPointerLeave = useCallback(() => {
+    if (isTouchDevice) return;
     target.current = { x: 0, y: 0 };
     start();
   }, [start]);

@@ -1,10 +1,27 @@
-import { Search, ShoppingCart, Menu, X, LogOut, User as UserIcon, Loader2 } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  Menu,
+  X,
+  LogOut,
+  User as UserIcon,
+  Loader2,
+  Sparkles,
+  Heart,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth, DEFAULT_AVATAR } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/AuthModal";
+import { SearchModal } from "@/components/SearchModal";
 import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { resolveProductImage } from "@/components/FeaturedProducts";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { checkIsAdmin } from "@/lib/admin-auth";
+import { getProductImage } from "@/utils/product";
+import { useProducts } from "@/hooks/use-products";
+import { toast } from "sonner";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +37,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const links = ["Home", "Shop", "Categories", "Contact"];
 
@@ -28,16 +47,80 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const { user, profileName, profilePhoto, authModalOpen, setAuthModalOpen, logout, loading } =
     useAuth();
-  const { cartItems, cartCount, updateQuantity, removeFromCart, placeOrder } = useCart();
+  const { cartItems, cartCount, updateQuantity, removeFromCart, placeOrder, addToCart } = useCart();
+  const { wishlistCount } = useWishlist();
   const [animateCart, setAnimateCart] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const [shippingOpen, setShippingOpen] = useState(false);
+  const [shippingName, setShippingName] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [shippingCity, setShippingCity] = useState("");
+  const [shippingPinCode, setShippingPinCode] = useState("");
+  const [shippingPhone, setShippingPhone] = useState("");
+
+  const { data: allProducts } = useProducts();
+  const recommendedProducts = allProducts ? allProducts.slice(0, 3) : undefined;
+
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    checkIsAdmin(user.uid, user.email).then(setIsAdmin);
+  }, [user]);
 
   const handleCheckout = async () => {
+    if (!user) {
+      setAuthModalOpen(true);
+      return;
+    }
+    setCartOpen(false);
+    setShippingOpen(true);
+  };
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const nameVal = shippingName.trim();
+    const addressVal = shippingAddress.trim();
+    const cityVal = shippingCity.trim();
+    const pinCodeVal = shippingPinCode.trim();
+    const phoneVal = shippingPhone.trim();
+
+    if (!nameVal || !addressVal || !cityVal || !pinCodeVal || !phoneVal) {
+      toast.error("Please fill in all shipping details.");
+      return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(phoneVal)) {
+      toast.error("Enter a valid 10-digit Indian mobile number.");
+      return;
+    }
+
+    if (!/^\d{6}$/.test(pinCodeVal)) {
+      toast.error("Enter a valid 6-digit PIN code.");
+      return;
+    }
+
     setPlacingOrder(true);
     try {
-      const orderId = await placeOrder();
-      setCartOpen(false);
+      const shippingDetails = {
+        name: nameVal,
+        address: addressVal,
+        city: cityVal,
+        pinCode: pinCodeVal,
+        phone: phoneVal,
+      };
+      const orderId = await placeOrder(shippingDetails);
+      setShippingOpen(false);
+      setShippingName("");
+      setShippingAddress("");
+      setShippingCity("");
+      setShippingPinCode("");
+      setShippingPhone("");
       navigate({ to: "/order-success", search: { orderId } });
     } catch (e) {
       console.error(e);
@@ -251,9 +334,24 @@ export function Navbar() {
 
               {/* Right */}
               <div className="flex items-center gap-3">
-                <button className="vurlo-icon-btn">
+                <button
+                  onClick={() => setSearchOpen(true)}
+                  className="vurlo-icon-btn cursor-pointer focus:outline-none"
+                  aria-label="Search essentials"
+                >
                   <Search size={16} />
                 </button>
+
+                <Link
+                  to="/wishlist"
+                  className="vurlo-icon-btn relative cursor-pointer focus:outline-none flex items-center justify-center text-white/70 hover:text-white"
+                  aria-label="Wishlist"
+                >
+                  <Heart size={16} />
+                  {wishlistCount > 0 && (
+                    <span className="vurlo-cart-badge bg-rose-500 text-white">{wishlistCount}</span>
+                  )}
+                </Link>
 
                 <Sheet open={cartOpen} onOpenChange={setCartOpen}>
                   <SheetTrigger asChild>
@@ -273,34 +371,106 @@ export function Navbar() {
                   <SheetContent className="w-full sm:max-w-md bg-black/95 border-l border-white/[0.08] text-white p-6 shadow-[-10px_0_40px_rgba(0,0,0,0.8),0_0_20px_rgba(138,46,255,0.08)] backdrop-blur-xl flex flex-col h-full animate-in slide-in-from-right duration-300">
                     <SheetHeader className="pb-4 border-b border-white/[0.08]">
                       <SheetTitle className="text-xl font-bold tracking-tight text-white/90">
-                        Shopping Bag
+                        Your Cart
                       </SheetTitle>
                       <SheetDescription className="text-white/50 text-xs">
-                        Review your selected tech essentials
+                        Review the items in your cart.
                       </SheetDescription>
                     </SheetHeader>
 
                     {/* Cart Items List */}
                     <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
                       {cartItems.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center space-y-4 animate-in fade-in duration-300">
-                          <div className="w-12 h-12 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/30">
-                            <ShoppingCart size={20} />
+                        <div className="flex flex-col items-center justify-between h-full text-center py-6 animate-in fade-in duration-300">
+                          {/* Top: Custom glowing cart illustration and engaging text */}
+                          <div className="flex flex-col items-center justify-center space-y-4 my-auto">
+                            <div className="relative w-16 h-16 rounded-full bg-white/[0.02] border border-white/[0.06] flex items-center justify-center text-white/40 shadow-[0_0_30px_rgba(138,46,255,0.08)]">
+                              <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-cyan-500/10 rounded-full blur-md" />
+                              <ShoppingCart className="h-6 w-6 text-violet-400 relative z-10" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-bold text-white tracking-tight">
+                                Your cart is empty
+                              </p>
+                              <p className="text-xs text-gray-400 max-w-[240px] leading-relaxed mx-auto">
+                                Explore our curated workspace accessories, ergonomics, and audio
+                                gear to complete your setup.
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setCartOpen(false);
+                                navigate({ to: "/search" });
+                              }}
+                              className="w-full max-w-[180px] text-xs font-bold uppercase tracking-wider h-10 rounded-xl text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] flex items-center justify-center gap-2 mt-2"
+                              style={{
+                                background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
+                              }}
+                            >
+                              Shop the Collection
+                            </button>
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-white/70">
-                              Your cart is empty
-                            </p>
-                            <p className="text-xs text-white/40 mt-1">
-                              Add items from the collection to get started.
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setCartOpen(false)}
-                            className="inline-flex items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/20 px-6 py-2 text-xs font-semibold text-white/80 hover:text-white transition duration-200 cursor-pointer focus:outline-none"
-                          >
-                            Continue Shopping
-                          </button>
+
+                          {/* Bottom: Recommended Products Section */}
+                          {recommendedProducts && recommendedProducts.length > 0 && (
+                            <div className="w-full border-t border-white/[0.06] pt-6 mt-6 space-y-3.5 text-left">
+                              <div className="flex items-center gap-1.5 px-1">
+                                <Sparkles className="h-3.5 w-3.5 text-violet-400 animate-pulse" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                  Setup Upgrades
+                                </span>
+                              </div>
+                              <div className="space-y-2.5">
+                                {recommendedProducts.map((p) => (
+                                  <div
+                                    key={p.id}
+                                    className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition duration-200"
+                                  >
+                                    <img
+                                      src={resolveProductImage(getProductImage(p), p.name)}
+                                      alt={p.name}
+                                      loading="lazy"
+                                      className="w-10 h-10 rounded-lg object-cover bg-white/[0.03] border border-white/[0.06] shrink-0"
+                                      onError={(e) => {
+                                        (e.currentTarget as HTMLImageElement).src =
+                                          resolveProductImage("", p.name);
+                                      }}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-bold text-white/95 truncate">
+                                        {p.name}
+                                      </p>
+                                      <p className="text-[11px] font-bold text-violet-400 mt-0.5">
+                                        ₹{p.price.toLocaleString("en-IN")}
+                                      </p>
+                                    </div>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        try {
+                                          await addToCart({
+                                            productId: p.id,
+                                            name: p.name,
+                                            price: p.price,
+                                            image: getProductImage(p),
+                                          });
+                                          toast.success("Added to cart", {
+                                            description: `${p.name} added to your bag.`,
+                                            duration: 2000,
+                                          });
+                                        } catch (err) {
+                                          toast.error("Failed to add to cart");
+                                        }
+                                      }}
+                                      className="text-[10px] font-bold text-white bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.1] hover:border-white/20 px-3 py-1.5 rounded-lg transition cursor-pointer shrink-0"
+                                    >
+                                      Quick Add
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         cartItems.map((item) => (
@@ -309,7 +479,7 @@ export function Navbar() {
                             className="flex items-center gap-3.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition duration-200"
                           >
                             <img
-                              src={resolveProductImage(item.image, item.name)}
+                              src={resolveProductImage(getProductImage(item), item.name)}
                               alt={item.name}
                               className="w-12 h-12 rounded-lg object-cover bg-white/[0.03] border border-white/[0.06]"
                               onError={(e) => {
@@ -429,6 +599,14 @@ export function Navbar() {
                         >
                           <Link to="/orders">My Orders</Link>
                         </DropdownMenuItem>
+                        {isAdmin && (
+                          <DropdownMenuItem
+                            asChild
+                            className="text-xs font-semibold text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 focus:bg-violet-500/10 focus:text-violet-300 rounded-lg px-2.5 py-2 cursor-pointer transition-colors duration-150"
+                          >
+                            <Link to="/admin/dashboard">Admin Panel</Link>
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
                         <DropdownMenuItem
                           onClick={logout}
@@ -519,6 +697,15 @@ export function Navbar() {
                     >
                       My Orders
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin/dashboard"
+                        className="block text-xs font-semibold text-violet-400 hover:text-violet-300 py-1.5 transition duration-200"
+                        onClick={() => setOpen(false)}
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         logout();
@@ -547,6 +734,112 @@ export function Navbar() {
       </div>
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      <Dialog open={shippingOpen} onOpenChange={setShippingOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-[#0c0c14] border border-white/[0.08] text-white rounded-2xl shadow-[0_24px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-bold uppercase tracking-wider text-white">
+              Shipping Information
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handlePlaceOrder} className="space-y-4 pt-2">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                Full Name
+              </label>
+              <Input
+                type="text"
+                placeholder="Ayush Sharma"
+                value={shippingName}
+                onChange={(e) => setShippingName(e.target.value)}
+                className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                Street Address
+              </label>
+              <Input
+                type="text"
+                placeholder="123 Tech Lane, Sector 4"
+                value={shippingAddress}
+                onChange={(e) => setShippingAddress(e.target.value)}
+                className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-white/45 uppercase tracking-wider">
+                  City
+                </label>
+                <Input
+                  type="text"
+                  placeholder="New Delhi"
+                  value={shippingCity}
+                  onChange={(e) => setShippingCity(e.target.value)}
+                  className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-white/45 uppercase tracking-wider">
+                  PIN Code
+                </label>
+                <Input
+                  type="text"
+                  placeholder="110001"
+                  value={shippingPinCode}
+                  onChange={(e) => setShippingPinCode(e.target.value)}
+                  className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
+                  required
+                  maxLength={6}
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                Phone Number
+              </label>
+              <Input
+                type="tel"
+                placeholder="9876543210"
+                value={shippingPhone}
+                onChange={(e) => setShippingPhone(e.target.value)}
+                className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
+                required
+                maxLength={10}
+              />
+            </div>
+            <div className="flex justify-end gap-2.5 pt-4 border-t border-white/[0.06] mt-4">
+              <button
+                type="button"
+                onClick={() => setShippingOpen(false)}
+                className="px-5 py-2.5 rounded-xl border border-white/10 hover:bg-white/[0.04] text-xs font-semibold text-white/70 hover:text-white transition duration-200 cursor-pointer focus:outline-none"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={placingOrder}
+                className="inline-flex items-center justify-center rounded-xl bg-white text-black px-6 py-2.5 text-xs font-semibold hover:bg-white/90 transition shadow-[0_4px_20px_rgba(255,255,255,0.1)] cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {placingOrder ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+                    Placing Order...
+                  </>
+                ) : (
+                  "Confirm Order"
+                )}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

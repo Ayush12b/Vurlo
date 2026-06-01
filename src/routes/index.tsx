@@ -8,25 +8,38 @@ import { Testimonials } from "@/components/Testimonials";
 import { Newsletter } from "@/components/Newsletter";
 import { Footer } from "@/components/Footer";
 
+type IndexSearchParams = {
+  category?: string;
+  sale?: boolean;
+};
+
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): IndexSearchParams => {
+    return {
+      category: (search.category as string) || undefined,
+      sale: (search.sale as boolean) || undefined,
+    };
+  },
   component: Index,
   head: () => ({
     meta: [
-      { title: "VURLO - Built for What's Next" },
+      { title: "Vurlo - Premium Workspace Tools & Ergonomic Accessories" },
       {
         name: "description",
-        content: "Premium tech. Clean design. Future-ready essentials from VURLO.",
+        content:
+          "Elevate your daily setup with premium workspace tools, ergonomics, and audio accessories designed for focused work.",
       },
     ],
   }),
 });
 
 function Index() {
+  const { category, sale } = Route.useSearch();
   return (
-    <main className="min-h-screen overflow-x-hidden bg-background text-foreground page-transition">
+    <main className="min-h-screen bg-background text-foreground page-transition">
       <Navbar />
       <Hero />
-      <FeaturedProducts />
+      <FeaturedProducts category={category} sale={sale} />
       <Categories />
       <WhyVurlo />
       <Testimonials />

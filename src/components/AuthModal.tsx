@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, User as UserIcon, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
+
 interface AuthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -82,14 +83,16 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     } catch (err: unknown) {
       console.error("[AuthModal Submit Error]:", err);
       const error = err as { code?: string; message?: string };
-      if (error.code === "auth/invalid-credential") {
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
         setError("Invalid email or password.");
       } else if (error.code === "auth/email-already-in-use") {
         setError("Email already in use.");
       } else if (error.code === "auth/weak-password") {
         setError("Password should be at least 6 characters.");
-      } else if (error.code === "auth/user-not-found") {
-        setError("No user found with this email address.");
       } else if (error.code === "auth/invalid-email") {
         setError("Please enter a valid email address.");
       } else if (error.code === "auth/unauthorized-domain") {
@@ -164,54 +167,65 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           <DialogDescription className="text-white/50 text-sm">{description}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4.5 mt-2">
+        <form
+          key={error || success || mode}
+          onSubmit={handleSubmit}
+          className={`space-y-4 mt-2 ${error ? "animate-shake" : ""}`}
+        >
           {error && (
-            <div className="p-3 text-xs bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg">
-              {error}
+            <div className="p-3 text-xs bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg shadow-[0_0_15px_rgba(239,68,68,0.15)] flex items-start gap-2">
+              <span className="mt-0.5 select-none text-[10px]">⚠️</span>
+              <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="p-3 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg">
+            <div className="p-3 text-xs bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.1)]">
               {success}
             </div>
           )}
 
-          <div className="space-y-3.5">
+          <div className="space-y-4">
             {mode === "signup" && (
               <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                <label className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
                   Full Name
                 </label>
-                <Input
-                  type="text"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={loading}
-                  className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 text-white rounded-lg placeholder:text-white/20 h-10 px-3.5"
-                />
+                <div className="relative focus-glow rounded-lg">
+                  <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 transition-colors" />
+                  <Input
+                    type="text"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={loading}
+                    className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-lg placeholder:text-white/20 h-10 pl-10 pr-3.5 text-sm transition-all"
+                  />
+                </div>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">
+              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
                 Email Address
               </label>
-              <Input
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 text-white rounded-lg placeholder:text-white/20 h-10 px-3.5"
-              />
+              <div className="relative focus-glow rounded-lg">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 transition-colors" />
+                <Input
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-lg placeholder:text-white/20 h-10 pl-10 pr-3.5 text-sm transition-all"
+                />
+              </div>
             </div>
 
             {mode !== "forgot" && (
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">
+                  <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
                     Password
                   </label>
                   {mode === "login" && (
@@ -221,36 +235,42 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                         setMode("forgot");
                         setError("");
                       }}
-                      className="text-[10px] text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+                      className="text-[10px] text-white/40 hover:text-white/70 transition-colors cursor-pointer focus:outline-none"
                     >
                       Forgot Password?
                     </button>
                   )}
                 </div>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 text-white rounded-lg placeholder:text-white/20 h-10 px-3.5"
-                />
+                <div className="relative focus-glow rounded-lg">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 transition-colors" />
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                    className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-lg placeholder:text-white/20 h-10 pl-10 pr-3.5 text-sm transition-all"
+                  />
+                </div>
               </div>
             )}
 
             {mode === "signup" && (
               <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                <label className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
                   Confirm Password
                 </label>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={loading}
-                  className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 text-white rounded-lg placeholder:text-white/20 h-10 px-3.5"
-                />
+                <div className="relative focus-glow rounded-lg">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 transition-colors" />
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={loading}
+                    className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-lg placeholder:text-white/20 h-10 pl-10 pr-3.5 text-sm transition-all"
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -258,14 +278,13 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full text-sm font-semibold h-11 mt-6 rounded-lg text-white transition-all duration-300 relative overflow-hidden cursor-pointer"
+            className="w-full text-xs font-bold uppercase tracking-wider h-11 mt-6 rounded-lg text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] scale-100 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
             style={{
               background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
-              boxShadow: "0 4px 20px rgba(124, 58, 237, 0.35)",
             }}
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin mx-auto text-white" />
+              <Loader2 className="h-4 w-4 animate-spin text-white" />
             ) : (
               <span>
                 {mode === "login" ? "Login" : mode === "signup" ? "Sign Up" : "Send Reset Link"}

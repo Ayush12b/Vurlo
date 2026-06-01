@@ -10,12 +10,15 @@ import {
   ArrowLeft,
   ShoppingBag,
   Calendar,
-  CheckCircle2,
   Clock,
   ShieldAlert,
+  Check,
+  Truck,
+  Package,
 } from "lucide-react";
 import { resolveProductImage } from "@/components/FeaturedProducts";
 import { toast } from "sonner";
+import { getProductImage } from "@/utils/product";
 
 export const Route = createFileRoute("/orders")({
   component: OrdersPage,
@@ -38,6 +41,13 @@ interface Order {
   createdAt?: {
     seconds: number;
     nanoseconds: number;
+  };
+  shippingDetails?: {
+    name: string;
+    address: string;
+    city: string;
+    pinCode: string;
+    phone: string;
   };
 }
 
@@ -67,6 +77,45 @@ function OrdersPage() {
   );
 }
 
+const stepsConfig = [
+  {
+    key: "pending",
+    label: "Pending",
+    icon: Clock,
+    colorClass: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20 shadow-yellow-500/10",
+    completedColorClass: "bg-yellow-500 border-yellow-500 text-black shadow-yellow-500/20",
+    message: "Awaiting payment verification.",
+    estDays: "3-5 business days",
+  },
+  {
+    key: "confirmed",
+    label: "Confirmed",
+    icon: Check,
+    colorClass: "text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-blue-500/10",
+    completedColorClass: "bg-blue-500 border-blue-500 text-white shadow-blue-500/20",
+    message: "Order confirmed. Preparing your workspace gear for dispatch.",
+    estDays: "2-4 business days",
+  },
+  {
+    key: "shipped",
+    label: "Shipped",
+    icon: Truck,
+    colorClass: "text-purple-400 bg-purple-500/10 border-purple-500/20 shadow-purple-500/10",
+    completedColorClass: "bg-purple-500 border-purple-500 text-white shadow-purple-500/20",
+    message: "Dispatched. Shipped via Vurlo Express Cargo.",
+    estDays: "1-2 business days",
+  },
+  {
+    key: "delivered",
+    label: "Delivered",
+    icon: Package,
+    colorClass: "text-green-400 bg-green-500/10 border-green-500/20 shadow-green-500/10",
+    completedColorClass: "bg-green-500 border-green-500 text-white shadow-green-500/20",
+    message: "Delivered to your address.",
+    estDays: "",
+  },
+];
+
 function OrderStatusTimeline({ status }: { status: string }) {
   if (status === "cancelled") {
     return (
@@ -85,59 +134,148 @@ function OrderStatusTimeline({ status }: { status: string }) {
   ];
 
   const currentIdx = steps.findIndex((s) => s.key === status);
+  const currentStep = stepsConfig[currentIdx] || stepsConfig[0];
+  const mockCarrier = "VURLO Express Cargo";
+  const mockTrackingId = `VRL-${status.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
 
   return (
-    <div className="w-full py-4 px-2">
-      <div className="relative flex items-center justify-between">
-        {/* Connecting Line Background */}
-        <div className="absolute left-6 right-6 top-3 h-[2px] -translate-y-1/2 bg-white/[0.06]" />
+    <div className="w-full space-y-6">
+      {/* Desktop Stepper */}
+      <div className="hidden md:block relative w-full py-6">
+        <div className="absolute left-[12.5%] right-[12.5%] top-[20px] h-[2px] -translate-y-1/2 bg-white/[0.06]" />
 
-        {/* Connecting Line Active */}
         <div
-          className="absolute left-6 right-6 top-3 h-[2px] -translate-y-1/2 bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-500"
+          className="absolute left-[12.5%] top-[20px] h-[2px] -translate-y-1/2 bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-500"
           style={{
-            width: `${(currentIdx / (steps.length - 1)) * 100}%`,
+            width: `${(currentIdx / (steps.length - 1)) * 75}%`,
             transformOrigin: "left",
           }}
         />
 
-        {/* Steps */}
+        <div className="flex justify-between items-start">
+          {steps.map((step, idx) => {
+            const isCompleted = idx < currentIdx;
+            const isCurrent = idx === currentIdx;
+            const isUpcoming = idx > currentIdx;
+            const config = stepsConfig[idx];
+            const StepIcon = config.icon;
+
+            let dotClass = "";
+            let textClass = "";
+
+            if (isCompleted) {
+              dotClass = `${config.completedColorClass} scale-100`;
+              textClass = "text-white/80 font-semibold";
+            } else if (isCurrent) {
+              dotClass = `${config.colorClass} scale-125 border border-current`;
+              textClass = "text-white font-extrabold";
+            } else {
+              dotClass = "bg-[#090910] border-white/[0.12] text-white/30 border";
+              textClass = "text-white/30";
+            }
+
+            return (
+              <div key={step.key} className="flex flex-col items-center gap-3 w-1/4 relative z-10">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${dotClass}`}
+                >
+                  {isCompleted ? (
+                    <Check className="h-4.5 w-4.5" />
+                  ) : (
+                    <StepIcon className="h-4.5 w-4.5" />
+                  )}
+                </div>
+                <div className="text-center space-y-1">
+                  <span className={`text-[10px] uppercase tracking-widest block ${textClass}`}>
+                    {step.label}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile Stepper */}
+      <div className="md:hidden relative flex flex-col gap-6 pl-4 py-2">
+        <div className="absolute left-[31px] top-6 bottom-6 w-[2px] bg-white/[0.06]" />
+
+        <div
+          className="absolute left-[31px] top-6 w-[2px] bg-gradient-to-b from-violet-500 to-cyan-400 transition-all duration-500"
+          style={{
+            height: `${(currentIdx / (steps.length - 1)) * 82}%`,
+            transformOrigin: "top",
+          }}
+        />
+
         {steps.map((step, idx) => {
           const isCompleted = idx < currentIdx;
           const isCurrent = idx === currentIdx;
+          const isUpcoming = idx > currentIdx;
+          const config = stepsConfig[idx];
+          const StepIcon = config.icon;
 
           let dotClass = "";
           let textClass = "";
 
           if (isCompleted) {
-            dotClass = "bg-violet-500 border-violet-500 shadow-[0_0_12px_rgba(139,92,246,0.5)]";
+            dotClass = `${config.completedColorClass} scale-100`;
             textClass = "text-white/80 font-semibold";
           } else if (isCurrent) {
-            dotClass =
-              "bg-black border-cyan-400 border-2 scale-125 shadow-[0_0_15px_rgba(34,211,238,0.6)]";
-            textClass = "text-cyan-400 font-extrabold";
+            dotClass = `${config.colorClass} scale-110 border border-current`;
+            textClass = "text-white font-bold";
           } else {
-            dotClass = "bg-[#090910] border-white/[0.12] border";
+            dotClass = "bg-[#090910] border-white/[0.12] text-white/30 border";
             textClass = "text-white/30";
           }
 
           return (
-            <div key={step.key} className="relative z-10 flex flex-col items-center gap-2">
-              {/* Step Circle */}
+            <div key={step.key} className="flex items-center gap-4 relative z-10">
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${dotClass}`}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${dotClass} shrink-0`}
               >
-                {isCompleted && <CheckCircle2 className="h-3 w-3 text-white" />}
-                {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
+                {isCompleted ? <Check className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
               </div>
-
-              {/* Step Label */}
-              <span className={`text-[10px] uppercase tracking-wider text-center ${textClass}`}>
-                {step.label}
-              </span>
+              <div className="space-y-0.5">
+                <span className={`text-[11px] uppercase tracking-wider block ${textClass}`}>
+                  {step.label}
+                </span>
+                {isCurrent && (
+                  <span className="text-[10px] text-gray-400 block leading-tight">
+                    {config.message}
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
+      </div>
+
+      {/* Details Box */}
+      <div className="mt-4 p-4 rounded-xl border border-white/[0.05] bg-white/[0.01] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-full tracking-wider shrink-0 ${currentStep.colorClass}`}
+            >
+              {status}
+            </span>
+            <p className="text-xs text-white/80 font-medium leading-tight">{currentStep.message}</p>
+          </div>
+          <p className="text-[10px] text-gray-400">
+            Courier: <span className="text-white/60 font-semibold">{mockCarrier}</span> &middot;
+            Tracking: <span className="font-mono text-white/60">{mockTrackingId}</span>
+          </p>
+        </div>
+
+        {currentStep.estDays && (
+          <div className="text-left sm:text-right shrink-0">
+            <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+              Estimated Delivery
+            </p>
+            <p className="text-xs font-bold text-violet-400 mt-0.5">{currentStep.estDays}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -215,11 +353,9 @@ function OrdersContent() {
             <ShoppingBag size={20} />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white/70">
-              You haven't placed any orders yet
-            </h3>
+            <h3 className="text-sm font-semibold text-white/70">No order history found</h3>
             <p className="text-xs text-white/40 mt-1">
-              Browse our collection to order future-ready essential tech.
+              Explore our workspace gear to place your first order.
             </p>
           </div>
           <Link
@@ -272,10 +408,10 @@ function OrdersContent() {
 
                 {/* Order Items */}
                 <div className="divide-y divide-white/[0.04] px-6 py-2">
-                  {order.items.map((item) => (
+                  {order.items?.map((item) => (
                     <div key={item.productId} className="flex items-center gap-4 py-4">
                       <img
-                        src={resolveProductImage(item.image, item.name)}
+                        src={resolveProductImage(getProductImage(item), item.name)}
                         alt={item.name}
                         className="w-14 h-14 rounded-xl object-cover bg-white/[0.03] border border-white/[0.06] flex-shrink-0"
                         onError={(e) => {
@@ -299,6 +435,25 @@ function OrdersContent() {
                     </div>
                   ))}
                 </div>
+
+                {/* Shipping Details */}
+                {order.shippingDetails && (
+                  <div className="border-t border-white/[0.04] bg-white/[0.01] px-6 py-4">
+                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">
+                      Shipping Details
+                    </p>
+                    <div className="text-xs text-white/70">
+                      <p className="font-semibold text-white/95">{order.shippingDetails.name}</p>
+                      <p className="text-white/60 mt-0.5">
+                        {order.shippingDetails.address}, {order.shippingDetails.city} -{" "}
+                        {order.shippingDetails.pinCode}
+                      </p>
+                      <p className="text-white/40 text-[10px] mt-1">
+                        Phone: {order.shippingDetails.phone}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Order Footer */}
                 <div className="flex items-center justify-between bg-white/[0.01] px-6 py-4 border-t border-white/[0.04]">

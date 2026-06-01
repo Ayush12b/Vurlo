@@ -4,17 +4,17 @@ const reviews = [
   {
     name: "Alex Chen",
     role: "Product Designer",
-    text: "VURLO's build quality is unreal. Feels like holding the future.",
+    text: "The audio quality is incredibly crisp and the memory foam ear cups make it easy to wear for 6+ hours at my desk.",
   },
   {
     name: "Mira Patel",
-    role: "Engineer",
-    text: "Clean, fast, premium. Easily the best tech purchase this year.",
+    role: "Software Engineer",
+    text: "Clean profile, matte black finish, and stable wireless charging. Easily the best addition to my workspace this year.",
   },
   {
     name: "Jordan Lee",
-    role: "Creator",
-    text: "The attention to detail is on another level. Worth every cent.",
+    role: "Content Creator",
+    text: "Tactile buttons, premium weights, and solid packaging. You can tell they really obsessed over the product details.",
   },
 ];
 
@@ -22,8 +22,8 @@ export function Testimonials() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <div className="mb-12">
-        <p className="text-sm text-secondary font-medium mb-2">Loved by 120k+</p>
-        <h2 className="font-display text-4xl md:text-5xl font-bold">What people say.</h2>
+        <p className="text-sm text-secondary font-medium mb-2">Customer Setup Reviews</p>
+        <h2 className="font-display text-4xl md:text-5xl font-bold">What creators are saying.</h2>
       </div>
       <div className="grid md:grid-cols-3 gap-6">
         {reviews.map((r) => (

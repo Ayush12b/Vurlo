@@ -34,7 +34,7 @@ export function Footer() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            Trusted by 100+ customers
+            Curated for modern workspaces
           </div>
         </div>
       </div>
@@ -45,7 +45,7 @@ export function Footer() {
             VU<span className="text-gradient-brand">RLO</span>
           </Link>
           <p className="mt-4 text-sm text-muted-foreground max-w-xs">
-            Premium tech. Clean design. Future-ready essentials.
+            Premium workspace accessories. Clean design. Built for focused creators.
           </p>
           <div className="mt-6 flex gap-3">
             {[Instagram, Twitter, Youtube, Github].map((Icon, i) => (
