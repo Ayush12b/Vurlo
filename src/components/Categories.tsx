@@ -1,11 +1,12 @@
-import { Cpu, Headphones, Watch, Zap } from "lucide-react";
+import { Sparkles, Lamp, Bed, Gamepad2, Palette } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 const cats = [
-  { name: "Gadgets", icon: Cpu },
-  { name: "Audio", icon: Headphones },
-  { name: "Wearables", icon: Watch },
-  { name: "Smart Devices", icon: Zap },
+  { name: "RGB Lights", icon: Sparkles },
+  { name: "Ambient Lamps", icon: Lamp },
+  { name: "Bedroom Lighting", icon: Bed },
+  { name: "Gaming Setup Lights", icon: Gamepad2 },
+  { name: "Aesthetic Decor", icon: Palette },
 ];
 
 export function Categories() {
@@ -15,7 +16,7 @@ export function Categories() {
         <p className="text-sm text-secondary font-medium mb-2">Categories</p>
         <h2 className="font-display text-4xl md:text-5xl font-bold">Shop by collection.</h2>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
         {cats.map(({ name, icon: Icon }) => (
           <Link
             key={name}

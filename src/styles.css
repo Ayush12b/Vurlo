@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap");
 @import "tw-animate-css";
 
 @tailwind base;
@@ -701,3 +701,347 @@
     animation: none !important;
   }
 }
+
+/* Search modal scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Variant selectors and active thumbnails */
+.active-variant-class {
+  @apply px-3 py-1.5 text-xs font-bold rounded-lg border transition cursor-pointer select-none focus:outline-none bg-violet-500/10 border-violet-500/50 text-violet-400 shadow-[0_0_12px_rgba(138,46,255,0.15)] !important;
+}
+
+.inactive-variant-class {
+  @apply px-3 py-1.5 text-xs font-bold rounded-lg border transition cursor-pointer select-none focus:outline-none bg-white/[0.02] border-white/[0.06] text-white/50 hover:text-white/80 hover:border-white/20 !important;
+}
+
+.active-thumb {
+  @apply border-violet-500 scale-105 shadow-[0_0_12px_rgba(139,92,246,0.25)] !important;
+}
+
+/* Premium Toast System Overrides */
+.premium-toast {
+  background: rgba(20, 20, 35, 0.6) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border-radius: 18px !important;
+  border: 1px solid transparent !important;
+  padding: 14px 18px !important;
+  max-width: 350px !important;
+  gap: 14px !important;
+  font-family: var(--font-body), sans-serif !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+  
+  /* Standard transition for opacity and stack-movement transform */
+  transition: 
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1), 
+    opacity 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease !important;
+}
+
+/* Icon layout and visual alignment */
+.premium-toast [data-icon] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Text container column layout + slide entry */
+.premium-toast [data-content] {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  opacity: 0;
+  transform: translateX(8px);
+  animation: text-fade-in-slide 400ms cubic-bezier(0.22, 1, 0.36, 1) 430ms forwards;
+}
+
+@keyframes text-fade-in-slide {
+  0% {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Specific styling for success toast */
+.premium-toast[data-type="success"] {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 25px rgba(0, 255, 255, 0.15), 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Specific styling for error toast */
+.premium-toast[data-type="error"] {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 75, 75, 0.12), 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Gradient borders using mask composites to preserve backdrop-filter */
+.premium-toast::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 1px; /* border thickness */
+  pointer-events: none;
+  z-index: 1;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.premium-toast[data-type="success"]::before {
+  background: linear-gradient(135deg, #00e5ff, #8a2eff);
+}
+
+.premium-toast[data-type="error"]::before {
+  background: linear-gradient(135deg, #ff4b4b, #ff7b00);
+}
+
+/* 3D Entry & Stacking states */
+.premium-toast {
+  opacity: 0 !important;
+  transform: perspective(800px) rotateX(3deg) translateY(calc(var(--y) + 40px)) scale(0.85) !important;
+}
+
+.premium-toast[data-mounted="true"] {
+  opacity: 1 !important;
+  transform: perspective(800px) rotateX(3deg) translateY(var(--y)) scale(1) !important;
+}
+
+/* Floating animation on independent translate property to avoid transform conflicts */
+@keyframes success-toast-float {
+  0%, 100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+.premium-toast[data-mounted="true"] {
+  animation: success-toast-float 4s ease-in-out 350ms infinite;
+}
+
+/* Glow entry pulse animation for success */
+@keyframes success-glow-pulse-entry {
+  0% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 10px rgba(0, 255, 255, 0), 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  35% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 35px rgba(0, 255, 255, 0.4), 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+  100% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 25px rgba(0, 255, 255, 0.15), 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.premium-toast[data-type="success"][data-mounted="true"] {
+  animation: 
+    success-glow-pulse-entry 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    success-toast-float 4s ease-in-out 350ms infinite;
+}
+
+/* Hover interaction */
+.premium-toast:hover {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.premium-toast[data-type="success"]:hover {
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 12px 40px rgba(0, 0, 0, 0.6), 
+    0 0 35px rgba(0, 255, 255, 0.3), 
+    0 0 60px rgba(138, 46, 255, 0.15) !important;
+}
+
+/* 1-Time Shimmer line passing across toast */
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-150%) skewX(-25deg);
+  }
+  100% {
+    transform: translateX(150%) skewX(-25deg);
+  }
+}
+
+.premium-toast::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1) 30%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.1) 70%,
+    transparent
+  );
+  transform: translateX(-150%) skewX(-25deg);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.premium-toast[data-mounted="true"]::after {
+  animation: shimmer-slide 1.2s cubic-bezier(0.22, 1, 0.36, 1) 150ms forwards;
+}
+
+/* Text styles */
+.premium-toast [data-title] {
+  font-family: var(--font-display), sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 14.5px !important;
+  color: #ffffff !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.premium-toast [data-description] {
+  font-family: var(--font-body), sans-serif !important;
+  font-size: 12.5px !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  opacity: 0.75 !important;
+  line-height: 1.3 !important;
+}
+
+/* SVG Animations for glowing 3D-style success/error badges */
+.premium-success-icon {
+  animation: success-icon-pop 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: center;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #00eaff, #a855f7) !important;
+  box-shadow: 
+    0 0 20px rgba(0, 234, 255, 0.5), 
+    0 0 20px rgba(168, 85, 247, 0.5) !important;
+}
+
+.premium-error-icon {
+  animation: icon-pop 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  filter: drop-shadow(0 0 10px #ff4b4b);
+  transform-origin: center;
+}
+
+.checkmark-path, .error-path {
+  animation: check-draw 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.12s forwards;
+}
+
+@keyframes success-icon-pop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+    box-shadow: 
+      0 0 10px rgba(0, 234, 255, 0.2), 
+      0 0 10px rgba(168, 85, 247, 0.2);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 
+      0 0 30px rgba(0, 234, 255, 0.8), 
+      0 0 30px rgba(168, 85, 247, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 
+      0 0 20px rgba(0, 234, 255, 0.5), 
+      0 0 20px rgba(168, 85, 247, 0.5);
+  }
+}
+
+@keyframes icon-pop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Micro interaction: custom ripple */
+@keyframes icon-ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.icon-ripple-effect {
+  animation: icon-ripple 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Success particle burst */
+@keyframes particle-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+    box-shadow: 0 0 4px #00eaff;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0.4);
+    opacity: 0;
+    box-shadow: 0 0 8px #00eaff;
+  }
+}
+
+.success-particle {
+  animation: particle-burst 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .premium-toast,
+  .premium-toast[data-mounted="true"],
+  .premium-toast [data-content],
+  .premium-success-icon,
+  .premium-error-icon,
+  .checkmark-path,
+  .error-path,
+  .icon-ripple-effect,
+  .success-particle {
+    animation: none !important;
+    transition: none !important;
+    stroke-dashoffset: 0 !important;
+    transform: none !important;
+    translate: none !important;
+    opacity: 1 !important;
+  }
+  
+  .premium-toast::after {
+    display: none !important;
+  }
+}
+

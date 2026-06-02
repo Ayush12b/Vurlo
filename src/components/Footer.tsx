@@ -15,17 +15,17 @@ export function Footer() {
         <div className="mx-auto max-w-7xl px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-wrap justify-center md:justify-start items-center gap-6 sm:gap-8 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
             <div className="flex items-center gap-2.5">
-              <ShieldCheck className="h-4.5 w-4.5 text-violet-400" />
+              <ShieldCheck className="h-4 w-4 text-violet-400" />
               <span>Secure Checkout</span>
             </div>
             <div className="h-4 w-px bg-border hidden sm:block" />
             <div className="flex items-center gap-2.5">
-              <Truck className="h-4.5 w-4.5 text-cyan-400" />
+              <Truck className="h-4 w-4 text-cyan-400" />
               <span>Fast Delivery</span>
             </div>
             <div className="h-4 w-px bg-border hidden sm:block" />
             <div className="flex items-center gap-2.5">
-              <Award className="h-4.5 w-4.5 text-indigo-400" />
+              <Award className="h-4 w-4 text-indigo-400" />
               <span>Premium Quality</span>
             </div>
           </div>
@@ -34,7 +34,7 @@ export function Footer() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            Curated for modern workspaces
+            Elevating your room aesthetics
           </div>
         </div>
       </div>
@@ -45,7 +45,7 @@ export function Footer() {
             VU<span className="text-gradient-brand">RLO</span>
           </Link>
           <p className="mt-4 text-sm text-muted-foreground max-w-xs">
-            Premium workspace accessories. Clean design. Built for focused creators.
+            Premium ambient lighting & room decor. Elevate your room aesthetics and set the perfect vibe.
           </p>
           <div className="mt-6 flex gap-3">
             {[Instagram, Twitter, Youtube, Github].map((Icon, i) => (

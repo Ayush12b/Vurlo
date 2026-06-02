@@ -1,52 +1,123 @@
-import { useState } from "react";
-import { ShoppingBag, Loader2, X } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { ShoppingBag, Loader2, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/use-cart";
-import { resolveProductImage, formatPrice, FirestoreProduct } from "@/hooks/use-products";
-import { getProductImage } from "@/utils/product";
+import { formatPrice, resolveProductImage } from "@/hooks/use-products";
 
 interface ProductQuickViewProps {
-  product: FirestoreProduct;
+  product: any;
   onClose: () => void;
 }
 
-export function ProductQuickView({ product: selectedProduct, onClose }: ProductQuickViewProps) {
+export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
   const { addToCart } = useCart();
   const [addingToCart, setAddingToCart] = useState(false);
 
-  // Pre-resolve all images at render time — no raw unresolved paths ever reach <img src>
-  const resolvedImages: string[] = (() => {
-    const arr: string[] = [];
-    if (Array.isArray(selectedProduct.images) && selectedProduct.images.length > 0) {
-      selectedProduct.images.forEach((img) => {
-        const resolved = resolveProductImage(img, selectedProduct.name);
-        if (resolved && !arr.includes(resolved)) arr.push(resolved);
-      });
-    }
-    if (arr.length === 0) {
-      arr.push(resolveProductImage(getProductImage(selectedProduct), selectedProduct.name));
-    }
-    return arr;
-  })();
+  // RULE 2 — hasVariants DETECTION
+  const hasVariants = useMemo(() => {
+    return (
+      product?.images != null &&
+      typeof product.images === "object" &&
+      !Array.isArray(product.images) &&
+      Object.keys(product.images).length > 0
+    );
+  }, [product?.images]);
 
+  // RULE 5 — VARIANT SWITCHING INITIALIZATION
+  const getInitialVariant = useCallback(() => {
+    if (hasVariants) {
+      const keys = Object.keys(product.images);
+      if (product.defaultVariant) {
+        const found = keys.find(
+          (k) => k.toLowerCase() === product.defaultVariant.toLowerCase()
+        );
+        if (found) return found;
+      }
+      return keys[0] || "";
+    }
+    return "";
+  }, [hasVariants, product?.images, product?.defaultVariant]);
+
+  const [selectedVariant, setSelectedVariant] = useState(getInitialVariant);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const currentImage = resolvedImages[currentImageIndex] ?? resolvedImages[0];
+  const [imgError, setImgError] = useState(false);
 
-  // Guard: never render with invalid product
-  if (!selectedProduct || !selectedProduct.id) return null;
+  // RULE 3 — resolvedImages WITH useMemo
+  const resolvedImages = useMemo(() => {
+    let imgs: string[] = [];
+    if (hasVariants) {
+      imgs = (product.images as Record<string, string[]>)[selectedVariant] || [];
+    } else if (Array.isArray(product.images)) {
+      imgs = product.images;
+    } else if (typeof product.image === "string") {
+      imgs = [product.image];
+    }
+    // Deduplicate + filter empty strings
+    return Array.from(new Set(imgs)).filter((img) => typeof img === "string" && img.trim() !== "");
+  }, [hasVariants, product?.images, product?.image, selectedVariant]);
+
+  // RULE 4 — SINGLE IMAGE RENDER CURRENT IMAGE
+  const currentImage = useMemo(() => {
+    return resolvedImages[currentImageIndex] ?? resolvedImages[0] ?? "";
+  }, [resolvedImages, currentImageIndex]);
+
+  // Reset variant/states on product change
+  useEffect(() => {
+    setCurrentImageIndex(0);
+    setSelectedVariant(getInitialVariant());
+    setImgError(false);
+  }, [product?.id, getInitialVariant]);
+
+  // RULE 7 — Reset imgError whenever currentImage changes
+  useEffect(() => {
+    setImgError(false);
+  }, [currentImage]);
+
+  // RULE 5 — VARIANT SWITCHING HANDLER
+  const handleVariantChange = useCallback((variant: string) => {
+    setSelectedVariant(variant);
+    setCurrentImageIndex(0);
+    setImgError(false);
+  }, []);
+
+  const handleImgError = useCallback(() => {
+    setImgError(true);
+  }, []);
+
+  const handleAddToCart = useCallback(async () => {
+    if (addingToCart || !product || product.stock === 0) return;
+    setAddingToCart(true);
+    try {
+      await addToCart({
+        productId: product.id,
+        name: hasVariants
+          ? `${product.name} (${selectedVariant})`
+          : product.name,
+        price: product.price,
+        image: resolvedImages[0] || resolveProductImage("", product.name),
+      });
+      onClose();
+    } catch (err) {
+      toast.error("Failed to add to cart");
+    } finally {
+      setAddingToCart(false);
+    }
+  }, [addingToCart, product, hasVariants, selectedVariant, resolvedImages, addToCart, onClose]);
+
+  if (!product || !product.id) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/75"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-black/75 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d0d16] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8),0_0_50px_rgba(138,46,255,0.08)] flex flex-col md:flex-row relative"
+        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0d0d16] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8),0_0_50px_rgba(138,46,255,0.08)] flex flex-col md:flex-row relative my-auto"
         onClick={(e) => e.stopPropagation()}
         style={
           {
-            "--accent": selectedProduct.accent || "#8a2eff",
-            "--accent-rgb": selectedProduct.accentRgb || "138,46,255",
+            "--accent": product.accent || "#8a2eff",
+            "--accent-rgb": product.accentRgb || "138,46,255",
           } as React.CSSProperties
         }
       >
@@ -60,79 +131,69 @@ export function ProductQuickView({ product: selectedProduct, onClose }: ProductQ
         </button>
 
         {/* Product Image Section */}
-        <div className="w-full md:w-1/2 aspect-square relative bg-white/[0.01] border-b md:border-b-0 md:border-r border-white/[0.06] flex flex-col p-6">
-          <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+        <div className="w-full h-64 sm:h-72 md:h-auto md:w-2/5 md:min-h-[420px] relative bg-white/[0.01] border-b md:border-b-0 md:border-r border-white/[0.06] flex flex-col p-5 shrink-0 overflow-hidden">
+          <div className="flex-1 flex items-center justify-center relative overflow-hidden w-full h-full">
             <div
               className="absolute w-[80%] h-[80%] rounded-full opacity-30 blur-[40px] pointer-events-none"
               style={{
                 background: `radial-gradient(circle, rgba(var(--accent-rgb), 0.15) 0%, transparent 70%)`,
               }}
             />
+            {/* 7. IMAGE RENDERING (Main image) */}
             <img
-              src={currentImage}
-              alt={selectedProduct.name}
+              src={imgError || !currentImage ? resolveProductImage("", product.name) : currentImage}
+              alt={product.name}
+              onError={handleImgError}
               className="max-w-full max-h-full object-contain relative z-10 rounded-xl"
-              key={currentImageIndex}
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = resolveProductImage(
-                  "",
-                  selectedProduct.name,
-                );
-              }}
             />
           </div>
 
-          {/* Thumbnails — only when multiple distinct resolved images exist */}
+          {/* 8. THUMBNAILS */}
           {resolvedImages.length > 1 && (
-            <div className="flex justify-center gap-2 mt-4 overflow-x-auto py-1">
-              {resolvedImages.map((img, idx) => (
-                <button
+            <div className="flex gap-2 justify-center mt-4 overflow-x-auto py-1">
+              {resolvedImages.map((img: string, idx: number) => (
+                <img
                   key={idx}
+                  src={img}
                   onClick={() => setCurrentImageIndex(idx)}
-                  className={`w-12 h-12 rounded-xl overflow-hidden border shrink-0 bg-white/[0.02] transition-all duration-200 cursor-pointer focus:outline-none ${
+                  className={`w-12 h-12 rounded-xl overflow-hidden border shrink-0 bg-white/[0.02] transition-all duration-200 cursor-pointer object-cover ${
                     idx === currentImageIndex
-                      ? "border-violet-500 scale-105 shadow-[0_0_12px_rgba(139,92,246,0.25)]"
-                      : "border-white/[0.06] hover:border-white/20 hover:bg-white/[0.04]"
+                      ? "border-violet-500 scale-105 opacity-100"
+                      : "border-white/[0.08] opacity-50"
                   }`}
-                >
-                  <img
-                    src={img}
-                    alt={`${selectedProduct.name} - Thumbnail ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = resolveProductImage(
-                        "",
-                        selectedProduct.name,
-                      );
-                    }}
-                  />
-                </button>
+                  alt=""
+                />
               ))}
             </div>
           )}
         </div>
 
         {/* Product Info Section */}
-        <div className="w-full md:w-1/2 p-6 flex flex-col justify-between">
+        <div className="w-full md:w-3/5 p-5 md:p-7 flex flex-col justify-between overflow-y-auto">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-1.5">
-              {selectedProduct.stock === 0 ? (
+              {product.stock === 0 ? (
                 <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/25 text-red-400">
                   Sold Out
                 </span>
               ) : (
                 <>
-                  {selectedProduct.isOnSale && selectedProduct.discountPercentage && (
+                  {product.badge && (
+                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/25 text-amber-400 animate-pulse">
+                      {product.badge}
+                    </span>
+                  )}
+                  {product.isOnSale && product.discountPercentage && (
                     <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/25 text-red-400">
                       Sale
                     </span>
                   )}
-                  {selectedProduct.isNew && (
+                  {product.isNew && (
                     <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-cyan-500/10 border border-cyan-500/25 text-cyan-400">
                       New
                     </span>
                   )}
-                  {selectedProduct.isFeatured && (
+                  {product.isFeatured && (
                     <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-violet-500/10 border border-violet-500/25 text-violet-400">
                       Featured
                     </span>
@@ -141,55 +202,116 @@ export function ProductQuickView({ product: selectedProduct, onClose }: ProductQ
               )}
             </div>
             <h3 className="text-xl font-bold text-white tracking-tight leading-snug">
-              {selectedProduct.name}
+              {product.name}
             </h3>
-            <div className="flex items-baseline gap-2">
-              <p
-                className="text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-300"
-                style={{ textShadow: `0 0 20px rgba(var(--accent-rgb), 0.2)` }}
-              >
-                ₹{formatPrice(selectedProduct.price)}
-              </p>
-              {selectedProduct.isOnSale && selectedProduct.originalPrice && (
-                <p className="text-xs text-white/30 line-through font-semibold">
-                  ₹{formatPrice(selectedProduct.originalPrice)}
+            {product.rating !== undefined && (
+              <div className="flex items-center gap-1.5 text-xs text-amber-400">
+                <div className="flex items-center">
+                  {Array.from({ length: 5 }).map((_, idx) => {
+                    const isFilled = idx < Math.floor(product.rating || 0);
+                    return (
+                      <span key={idx} className={isFilled ? "text-amber-400 font-bold" : "text-white/20"}>
+                        ★
+                      </span>
+                    );
+                  })}
+                </div>
+                <span className="font-bold text-amber-400">{product.rating}</span>
+                {product.reviewsCount !== undefined && (
+                  <span className="text-white/35 font-medium">
+                    ({product.reviewsCount} reviews)
+                  </span>
+                )}
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-baseline gap-2">
+                <p
+                  className="text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-300"
+                  style={{ textShadow: `0 0 20px rgba(var(--accent-rgb), 0.2)` }}
+                >
+                  ₹{formatPrice(product.price)}
                 </p>
+                {product.isOnSale && product.originalPrice && (
+                  <p className="text-xs text-white/30 line-through font-semibold">
+                    ₹{formatPrice(product.originalPrice)}
+                  </p>
+                )}
+              </div>
+
+              {/* 6. VARIANT BUTTON CLICK & 5. ACTIVE VARIANT UI */}
+              {hasVariants && (
+                <div className="space-y-1.5 mt-1 border-t border-white/[0.04] pt-3">
+                  <label className="text-[9px] font-bold text-white/45 uppercase tracking-widest block">
+                    Select Variant
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.keys(product.images).map((variant) => (
+                      <button
+                        key={variant}
+                        type="button"
+                        onClick={() => handleVariantChange(variant)}
+                        className={selectedVariant === variant ? "active-variant-class" : "inactive-variant-class"}
+                      >
+                        {variant.charAt(0).toUpperCase() + variant.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-            <div className="h-[1px] bg-white/[0.06]" />
-            <p className="text-xs text-gray-400 leading-relaxed">
-              {selectedProduct.description ||
-                "Premium quality workspace accessory designed to enhance your desk setup."}
-            </p>
+
+            <div className="h-[1px] bg-white/[0.06] my-4" />
+            <div className="space-y-3">
+              <p className="text-xs text-gray-400 leading-relaxed whitespace-pre-line">
+                {product.description ||
+                  "Premium lighting product designed to elevate your room's aesthetic and vibe."}
+              </p>
+
+              {/* 9. VARIANT LABEL & DESCRIPTION */}
+              {hasVariants && (
+                <div key={selectedVariant} className="p-3 rounded-xl border border-violet-500/10 bg-violet-500/[0.02] text-xs text-violet-300 leading-relaxed whitespace-pre-line animate-in fade-in duration-300">
+                  <p className="font-bold text-[9px] text-white/50 uppercase tracking-wider block mb-1">
+                    {selectedVariant.charAt(0).toUpperCase() + selectedVariant.slice(1)} Edition
+                  </p>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    {selectedVariant.toLowerCase() === "galaxy" && "Vibrant nebula lighting, best for gaming & aesthetic setups"}
+                    {selectedVariant.toLowerCase() === "moon" && "Warm cozy glow, perfect for bedroom & relaxation"}
+                    {selectedVariant.toLowerCase() === "saturn" && "Elegant Saturn design etched inside a crystal sphere, glowing with a warm ambient light. Perfect for aesthetic setups and cozy room decor."}
+                    {selectedVariant.toLowerCase() === "astronaut" && "A glowing astronaut crystal ball lamp with a dreamy moon and stars design. Perfect for cozy lighting, aesthetic setups, and unique gifting."}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {product.features && product.features.length > 0 && (
+              <div className="space-y-2 mt-4">
+                <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">
+                  Key Features
+                </h4>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {(product.features as string[]).map((feature: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-400">
+                      <span className="text-violet-400 font-bold select-none">•</span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="pt-6 mt-6 border-t border-white/[0.06]">
             <button
-              disabled={addingToCart || selectedProduct.stock === 0}
-              onClick={async () => {
-                if (addingToCart || selectedProduct.stock === 0) return;
-                setAddingToCart(true);
-                try {
-                  await addToCart({
-                    productId: selectedProduct.id,
-                    name: selectedProduct.name,
-                    price: selectedProduct.price,
-                    image: getProductImage(selectedProduct),
-                  });
-                  onClose();
-                } catch (err) {
-                  toast.error("Failed to add to cart");
-                } finally {
-                  setAddingToCart(false);
-                }
-              }}
+              disabled={addingToCart || product.stock === 0}
+              onClick={handleAddToCart}
               className={`w-full text-xs font-bold uppercase tracking-wider h-11 rounded-xl text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] flex items-center justify-center gap-2 ${
-                selectedProduct.stock === 0
+                product.stock === 0
                   ? "opacity-50 pointer-events-none cursor-not-allowed bg-neutral-800"
                   : ""
               }`}
               style={
-                selectedProduct.stock === 0
+                product.stock === 0
                   ? { background: "#1f1f2e", border: "1px solid rgba(255,255,255,0.06)" }
                   : { background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }
               }
@@ -199,7 +321,7 @@ export function ProductQuickView({ product: selectedProduct, onClose }: ProductQ
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Adding to Cart...</span>
                 </>
-              ) : selectedProduct.stock === 0 ? (
+              ) : product.stock === 0 ? (
                 <span>Sold Out</span>
               ) : (
                 <>

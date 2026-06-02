@@ -15,6 +15,8 @@ interface Product {
   images?: string[];
   category: string;
   active: boolean;
+  description?: string;
+  tags?: string[];
 }
 
 interface SearchModalProps {
@@ -64,6 +66,8 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
             images: data.images || [],
             category: data.category || "",
             active: data.active !== false,
+            description: data.description || "",
+            tags: Array.isArray(data.tags) ? data.tags : [],
           };
         })
         .filter((p) => p.active);
@@ -72,15 +76,27 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
-  // Filter in-memory products by name or category
+  // Filter in-memory products by name, description, category, or tags
   const filteredProducts =
     debouncedQuery.trim() === ""
       ? []
-      : allProducts?.filter(
-          (p) =>
-            p.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
-            p.category.toLowerCase().includes(debouncedQuery.toLowerCase()),
-        ) || [];
+      : allProducts?.filter((p) => {
+          const queryTokens = debouncedQuery.toLowerCase().split(/\s+/).filter(Boolean);
+          if (queryTokens.length === 0) return false;
+
+          const nameLower = p.name.toLowerCase();
+          const descLower = (p.description || "").toLowerCase();
+          const catLower = (p.category || "").toLowerCase();
+          const tagsLower = (p.tags || []).map((t) => t.toLowerCase());
+
+          return queryTokens.some(
+            (token: string) =>
+              nameLower.includes(token) ||
+              descLower.includes(token) ||
+              catLower.includes(token) ||
+              tagsLower.some((tag: string) => tag.includes(token))
+          );
+        }) || [];
 
   // Reset selected index when search changes
   useEffect(() => {
@@ -219,7 +235,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
             <input
               ref={inputRef}
               type="text"
-              placeholder="Search workspace accessories..."
+              placeholder="Search aesthetic lighting & decor..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-violet-500/40 text-white rounded-xl placeholder:text-white/20 h-11 pl-10 pr-10 text-xs tracking-wide focus:outline-none transition-all duration-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:ring-2 focus:ring-violet-500/10"
@@ -294,17 +310,17 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => handleRecentSearchClick("Earbuds")}
+                    onClick={() => handleRecentSearchClick("RGB Lights")}
                     className="text-left text-xs font-semibold text-white/70 hover:text-white bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] p-2.5 rounded-xl transition cursor-pointer flex items-center justify-between"
                   >
-                    <span>Desk Audio</span>
+                    <span>RGB Lights</span>
                     <ArrowRight size={12} className="text-white/30" />
                   </button>
                   <button
-                    onClick={() => handleRecentSearchClick("Charger")}
+                    onClick={() => handleRecentSearchClick("Lamp")}
                     className="text-left text-xs font-semibold text-white/70 hover:text-white bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] p-2.5 rounded-xl transition cursor-pointer flex items-center justify-between"
                   >
-                    <span>Power & Charging</span>
+                    <span>Ambient Lamps</span>
                     <ArrowRight size={12} className="text-white/30" />
                   </button>
                 </div>
@@ -380,22 +396,6 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
           )}
         </div>
       </div>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 99px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
-      `}</style>
     </div>
   );
 }

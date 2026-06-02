@@ -12,7 +12,7 @@ interface ProductGridProps {
     name: string;
     price: number;
     image: string;
-    images?: string[];
+    images?: string[] | Record<string, string[]>;
     tag?: string | null;
     accent?: string;
     accentRgb?: string;

@@ -23,11 +23,11 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Vurlo - Premium Workspace Tools & Ergonomic Accessories" },
+      { title: "Vurlo - Premium Aesthetic Lighting & Room Decor" },
       {
         name: "description",
         content:
-          "Elevate your daily setup with premium workspace tools, ergonomics, and audio accessories designed for focused work.",
+          "Upgrade your room and your vibe with Vurlo. Premium ambient lamps, RGB lights, and aesthetic decor designed to elevate your setup's daily atmosphere.",
       },
     ],
   }),

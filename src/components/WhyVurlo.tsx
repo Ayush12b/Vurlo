@@ -3,8 +3,8 @@ import { ShieldCheck, Truck, Rocket } from "lucide-react";
 const features = [
   {
     icon: ShieldCheck,
-    title: "Workspace Aesthetics",
-    desc: "Every detail is optimized for clean desk setups, ergonomic comfort, and minimalist aesthetics.",
+    title: "Room Aesthetics",
+    desc: "Every light is crafted to complement clean desk setups, gaming rigs, and minimalist room aesthetics.",
   },
   {
     icon: Truck,
@@ -13,8 +13,8 @@ const features = [
   },
   {
     icon: Rocket,
-    title: "Built for Creators",
-    desc: "Desk tools and high-fidelity audio gear designed specifically to elevate your daily workflow.",
+    title: "Built for Ambience",
+    desc: "Premium RGB lighting and decor designed specifically to elevate your daily environment and vibe.",
   },
 ];
 
@@ -26,7 +26,7 @@ export function WhyVurlo() {
           Why VURLO
         </p>
         <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-white/90">
-          A new standard for premium tech.
+          A new standard for setup aesthetics.
         </h2>
       </div>
       <div className="grid md:grid-cols-3 gap-6">

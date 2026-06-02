@@ -2,7 +2,7 @@ import { useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useQuery } from "@tanstack/react-query";
-import { resolveProductImage } from "@/components/FeaturedProducts";
+import { resolveProductImage, formatPrice } from "@/components/FeaturedProducts";
 import { getProductImage } from "@/utils/product";
 import { Loader2, Heart, Search, User, Mail, Tag, ShoppingBag } from "lucide-react";
 
@@ -58,7 +58,7 @@ export default function AdminWishlists() {
             price: data.price ?? 0,
             image: getProductImage(data),
             images: data.images || [],
-            category: data.category || "Gadgets",
+            category: data.category || "RGB Lights",
             originalPrice: data.originalPrice,
             isOnSale: data.isOnSale || false,
             discountPercentage: data.discountPercentage || 0,
@@ -121,9 +121,7 @@ export default function AdminWishlists() {
     return Object.values(countsMap).sort((a, b) => b.count - a.count);
   })();
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN").format(price);
-  };
+
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -140,7 +138,7 @@ export default function AdminWishlists() {
             Customer Wishlists
           </h1>
           <p className="text-xs text-white/40 mt-1">
-            Analyze customer interest and monitor which workspace gear has been saved.
+            Analyze customer interest and monitor which lighting & decor items have been saved.
           </p>
         </div>
 

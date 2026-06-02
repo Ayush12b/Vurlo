@@ -38,7 +38,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-8 md:px-20 pt-14 pb-24 md:pt-20 grid md:grid-cols-2 gap-14 md:gap-20 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 md:px-20 pt-14 pb-24 md:pt-20 grid md:grid-cols-2 gap-14 md:gap-20 items-center">
         <div className="space-y-10">
           <div className="inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
@@ -50,8 +50,7 @@ export function Hero() {
             className="font-display leading-[1.02] tracking-tight hero-heading"
             style={{ fontSize: "clamp(3rem, 7vw, 6rem)", fontWeight: 800 }}
           >
-            <span className="block text-white/90">Built for</span>
-            <span className="block text-white/90">Focused</span>
+            <span className="block text-white/90">Upgrade Your Room.</span>
             <span
               className="block"
               style={{
@@ -60,7 +59,7 @@ export function Hero() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              Work.
+              Upgrade Your Vibe.
             </span>
           </h1>
 
@@ -68,8 +67,7 @@ export function Hero() {
             ref={subtextRef}
             className="text-lg leading-relaxed text-white/60 max-w-md font-light tracking-wide"
           >
-            Minimalist desk tools, high-fidelity audio, and workspace essentials designed to help
-            you focus and create.
+            Premium RGB lights & aesthetic decor designed to elevate modern rooms, gaming setups, and daily ambience.
           </p>
 
           <div
@@ -88,7 +86,7 @@ export function Hero() {
               onPointerLeave={primaryCta.onPointerLeave}
             >
               <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.25),transparent_70%)]" />
-              <span className="relative">Shop Gear</span>
+              <span className="relative">Shop Now</span>
               <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
             </a>
 
@@ -99,7 +97,7 @@ export function Hero() {
               onPointerMove={secondaryCta.onPointerMove}
               onPointerLeave={secondaryCta.onPointerLeave}
             >
-              Explore Setup &gt;
+              Explore Lighting &gt;
             </a>
           </div>
 
@@ -124,12 +122,12 @@ export function Hero() {
           <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
 
           <img
-            src={heroProduct}
-            alt="VURLO product"
-            className="hero-product-premium relative w-[460px] md:w-[650px] object-contain mix-blend-lighten select-none"
+            src="/aura-rgb-1.png"
+            alt="Vurlo RGB Ambience Setup"
+            className="hero-product-premium relative w-full max-w-[460px] md:max-w-[650px] object-cover rounded-2xl select-none"
             style={{
               filter:
-                "drop-shadow(0 60px 100px rgba(109,40,217,0.6)) drop-shadow(0 20px 40px rgba(0,0,0,0.8))",
+                "drop-shadow(0 40px 80px rgba(109,40,217,0.5)) drop-shadow(0 20px 40px rgba(0,0,0,0.8))",
             }}
           />
         </div>

@@ -15,6 +15,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { formatPrice } from "@/lib/utils";
 import {
   Loader2,
   DollarSign,
@@ -249,13 +250,7 @@ export default function AdminDashboard() {
         .slice(0, 5)
     : [];
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {

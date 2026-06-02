@@ -10,7 +10,7 @@ export interface ProductCardProps {
     name: string;
     price: number | string;
     img: string;
-    images?: string[];
+    images?: string[] | Record<string, string[]>;
     tag?: string | null;
     accent: string;
     accentRgb: string;
@@ -23,6 +23,11 @@ export interface ProductCardProps {
     isFeatured?: boolean;
     isNew?: boolean;
     stock?: number;
+    rating?: number;
+    reviewsCount?: number;
+    badge?: string | null;
+    variants?: { name: string; images: string[] }[];
+    defaultVariant?: string;
   };
   index: number;
   isSelected?: boolean;
@@ -33,7 +38,7 @@ export interface ProductCardProps {
     name: string;
     price: number;
     image: string;
-    images?: string[];
+    images?: string[] | Record<string, string[]>;
     tag?: string | null;
     accent?: string;
     accentRgb?: string;
@@ -45,6 +50,11 @@ export interface ProductCardProps {
     isFeatured?: boolean;
     isNew?: boolean;
     stock?: number;
+    rating?: number;
+    reviewsCount?: number;
+    badge?: string | null;
+    variants?: { name: string; images: string[] }[];
+    defaultVariant?: string;
   }) => Promise<void>;
 }
 
@@ -71,7 +81,17 @@ export function ProductCard({
   const cartBtn = useMagnetic<HTMLButtonElement>({ strength: 3, scale: 1.02 });
   const { addToCart } = useCart();
 
-  const mainImage = p.images && p.images.length > 0 ? p.images[0] : p.img || "";
+  const mainImage = (() => {
+    if (Array.isArray(p.images)) {
+      return p.images[0] || p.img || "";
+    }
+    if (p.images && typeof p.images === "object") {
+      const defVar = (p.defaultVariant || "Galaxy").toLowerCase();
+      const varImages = (p.images as Record<string, string[]>)[defVar] || Object.values(p.images)[0] || [];
+      return varImages[0] || p.img || "";
+    }
+    return p.img || "";
+  })();
   const [imgSrc, setImgSrc] = useState(() => resolveProductImage(mainImage, p.name));
 
   useEffect(() => {
@@ -141,6 +161,9 @@ export function ProductCard({
                 isFeatured: p.isFeatured,
                 isNew: p.isNew,
                 stock: p.stock,
+                rating: p.rating,
+                reviewsCount: p.reviewsCount,
+                badge: p.badge,
               });
             }}
             className={`pcard__wishlist-btn absolute top-4 right-4 z-10 p-2 rounded-xl bg-black/40 border border-white/[0.06] hover:border-white/20 hover:bg-white/[0.04] transition duration-200 cursor-pointer focus:outline-none ${
@@ -168,6 +191,19 @@ export function ProductCard({
               </span>
             ) : (
               <>
+                {p.badge && (
+                  <span
+                    className="pcard__tag animate-pulse"
+                    style={{
+                      color: "#fbbf24",
+                      background: "rgba(251,191,36,0.12)",
+                      borderColor: "rgba(251,191,36,0.35)",
+                      boxShadow: "0 0 12px rgba(251,191,36,0.2)",
+                    }}
+                  >
+                    {p.badge}
+                  </span>
+                )}
                 {onSale && (
                   <span className="pcard__sale-tag">
                     {discount > 0 ? `${discount}% OFF` : "SALE"}
@@ -213,7 +249,22 @@ export function ProductCard({
           <div className="pcard__sep mb-4" />
 
           <div className="flex flex-col flex-1">
-            <p className="pcard__name mb-4">{p.name}</p>
+            <p className="pcard__name mb-2">{p.name}</p>
+            {p.variants && p.variants.length > 0 && (
+              <span className="text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest block mb-2">
+                Multiple Variants Available
+              </span>
+            )}
+            {p.rating !== undefined && (
+              <div className="flex items-center gap-1 mb-3 text-[11px] text-amber-400">
+                <span className="font-bold">{p.rating}★</span>
+                {p.reviewsCount !== undefined && (
+                  <span className="text-[10px] text-white/30 font-medium">
+                    ({p.reviewsCount} reviews)
+                  </span>
+                )}
+              </div>
+            )}
             <div className="mt-auto flex items-center justify-between">
               <div className="flex flex-col">
                 {onSale && hasOriginalPrice ? (

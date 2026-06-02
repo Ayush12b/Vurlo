@@ -15,7 +15,7 @@ export interface FirestoreProduct {
   name: string;
   price: number;
   image: string;
-  images: string[]; // Always a non-empty normalized array
+  images: string[] | Record<string, string[]>; // Always a non-empty normalized array or variant map
   tag?: string | null;
   accent?: string;
   accentRgb?: string;
@@ -30,13 +30,23 @@ export interface FirestoreProduct {
   isNew?: boolean;
   category?: string;
   stock?: number;
+  rating?: number;
+  reviewsCount?: number;
+  badge?: string | null;
+  features?: string[];
+  tags?: string[];
+  variants?: { name: string; images: string[] }[];
+  defaultVariant?: string;
 }
 
 /**
- * Normalizes all image field variants into a clean string[].
- * Handles: images[] (new), image (legacy string), img (ProductCard legacy).
+ * Normalizes all image field variants into a clean string[] or Record<string, string[]>.
+ * Handles: images[] (new), images object (variants), image (legacy string), img (ProductCard legacy).
  */
-function normalizeImages(data: Record<string, unknown>): string[] {
+function normalizeImages(data: Record<string, unknown>): string[] | Record<string, string[]> {
+  if (data.images && typeof data.images === "object" && !Array.isArray(data.images)) {
+    return data.images as Record<string, string[]>;
+  }
   if (Array.isArray(data.images) && data.images.length > 0) {
     return (data.images as string[]).filter((img) => typeof img === "string" && img.trim() !== "");
   }
@@ -68,9 +78,27 @@ export function useProducts() {
           if (t === "NEW") nw = true;
         }
 
-        const normalizedImages = normalizeImages(data);
-        const imgUrl =
-          normalizedImages[0] || getProductImage(data as Parameters<typeof getProductImage>[0]);
+        const variants = Array.isArray(data.variants)
+          ? (data.variants as { name: string; images: string[] }[])
+          : undefined;
+        const defaultVariant = data.defaultVariant as string | undefined;
+
+        let normalizedImages = normalizeImages(data);
+        if (Array.isArray(normalizedImages) && normalizedImages.length === 0 && variants && defaultVariant) {
+          const defVar = variants.find((v) => v.name.toLowerCase() === defaultVariant.toLowerCase());
+          if (defVar && Array.isArray(defVar.images) && defVar.images.length > 0) {
+            normalizedImages = defVar.images;
+          }
+        }
+
+        let imgUrl = "";
+        if (Array.isArray(normalizedImages)) {
+          imgUrl = normalizedImages[0] || getProductImage(data as Parameters<typeof getProductImage>[0]);
+        } else if (normalizedImages && typeof normalizedImages === "object") {
+          const defVarName = (defaultVariant || "Galaxy").toLowerCase();
+          const defVarImages = normalizedImages[defVarName] || Object.values(normalizedImages)[0] || [];
+          imgUrl = defVarImages[0] || getProductImage(data as Parameters<typeof getProductImage>[0]);
+        }
 
         items.push({
           id: docSnap.id,
@@ -96,8 +124,15 @@ export function useProducts() {
           onSale: (data.onSale as boolean) !== undefined ? !!data.onSale : !!data.isOnSale,
           isFeatured: feat,
           isNew: nw,
-          category: (data.category as string) || "Gadgets",
+          category: (data.category as string) || "RGB Lights",
           stock: data.stock !== undefined ? Number(data.stock) : 10,
+          rating: data.rating !== undefined ? Number(data.rating) : undefined,
+          reviewsCount: data.reviewsCount !== undefined ? Number(data.reviewsCount) : undefined,
+          badge: (data.badge as string) || null,
+          features: Array.isArray(data.features) ? (data.features as string[]) : [],
+          tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
+          variants,
+          defaultVariant,
         });
       });
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { resolveProductImage } from "@/components/FeaturedProducts";
+import { resolveProductImage, formatPrice } from "@/components/FeaturedProducts";
 import { getProductImage } from "@/utils/product";
 import {
   Loader2,
@@ -166,13 +166,7 @@ export default function AdminOrders() {
     updateStatusMutation.mutate({ orderId, status: newStatus });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {

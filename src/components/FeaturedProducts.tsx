@@ -30,17 +30,30 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
   const { toggleWishlist, isWishlisted } = useWishlist();
 
   useEffect(() => {
-    console.log("FeaturedProducts dbProducts fetched:", dbProducts);
     if (isError) {
       console.error("FeaturedProducts fetch error:", error);
     }
-    if (dbProducts.length > 0) {
-      const hasFeatured = dbProducts.some((p) => p.isFeatured === true);
-      if (!hasFeatured) {
-        console.warn("No featured products found, falling back to displaying all products.");
+  }, [isError, error]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith("#product-")) {
+        const id = hash.replace("#product-", "");
+        const prod = dbProducts.find((p) => p.id === id);
+        if (prod) {
+          setSelectedProduct(prod);
+        }
       }
+    };
+
+    if (dbProducts.length > 0) {
+      handleHashChange();
     }
-  }, [dbProducts, isError, error]);
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [dbProducts]);
 
   const setSelectedCategory = (newCat: string) => {
     if (newCat === "all") {
@@ -63,8 +76,17 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
     });
   };
 
-  const featuredProducts = dbProducts.filter((p) => p.isFeatured === true && p.active !== false);
-  const displayProducts = featuredProducts.length > 0 ? featuredProducts : dbProducts;
+  const displayProducts = [...dbProducts]
+    .filter((p) => p.active !== false)
+    .sort((a, b) => {
+      const timeA = (a as any).createdAt?.seconds || 0;
+      const timeB = (b as any).createdAt?.seconds || 0;
+      if (timeA !== timeB) return timeB - timeA;
+      
+      const featA = a.isFeatured ? 1 : 0;
+      const featB = b.isFeatured ? 1 : 0;
+      return featB - featA;
+    });
 
   const filteredProducts = displayProducts.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -153,10 +175,10 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
             </span>
           </div>
           <h2 className="font-display text-4xl font-bold tracking-tight text-white/90 leading-[1.05] sm:text-5xl md:text-6xl">
-            Engineered
+            Elevate
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent">
-              to stand out.
+              your atmosphere.
             </span>
           </h2>
         </div>
@@ -175,7 +197,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
           <input
             type="text"
-            placeholder="Search workspace accessories..."
+            placeholder="Search aesthetic lighting & decor..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-violet-500/40 text-white rounded-xl placeholder:text-white/20 h-10 pl-10 pr-10 text-xs tracking-wide focus:outline-none transition-all duration-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]"
@@ -195,7 +217,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
       <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
         {/* Category Tabs */}
         <div className="flex flex-wrap items-center gap-1.5 border border-white/[0.06] bg-white/[0.02] p-1 rounded-xl">
-          {["all", "audio", "wearables", "smart devices", "gadgets"].map((cat) => {
+          {["all", "RGB Lights", "Ambient Lamps", "Bedroom Lighting", "Gaming Setup Lights", "Aesthetic Decor"].map((cat) => {
             const isSelected =
               (!category && cat === "all") || category?.toLowerCase() === cat.toLowerCase();
             return (
@@ -239,7 +261,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
           <div>
             <p className="text-sm font-semibold text-white/60">No products available</p>
             <p className="text-xs text-white/35 mt-1">
-              Check back later for new workspace additions.
+              Check back later for new lighting setup additions.
             </p>
           </div>
         </div>
@@ -258,7 +280,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
               <Search className="h-6 w-6 text-white/20" />
               <div>
                 <p className="text-sm font-semibold text-white/60">
-                  No accessories matching your search
+                  No lighting & decor products matching your search
                 </p>
                 <p className="text-xs text-white/35 mt-1">
                   Try adjusting your query or resetting the filter.

@@ -76,7 +76,7 @@ function ContactContent() {
           Contact Us
         </h1>
         <p className="text-sm text-white/45">
-          Have questions about our workspace gear or your order? Get in touch and we'll reply within
+          Have questions about our aesthetic lighting, room decor, or your order? Get in touch and we'll reply within
           24 hours.
         </p>
       </div>

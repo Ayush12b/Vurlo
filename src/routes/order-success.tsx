@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Loader2, CheckCircle2, ArrowRight, ShoppingBag } from "lucide-react";
-import { resolveProductImage } from "@/components/FeaturedProducts";
+import { resolveProductImage, formatPrice } from "@/components/FeaturedProducts";
 import { getProductImage } from "@/utils/product";
 
 export const Route = createFileRoute("/order-success")({
@@ -98,9 +98,7 @@ function OrderSuccessContent({ orderId }: { orderId?: string }) {
     },
   });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN").format(price);
-  };
+
 
   if (isLoading) {
     return (
@@ -170,7 +168,7 @@ function OrderSuccessContent({ orderId }: { orderId?: string }) {
           Order Confirmed!
         </h1>
         <p className="text-sm text-white/45 max-w-md mx-auto">
-          Thank you for your order. We've received your order, and your workspace upgrades are being
+          Thank you for your order. We've received your order, and your premium lighting & decor upgrades are being
           prepared for shipment.
         </p>
       </div>

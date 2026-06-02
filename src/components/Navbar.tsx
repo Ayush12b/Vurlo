@@ -3,8 +3,6 @@ import {
   ShoppingCart,
   Menu,
   X,
-  LogOut,
-  User as UserIcon,
   Loader2,
   Sparkles,
   Heart,
@@ -140,7 +138,7 @@ export function Navbar() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
+        /* Syne font loaded globally via styles.css */
 
         .vurlo-navbar {
           font-family: 'Inter', sans-serif;
@@ -381,7 +379,7 @@ export function Navbar() {
                     {/* Cart Items List */}
                     <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
                       {cartItems.length === 0 ? (
-                        <div className="flex flex-col items-center justify-between h-full text-center py-6 animate-in fade-in duration-300">
+                        <div className="flex flex-col items-center justify-between min-h-[200px] h-full text-center py-6 animate-in fade-in duration-300">
                           {/* Top: Custom glowing cart illustration and engaging text */}
                           <div className="flex flex-col items-center justify-center space-y-4 my-auto">
                             <div className="relative w-16 h-16 rounded-full bg-white/[0.02] border border-white/[0.06] flex items-center justify-center text-white/40 shadow-[0_0_30px_rgba(138,46,255,0.08)]">
@@ -393,8 +391,8 @@ export function Navbar() {
                                 Your cart is empty
                               </p>
                               <p className="text-xs text-gray-400 max-w-[240px] leading-relaxed mx-auto">
-                                Explore our curated workspace accessories, ergonomics, and audio
-                                gear to complete your setup.
+                                Explore our curated premium lighting, ambient lamps, and room decor
+                                to elevate your space.
                               </p>
                             </div>
                             <button
@@ -764,7 +762,7 @@ export function Navbar() {
               </label>
               <Input
                 type="text"
-                placeholder="123 Tech Lane, Sector 4"
+                placeholder="123 Glow Street, Block 4"
                 value={shippingAddress}
                 onChange={(e) => setShippingAddress(e.target.value)}
                 className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
@@ -773,7 +771,7 @@ export function Navbar() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-white/45 uppercase tracking-wider">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
                   City
                 </label>
                 <Input
@@ -786,7 +784,7 @@ export function Navbar() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-white/45 uppercase tracking-wider">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
                   PIN Code
                 </label>
                 <Input

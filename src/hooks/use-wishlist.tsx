@@ -10,7 +10,7 @@ export interface WishlistItem {
   name: string;
   price: number;
   image: string;
-  images?: string[];
+  images?: string[] | Record<string, string[]>;
   tag?: string | null;
   accent?: string;
   accentRgb?: string;
@@ -27,7 +27,7 @@ interface WishlistContextType {
     name: string;
     price: number;
     image: string;
-    images?: string[];
+    images?: string[] | Record<string, string[]>;
     tag?: string | null;
     accent?: string;
     accentRgb?: string;
@@ -88,7 +88,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     name: string;
     price: number;
     image: string;
-    images?: string[];
+    images?: string[] | Record<string, string[]>;
     tag?: string | null;
     accent?: string;
     accentRgb?: string;

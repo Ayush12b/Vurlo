@@ -3,7 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useWishlist, WishlistItem } from "@/hooks/use-wishlist";
 import { useCart } from "@/hooks/use-cart";
-import { resolveProductImage } from "@/components/FeaturedProducts";
+import { resolveProductImage, formatPrice } from "@/components/FeaturedProducts";
 import { getProductImage } from "@/utils/product";
 import { Heart, ShoppingBag, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/wishlist")({
   head: () => ({
     meta: [
       { title: "Your Wishlist - VURLO" },
-      { name: "description", content: "Review your saved tech essentials." },
+      { name: "description", content: "Review your saved Vurlo lighting and aesthetic room decor." },
     ],
   }),
 });
@@ -73,9 +73,7 @@ function WishlistPage() {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN").format(price);
-  };
+
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col justify-between page-transition">
@@ -101,7 +99,7 @@ function WishlistPage() {
                 Saved Essentials
               </h1>
               <p className="text-xs text-white/45">
-                Keep track of items you need to complete your desk setup.
+                Keep track of items you need to complete your dream room setup.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -144,9 +142,9 @@ function WishlistPage() {
                 <Heart className="h-6 w-6 text-rose-400 relative z-10" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-bold text-white tracking-tight">No tools saved yet</p>
+                <p className="text-sm font-bold text-white tracking-tight">No lights saved yet</p>
                 <p className="text-xs text-gray-400 max-w-[240px] leading-relaxed mx-auto">
-                  Browse our workspace collections and save your favorite gear here.
+                  Browse our lighting collections and save your favorite decor here.
                 </p>
               </div>
               <Link

@@ -2,19 +2,19 @@ import { Star } from "lucide-react";
 
 const reviews = [
   {
-    name: "Alex Chen",
-    role: "Product Designer",
-    text: "The audio quality is incredibly crisp and the memory foam ear cups make it easy to wear for 6+ hours at my desk.",
+    name: "Aarav Mehta",
+    role: "Gaming Content Creator",
+    text: "The Vurlo Aura RGB LED strip lights completely transformed my streaming room. The colors are incredibly vibrant, and the remote control makes it seamless to change the vibe instantly.",
   },
   {
-    name: "Mira Patel",
-    role: "Software Engineer",
-    text: "Clean profile, matte black finish, and stable wireless charging. Easily the best addition to my workspace this year.",
+    name: "Sanya Sen",
+    role: "Interior Stylist",
+    text: "I bought the Humidifier Lamp and the Crystal Lamp for my bedroom. The ambient glow is so soft and warm, it makes my nighttime routine feel like a premium spa experience.",
   },
   {
-    name: "Jordan Lee",
-    role: "Content Creator",
-    text: "Tactile buttons, premium weights, and solid packaging. You can tell they really obsessed over the product details.",
+    name: "Karan Johar",
+    role: "Setup Architect",
+    text: "Vurlo's Moon Lamp is a masterpiece of decor. The texture is hyper-realistic and the dual-tone light sets the perfect mood for my late-night desk work.",
   },
 ];
 
@@ -22,8 +22,8 @@ export function Testimonials() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <div className="mb-12">
-        <p className="text-sm text-secondary font-medium mb-2">Customer Setup Reviews</p>
-        <h2 className="font-display text-4xl md:text-5xl font-bold">What creators are saying.</h2>
+        <p className="text-sm text-secondary font-medium mb-2">Transform Your Space</p>
+        <h2 className="font-display text-4xl md:text-5xl font-bold">See how VURLO lights elevate rooms and moods.</h2>
       </div>
       <div className="grid md:grid-cols-3 gap-6">
         {reviews.map((r) => (

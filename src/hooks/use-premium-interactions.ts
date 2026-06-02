@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { PointerEvent as ReactPointerEvent, RefObject } from "react";
 
-const isTouchDevice = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
+const isTouchDevice = false; // Rely solely on per-event pointerType checks below
 
 type TiltTarget = {
   rotateX: number;

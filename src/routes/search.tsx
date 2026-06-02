@@ -32,7 +32,7 @@ export const Route = createFileRoute("/search")({
     return {
       meta: [
         { title },
-        { name: "description", content: "Search premium workspace tools & ergonomic accessories." },
+        { name: "description", content: "Search premium RGB lighting & aesthetic room decor." },
       ],
     };
   },
@@ -77,8 +77,8 @@ function SearchPage() {
   const { data: dbProducts = [], isLoading } = useProducts();
   const { toggleWishlist, isWishlisted } = useWishlist();
 
-  // 1. Try exact filtering first
-  let productsToDisplay = dbProducts.filter((p) => {
+  // 1. Filter products based on search query tokens and category
+  const productsToDisplay = dbProducts.filter((p) => {
     if (p.active === false) return false;
 
     if (category) {
@@ -87,36 +87,28 @@ function SearchPage() {
     }
 
     if (q) {
-      const queryStr = q.toLowerCase().trim();
-      const matchesName = p.name.toLowerCase().includes(queryStr);
-      const matchesDescription = p.description?.toLowerCase().includes(queryStr);
-      const matchesCategoryName = p.category?.toLowerCase().includes(queryStr);
-      if (!matchesName && !matchesDescription && !matchesCategoryName) return false;
+      const queryTokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+      if (queryTokens.length > 0) {
+        const nameLower = p.name.toLowerCase();
+        const descLower = (p.description || "").toLowerCase();
+        const catLower = (p.category || "").toLowerCase();
+        const tagsLower = (p.tags || []).map((t) => t.toLowerCase());
+
+        const matchesQuery = queryTokens.some(
+          (token: string) =>
+            nameLower.includes(token) ||
+            descLower.includes(token) ||
+            catLower.includes(token) ||
+            tagsLower.some((tag: string) => tag.includes(token))
+        );
+        if (!matchesQuery) return false;
+      }
     }
 
     return true;
   });
 
-  // 2. Fuzzy match fallback if exact matches are empty and query q is active
-  let isFuzzyFallbackUsed = false;
-  if (productsToDisplay.length === 0 && q && !category) {
-    const queryStr = q.toLowerCase().trim();
-    productsToDisplay = dbProducts.filter((p) => {
-      if (p.active === false) return false;
-
-      const nameWords = p.name.split(/\s+/);
-      const categoryWords = p.category ? p.category.split(/\s+/) : [];
-
-      const nameMatch = nameWords.some((word) => isFuzzyMatch(queryStr, word));
-      const categoryMatch = categoryWords.some((word) => isFuzzyMatch(queryStr, word));
-
-      return nameMatch || categoryMatch;
-    });
-
-    if (productsToDisplay.length > 0) {
-      isFuzzyFallbackUsed = true;
-    }
-  }
+  const isFuzzyFallbackUsed = false;
 
   // 3. Recommended for You popular/featured items
   const recommendations = dbProducts
@@ -153,12 +145,12 @@ function SearchPage() {
                   ? `Collection: ${category}`
                   : q
                     ? `Results for "${q}"`
-                    : "Search Workspace Essentials"}
+                    : "Search Lighting & Decor"}
               </h1>
               <p className="text-xs text-white/45">
                 {category || q
-                  ? `We found ${productsToDisplay.length} accessories matching your criteria.`
-                  : "Type a query or choose a collection in the navbar to find workspace gear."}
+                  ? `We found ${productsToDisplay.length} lighting products matching your criteria.`
+                  : "Type a query or choose a collection in the navbar to find aesthetic lighting & decor."}
               </p>
             </div>
             <Link
@@ -186,7 +178,7 @@ function SearchPage() {
                   <p className="text-sm font-bold text-white tracking-tight">No results found</p>
                   <p className="text-xs text-gray-400 max-w-[280px] leading-relaxed mx-auto">
                     We couldn't find any products matching "{q}". Try checking your spelling or
-                    search for popular terms like "Audio" or "Charger".
+                    search for popular terms like "Lights" or "Lamps".
                   </p>
                 </div>
                 <Link
@@ -229,6 +221,9 @@ function SearchPage() {
                           onSale: p.onSale,
                           isFeatured: p.isFeatured,
                           isNew: p.isNew,
+                          rating: p.rating,
+                          reviewsCount: p.reviewsCount,
+                          badge: p.badge,
                         }}
                         index={i}
                         isSelected={selectedProduct?.id === p.id}
@@ -273,6 +268,9 @@ function SearchPage() {
                       onSale: p.onSale,
                       isFeatured: p.isFeatured,
                       isNew: p.isNew,
+                      rating: p.rating,
+                      reviewsCount: p.reviewsCount,
+                      badge: p.badge,
                     }}
                     index={i}
                     isSelected={selectedProduct?.id === p.id}

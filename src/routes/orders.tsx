@@ -2,8 +2,9 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
   Loader2,
@@ -16,7 +17,7 @@ import {
   Truck,
   Package,
 } from "lucide-react";
-import { resolveProductImage } from "@/components/FeaturedProducts";
+import { resolveProductImage, formatPrice } from "@/components/FeaturedProducts";
 import { toast } from "sonner";
 import { getProductImage } from "@/utils/product";
 
@@ -93,7 +94,7 @@ const stepsConfig = [
     icon: Check,
     colorClass: "text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-blue-500/10",
     completedColorClass: "bg-blue-500 border-blue-500 text-white shadow-blue-500/20",
-    message: "Order confirmed. Preparing your workspace gear for dispatch.",
+    message: "Order confirmed. Preparing your aesthetic lighting setup for dispatch.",
     estDays: "2-4 business days",
   },
   {
@@ -284,35 +285,61 @@ function OrderStatusTimeline({ status }: { status: string }) {
 function OrdersContent() {
   const { user } = useAuth();
 
+  const queryClient = useQueryClient();
+  const unsubRef = useRef<(() => void) | null>(null);
+  const queryKey = ["orders", user?.uid] as const;
+  // Real-time listener: pushes every Firestore update into React Query cache.
+  // Runs once when user is available, cleans up on unmount.
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "orders"), where("userId", "==", user.uid));
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const items = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Order[];
+        items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        queryClient.setQueryData(queryKey, items);
+      },
+      (err) => {
+        console.error("Orders listener error:", err);
+        // Do NOT clear cache on error — keep showing last known orders
+      },
+    );
+    unsubRef.current = unsub;
+    return () => unsub();
+  }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
   const {
     data: orders,
     isLoading,
     error,
   } = useQuery<Order[]>({
-    queryKey: ["orders", user?.uid],
+    queryKey,
     enabled: !!user,
-    queryFn: async () => {
-      const q = query(collection(db, "orders"), where("userId", "==", user!.uid));
-      const querySnapshot = await getDocs(q);
-      const items = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Order[];
-
-      // Sort locally by createdAt desc to avoid index requirement
-      items.sort((a, b) => {
-        const timeA = a.createdAt?.seconds || 0;
-        const timeB = b.createdAt?.seconds || 0;
-        return timeB - timeA;
-      });
-
-      return items;
-    },
+    // queryFn only runs on first mount before onSnapshot fires (provides initial data)
+    queryFn: () =>
+      new Promise<Order[]>((resolve) => {
+        const q = query(collection(db, "orders"), where("userId", "==", user!.uid));
+        const unsub = onSnapshot(q, (snapshot) => {
+          const items = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Order[];
+          items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+          unsub(); // one-shot — the useEffect listener takes over after this
+          resolve(items);
+        });
+      }),
+    staleTime: Infinity, // onSnapshot keeps data fresh — never re-fetch on focus
+    refetchOnWindowFocus: false, // prevents the wipe-on-focus bug
+    refetchOnReconnect: false,
+    retry: false, // don't retry on error — onSnapshot will recover
+    placeholderData: (prev) => prev, // preserve previous orders if query re-runs
   });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN").format(price);
-  };
+
 
   return (
     <div className="relative mx-auto max-w-4xl px-6 py-16 sm:py-24">
@@ -355,7 +382,7 @@ function OrdersContent() {
           <div>
             <h3 className="text-sm font-semibold text-white/70">No order history found</h3>
             <p className="text-xs text-white/40 mt-1">
-              Explore our workspace gear to place your first order.
+              Explore our premium lighting setup products to place your first order.
             </p>
           </div>
           <Link

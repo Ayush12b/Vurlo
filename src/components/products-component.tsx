@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs, doc, addDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase";
+import { formatPrice } from "@/lib/utils";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { resolveProductImage } from "@/components/FeaturedProducts";
@@ -28,6 +29,14 @@ interface Product {
   category?: string;
   stock?: number;
   description?: string;
+  rating?: number;
+  reviewsCount?: number;
+  badge?: string | null;
+  slug?: string;
+  features?: string[];
+  tags?: string[];
+  variants?: { name: string; images: string[] }[];
+  defaultVariant?: string;
 }
 
 export default function AdminProducts() {
@@ -56,6 +65,13 @@ export default function AdminProducts() {
   const [active, setActive] = useState(true);
   const [imagesList, setImagesList] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [featuresText, setFeaturesText] = useState("");
+  const [badge, setBadge] = useState("");
+
+  // Variant Management states
+  const [localVariants, setLocalVariants] = useState<{ name: string; images: string[] }[]>([]);
+  const [editingVariantName, setEditingVariantName] = useState<string>("Galaxy");
+  const [variantUrlInput, setVariantUrlInput] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -107,9 +123,17 @@ export default function AdminProducts() {
               : data.discountPercentage || 0,
           isFeatured: feat,
           isNew: nw,
-          category: data.category || "Gadgets",
+          category: data.category || "RGB Lights",
           stock: data.stock !== undefined ? Number(data.stock) : 10,
           description: data.description || "",
+          rating: data.rating !== undefined ? Number(data.rating) : undefined,
+          reviewsCount: data.reviewsCount !== undefined ? Number(data.reviewsCount) : undefined,
+          badge: data.badge || null,
+          slug: data.slug || "",
+          features: Array.isArray(data.features) ? data.features : [],
+          tags: Array.isArray(data.tags) ? data.tags : [],
+          variants: Array.isArray(data.variants) ? data.variants : undefined,
+          defaultVariant: data.defaultVariant || undefined,
         };
       });
     },
@@ -201,7 +225,12 @@ export default function AdminProducts() {
     setTag(null);
     setActive(true);
     setImagesList([]);
+    setLocalVariants([]);
+    setEditingVariantName("Galaxy");
+    setVariantUrlInput("");
     setCurrentProduct(null);
+    setFeaturesText("");
+    setBadge("");
   };
 
   const handleOpenAdd = () => {
@@ -217,14 +246,31 @@ export default function AdminProducts() {
     setImage("");
     setIsFeatured(product.isFeatured || false);
     setIsNew(product.isNew || false);
-    setCategory(product.category || "Gadgets");
+    setCategory(product.category || "RGB Lights");
     setIsOnSale(product.isOnSale || false);
     setOriginalPrice(product.originalPrice ? String(product.originalPrice) : "");
     setDiscountPercentage(product.discountPercentage ? String(product.discountPercentage) : "");
     setStock(product.stock !== undefined ? String(product.stock) : "10");
     setTag(product.tag || null);
     setActive(product.active !== false);
-    setImagesList(product.images || (product.image ? [product.image] : []));
+    setFeaturesText(Array.isArray(product.features) ? product.features.join("\n") : "");
+    setBadge(product.badge || "");
+
+    const isVar = product.images && typeof product.images === "object" && !Array.isArray(product.images);
+    if (isVar) {
+      const imgObj = product.images as unknown as Record<string, string[]>;
+      const vars = Object.keys(imgObj).map(key => ({
+        name: key.charAt(0).toUpperCase() + key.slice(1),
+        images: imgObj[key] || []
+      }));
+      setLocalVariants(vars);
+      setEditingVariantName(vars[0]?.name || "Galaxy");
+      setImagesList([]);
+    } else {
+      setLocalVariants([]);
+      setImagesList(Array.isArray(product.images) ? product.images : (product.image ? [product.image] : []));
+    }
+    setVariantUrlInput("");
     setIsEditModalOpen(true);
   };
 
@@ -246,6 +292,132 @@ export default function AdminProducts() {
       setIsUploading(false);
       e.target.value = "";
     }
+  };
+
+  const handleUploadVariantFiles = async (e: React.ChangeEvent<HTMLInputElement>, variantName: string) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+    
+    // Validate count limit
+    const activeVar = localVariants.find(v => v.name.toLowerCase() === variantName.toLowerCase());
+    const currentCount = activeVar?.images?.length || 0;
+    if (currentCount + fileArray.length > 8) {
+      toast.error(`Cannot exceed maximum of 8 images. You tried to upload ${fileArray.length} but can only add ${8 - currentCount} more.`);
+      e.target.value = "";
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of fileArray) {
+        const fileRef = ref(storage, `products/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(snapshot.ref);
+        uploadedUrls.push(url);
+      }
+
+      setLocalVariants((prev) => {
+        return prev.map((v) => {
+          if (v.name.toLowerCase() === variantName.toLowerCase()) {
+            const combined = [...v.images, ...uploadedUrls];
+            // Filter duplicates
+            const unique = combined.filter((img, idx) => combined.indexOf(img) === idx);
+            return { ...v, images: unique };
+          }
+          return v;
+        });
+      });
+      toast.success(`Uploaded ${fileArray.length} image(s) to ${variantName} variant!`);
+    } catch (err) {
+      console.error("Error uploading variant images:", err);
+      toast.error("Failed to upload image(s).");
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleAddVariantUrl = (variantName: string) => {
+    const trimmed = variantUrlInput.trim();
+    if (!trimmed) return;
+
+    setLocalVariants((prev) => {
+      return prev.map((v) => {
+        if (v.name.toLowerCase() === variantName.toLowerCase()) {
+          if (v.images.includes(trimmed)) {
+            toast.error("This image URL already exists in this variant.");
+            return v;
+          }
+          if (v.images.length >= 8) {
+            toast.error("Maximum 8 images allowed per variant.");
+            return v;
+          }
+          return { ...v, images: [...v.images, trimmed] };
+        }
+        return v;
+      });
+    });
+    setVariantUrlInput("");
+    toast.success("Image URL added to variant!");
+  };
+
+  const handleRemoveVariantImage = (variantName: string, indexToRemove: number) => {
+    setLocalVariants((prev) => {
+      return prev.map((v) => {
+        if (v.name.toLowerCase() === variantName.toLowerCase()) {
+          const filtered = v.images.filter((_, idx) => idx !== indexToRemove);
+          return { ...v, images: filtered };
+        }
+        return v;
+      });
+    });
+    toast.success("Image removed from variant");
+  };
+
+  const handleMoveVariantImage = (variantName: string, index: number, direction: "up" | "down" | "cover") => {
+    setLocalVariants((prev) => {
+      return prev.map((v) => {
+        if (v.name.toLowerCase() === variantName.toLowerCase()) {
+          const list = [...v.images];
+          if (direction === "cover") {
+            const [item] = list.splice(index, 1);
+            list.unshift(item);
+          } else if (direction === "up" && index > 0) {
+            const temp = list[index];
+            list[index] = list[index - 1];
+            list[index - 1] = temp;
+          } else if (direction === "down" && index < list.length - 1) {
+            const temp = list[index];
+            list[index] = list[index + 1];
+            list[index + 1] = temp;
+          }
+          return { ...v, images: list };
+        }
+        return v;
+      });
+    });
+  };
+
+  const handleMoveProductImage = (index: number, direction: "up" | "down" | "cover") => {
+    setImagesList((prev) => {
+      const list = [...prev];
+      if (direction === "cover") {
+        const [item] = list.splice(index, 1);
+        list.unshift(item);
+      } else if (direction === "up" && index > 0) {
+        const temp = list[index];
+        list[index] = list[index - 1];
+        list[index - 1] = temp;
+      } else if (direction === "down" && index < list.length - 1) {
+        const temp = list[index];
+        list[index] = list[index + 1];
+        list[index + 1] = temp;
+      }
+      return list;
+    });
   };
 
   const handleOpenDelete = (product: Product) => {
@@ -304,6 +476,7 @@ export default function AdminProducts() {
     }
 
     const finalImage = imagesList[0] || "/fallback.jpg";
+    const finalFeatures = featuresText.split("\n").map((f) => f.trim()).filter(Boolean);
 
     addMutation.mutate({
       name: name.trim(),
@@ -322,6 +495,9 @@ export default function AdminProducts() {
       discountPercent: finalDiscountPercentage,
       stock: finalStock,
       tag: tag || null,
+      features: finalFeatures,
+      badge: badge.trim() || null,
+      slug: name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
     });
   };
 
@@ -376,15 +552,29 @@ export default function AdminProducts() {
       return;
     }
 
-    const finalImage = imagesList[0] || "/fallback.jpg";
+    let finalImages: string[] | Record<string, string[]> = imagesList;
+    if (localVariants.length > 0) {
+      const imgObj: Record<string, string[]> = {};
+      localVariants.forEach((v) => {
+        const key = v.name.toLowerCase();
+        imgObj[key] = v.images;
+      });
+      finalImages = imgObj;
+    }
+
+    const defaultImg = Array.isArray(finalImages)
+      ? (finalImages[0] || "/fallback.jpg")
+      : ((finalImages as Record<string, string[]>).galaxy?.[0] || Object.values(finalImages)[0]?.[0] || "/fallback.jpg");
+
+    const finalFeatures = featuresText.split("\n").map((f) => f.trim()).filter(Boolean);
 
     editMutation.mutate({
       id: currentProduct.id,
       name: name.trim(),
       description: description.trim(),
       price: finalPrice,
-      image: finalImage,
-      images: imagesList.length > 0 ? imagesList : [finalImage],
+      image: defaultImg,
+      images: finalImages,
       isFeatured,
       isNew,
       category: category.trim(),
@@ -396,7 +586,14 @@ export default function AdminProducts() {
       discountPercent: finalDiscountPercentage,
       stock: finalStock,
       tag: tag || null,
-    });
+      rating: currentProduct.rating,
+      reviewsCount: currentProduct.reviewsCount,
+      badge: badge.trim() || null,
+      slug: currentProduct.slug || name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+      features: finalFeatures,
+      tags: currentProduct.tags || [],
+      defaultVariant: currentProduct.defaultVariant || undefined,
+    } as any);
   };
 
   const handleDeleteSubmit = () => {
@@ -423,13 +620,7 @@ export default function AdminProducts() {
     currentPage * itemsPerPage,
   );
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -690,6 +881,18 @@ export default function AdminProducts() {
                 />
               </div>
 
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-white/45 uppercase tracking-wider">
+                  Features (One feature per line)
+                </label>
+                <textarea
+                  placeholder="16 Color Changing Modes&#10;Soft Silicone Body (Kid Safe)"
+                  value={featuresText}
+                  onChange={(e) => setFeaturesText(e.target.value)}
+                  className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 p-3 text-xs min-h-[100px] focus:outline-none"
+                />
+              </div>
+
               <div className="flex flex-wrap gap-4 py-2.5 border-y border-white/[0.06] my-2">
                 <div className="flex items-center gap-2">
                   <input
@@ -824,17 +1027,20 @@ export default function AdminProducts() {
                     <option value="" disabled className="bg-[#0f0f18] text-white/40">
                       Select Category
                     </option>
-                    <option value="Gadgets" className="bg-[#0f0f18]">
-                      Gadgets
+                    <option value="RGB Lights" className="bg-[#0f0f18]">
+                      RGB Lights
                     </option>
-                    <option value="Audio" className="bg-[#0f0f18]">
-                      Audio
+                    <option value="Ambient Lamps" className="bg-[#0f0f18]">
+                      Ambient Lamps
                     </option>
-                    <option value="Wearables" className="bg-[#0f0f18]">
-                      Wearables
+                    <option value="Bedroom Lighting" className="bg-[#0f0f18]">
+                      Bedroom Lighting
                     </option>
-                    <option value="Smart Devices" className="bg-[#0f0f18]">
-                      Smart Devices
+                    <option value="Gaming Setup Lights" className="bg-[#0f0f18]">
+                      Gaming Setup Lights
+                    </option>
+                    <option value="Aesthetic Decor" className="bg-[#0f0f18]">
+                      Aesthetic Decor
                     </option>
                   </select>
                 </div>
@@ -860,6 +1066,19 @@ export default function AdminProducts() {
                       SALE
                     </option>
                   </select>
+                </div>
+
+                <div className="space-y-1 col-span-2 sm:col-span-1">
+                  <label className="text-[9px] font-bold text-white/45 uppercase tracking-wider">
+                    Badge (e.g. 16 Colors)
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="16 Colors"
+                    value={badge}
+                    onChange={(e) => setBadge(e.target.value)}
+                    className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
+                  />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] font-bold text-white/45 uppercase tracking-wider">
@@ -895,32 +1114,45 @@ export default function AdminProducts() {
                           alt="Preview"
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1.5">
+                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1.5">
+                          {/* Make cover / move first */}
                           <button
                             type="button"
-                            onClick={() => {
-                              setImagesList((prev) => {
-                                const list = [...prev];
-                                const [item] = list.splice(idx, 1);
-                                return [item, ...list];
-                              });
-                            }}
-                            className={`p-1 rounded-md transition text-white ${
-                              idx === 0
-                                ? "bg-emerald-500/80 hover:bg-emerald-600"
-                                : "bg-white/20 hover:bg-white/40"
-                            }`}
-                            title={idx === 0 ? "Main Image" : "Make Main Image"}
+                            onClick={() => handleMoveProductImage(idx, "cover")}
+                            className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                            title="Make Cover"
+                            disabled={idx === 0}
                           >
-                            <Sparkles className="h-3 w-3" />
+                            <Sparkles className="h-3 w-3 text-amber-400" />
                           </button>
+                          {/* Move left/up */}
+                          <button
+                            type="button"
+                            onClick={() => handleMoveProductImage(idx, "up")}
+                            className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                            title="Move Left"
+                            disabled={idx === 0}
+                          >
+                            ←
+                          </button>
+                          {/* Move right/down */}
+                          <button
+                            type="button"
+                            onClick={() => handleMoveProductImage(idx, "down")}
+                            className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                            title="Move Right"
+                            disabled={idx === imagesList.length - 1}
+                          >
+                            →
+                          </button>
+                          {/* Delete */}
                           <button
                             type="button"
                             onClick={() => {
                               setImagesList((prev) => prev.filter((_, i) => i !== idx));
                             }}
-                            className="p-1 rounded-md bg-red-500/80 hover:bg-red-600 text-white transition"
-                            title="Remove Image"
+                            className="p-1 rounded bg-red-500/80 hover:bg-red-600 text-white transition cursor-pointer"
+                            title="Remove"
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -1053,6 +1285,18 @@ export default function AdminProducts() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 p-3 text-xs min-h-[80px] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-white/45 uppercase tracking-wider">
+                  Features (One feature per line)
+                </label>
+                <textarea
+                  placeholder="16 Color Changing Modes&#10;Soft Silicone Body (Kid Safe)"
+                  value={featuresText}
+                  onChange={(e) => setFeaturesText(e.target.value)}
+                  className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 p-3 text-xs min-h-[100px] focus:outline-none"
                 />
               </div>
 
@@ -1190,17 +1434,20 @@ export default function AdminProducts() {
                     <option value="" disabled className="bg-[#0f0f18] text-white/40">
                       Select Category
                     </option>
-                    <option value="Gadgets" className="bg-[#0f0f18]">
-                      Gadgets
+                    <option value="RGB Lights" className="bg-[#0f0f18]">
+                      RGB Lights
                     </option>
-                    <option value="Audio" className="bg-[#0f0f18]">
-                      Audio
+                    <option value="Ambient Lamps" className="bg-[#0f0f18]">
+                      Ambient Lamps
                     </option>
-                    <option value="Wearables" className="bg-[#0f0f18]">
-                      Wearables
+                    <option value="Bedroom Lighting" className="bg-[#0f0f18]">
+                      Bedroom Lighting
                     </option>
-                    <option value="Smart Devices" className="bg-[#0f0f18]">
-                      Smart Devices
+                    <option value="Gaming Setup Lights" className="bg-[#0f0f18]">
+                      Gaming Setup Lights
+                    </option>
+                    <option value="Aesthetic Decor" className="bg-[#0f0f18]">
+                      Aesthetic Decor
                     </option>
                   </select>
                 </div>
@@ -1226,6 +1473,19 @@ export default function AdminProducts() {
                       SALE
                     </option>
                   </select>
+                </div>
+
+                <div className="space-y-1 col-span-2 sm:col-span-1">
+                  <label className="text-[9px] font-bold text-white/45 uppercase tracking-wider">
+                    Badge (e.g. 16 Colors)
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="16 Colors"
+                    value={badge}
+                    onChange={(e) => setBadge(e.target.value)}
+                    className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
+                  />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] font-bold text-white/45 uppercase tracking-wider">
@@ -1261,32 +1521,45 @@ export default function AdminProducts() {
                           alt="Preview"
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1.5">
+                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1.5">
+                          {/* Make cover / move first */}
                           <button
                             type="button"
-                            onClick={() => {
-                              setImagesList((prev) => {
-                                const list = [...prev];
-                                const [item] = list.splice(idx, 1);
-                                return [item, ...list];
-                              });
-                            }}
-                            className={`p-1 rounded-md transition text-white ${
-                              idx === 0
-                                ? "bg-emerald-500/80 hover:bg-emerald-600"
-                                : "bg-white/20 hover:bg-white/40"
-                            }`}
-                            title={idx === 0 ? "Main Image" : "Make Main Image"}
+                            onClick={() => handleMoveProductImage(idx, "cover")}
+                            className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                            title="Make Cover"
+                            disabled={idx === 0}
                           >
-                            <Sparkles className="h-3 w-3" />
+                            <Sparkles className="h-3 w-3 text-amber-400" />
                           </button>
+                          {/* Move left/up */}
+                          <button
+                            type="button"
+                            onClick={() => handleMoveProductImage(idx, "up")}
+                            className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                            title="Move Left"
+                            disabled={idx === 0}
+                          >
+                            ←
+                          </button>
+                          {/* Move right/down */}
+                          <button
+                            type="button"
+                            onClick={() => handleMoveProductImage(idx, "down")}
+                            className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                            title="Move Right"
+                            disabled={idx === imagesList.length - 1}
+                          >
+                            →
+                          </button>
+                          {/* Delete */}
                           <button
                             type="button"
                             onClick={() => {
                               setImagesList((prev) => prev.filter((_, i) => i !== idx));
                             }}
-                            className="p-1 rounded-md bg-red-500/80 hover:bg-red-600 text-white transition"
-                            title="Remove Image"
+                            className="p-1 rounded bg-red-500/80 hover:bg-red-600 text-white transition cursor-pointer"
+                            title="Remove"
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -1341,6 +1614,170 @@ export default function AdminProducts() {
                   </div>
                 </div>
               </div>
+
+              {/* Product Variants (Galaxy / Moon / Saturn) Section */}
+              {localVariants && localVariants.length > 0 && (
+                <div className="space-y-3.5 border-t border-white/[0.06] pt-4 mt-4">
+                  <label className="text-[10px] font-bold text-violet-400 uppercase tracking-widest block">
+                    Variant-Specific Galleries
+                  </label>
+                  
+                  {/* Variant selector tabs */}
+                  <div className="flex flex-wrap gap-1.5 bg-white/[0.02] border border-white/[0.06] p-1 rounded-xl w-fit">
+                    {localVariants.map((v) => {
+                      const isEditingActive = v.name.toLowerCase() === editingVariantName.toLowerCase();
+                      return (
+                        <button
+                          key={v.name}
+                          type="button"
+                          onClick={() => {
+                            setEditingVariantName(v.name);
+                            setVariantUrlInput("");
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition cursor-pointer select-none focus:outline-none ${
+                            isEditingActive
+                              ? "bg-violet-500/15 text-violet-400 border border-violet-500/30"
+                              : "text-white/45 hover:text-white/70 border border-transparent"
+                          }`}
+                        >
+                          {v.name} ({v.images?.length || 0})
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Variant Editing Section */}
+                  {(() => {
+                    const activeEditingVar = localVariants.find(
+                      (v) => v.name.toLowerCase() === editingVariantName.toLowerCase()
+                    );
+                    if (!activeEditingVar) return null;
+
+                    return (
+                      <div className="space-y-3 bg-white/[0.01] border border-white/[0.04] p-4 rounded-xl">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-[11px] font-bold text-white uppercase tracking-wider">
+                            {activeEditingVar.name} Images
+                          </h4>
+                          <span className="text-[9px] text-white/30">
+                            {activeEditingVar.images?.length || 0} / 8 images
+                          </span>
+                        </div>
+
+                        {/* Image Previews grid */}
+                        {activeEditingVar.images && activeEditingVar.images.length > 0 ? (
+                          <div className="grid grid-cols-4 gap-3">
+                            {activeEditingVar.images.map((url, idx) => (
+                              <div
+                                key={idx}
+                                className="relative group rounded-lg overflow-hidden aspect-square border border-white/10 bg-black/40 flex items-center justify-center"
+                              >
+                                <img
+                                  src={resolveProductImage(url)}
+                                  alt="Preview"
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1">
+                                  {/* Make cover / move first */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveVariantImage(activeEditingVar.name, idx, "cover")}
+                                    className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition"
+                                    title="Make Cover"
+                                    disabled={idx === 0}
+                                  >
+                                    <Sparkles className="h-3 w-3 text-amber-400" />
+                                  </button>
+                                  {/* Move left/up */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveVariantImage(activeEditingVar.name, idx, "up")}
+                                    className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition"
+                                    title="Move Left"
+                                    disabled={idx === 0}
+                                  >
+                                    ←
+                                  </button>
+                                  {/* Move right/down */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveVariantImage(activeEditingVar.name, idx, "down")}
+                                    className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition"
+                                    title="Move Right"
+                                    disabled={idx === activeEditingVar.images.length - 1}
+                                  >
+                                    →
+                                  </button>
+                                  {/* Delete */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveVariantImage(activeEditingVar.name, idx)}
+                                    className="p-1 rounded bg-red-500/80 hover:bg-red-600 text-white transition animate-bounce-short"
+                                    title="Remove"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
+                                {idx === 0 && (
+                                  <span className="absolute bottom-1 left-1 px-1 py-0.5 rounded bg-amber-500/90 text-[8px] font-bold text-white uppercase tracking-wider">
+                                    Cover
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 border border-dashed border-white/10 rounded-lg text-white/30 text-xs">
+                            No images uploaded for {activeEditingVar.name} variant.
+                          </div>
+                        )}
+
+                        {/* Upload / Add controls for active variant */}
+                        <div className="space-y-2 mt-3 pt-3 border-t border-white/[0.04]">
+                          {/* Add URL */}
+                          <div className="flex gap-2">
+                            <Input
+                              type="text"
+                              placeholder={`Paste Image URL for ${activeEditingVar.name}...`}
+                              value={variantUrlInput}
+                              onChange={(e) => setVariantUrlInput(e.target.value)}
+                              className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-9 px-3 text-xs flex-1"
+                            />
+                            <Button
+                              type="button"
+                              onClick={() => handleAddVariantUrl(activeEditingVar.name)}
+                              className="bg-white/[0.04] border border-white/10 hover:bg-white/[0.08] text-xs font-semibold px-3 rounded-xl h-9 text-white cursor-pointer"
+                            >
+                              Add URL
+                            </Button>
+                          </div>
+
+                          {/* Upload Multiple Files */}
+                          <div className="relative">
+                            <Input
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              onChange={(e) => handleUploadVariantFiles(e, activeEditingVar.name)}
+                              disabled={isUploading}
+                              className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-9 px-3 text-xs pt-1.5"
+                            />
+                            {isUploading && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-[9px] text-violet-400 font-semibold bg-black/60 px-2 py-1 rounded-md">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Uploading...
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-[9px] text-white/25 block leading-normal">
+                            * Supports selecting multiple files at once. Uploads will append to the current {activeEditingVar.name} variant images list. Maximum 8 images per variant.
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 pt-4 border-t border-white/[0.06]">
                 <Button
