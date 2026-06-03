@@ -38,7 +38,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-5 md:px-20 pt-14 pb-24 md:pt-20 grid md:grid-cols-2 gap-14 md:gap-20 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-20 pt-10 pb-16 md:pt-20 md:pb-24 grid md:grid-cols-2 gap-10 md:gap-20 items-center">
         <div className="space-y-10">
           <div className="inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
@@ -48,7 +48,7 @@ export function Hero() {
           <h1
             ref={headingRef}
             className="font-display leading-[1.02] tracking-tight hero-heading"
-            style={{ fontSize: "clamp(3rem, 7vw, 6rem)", fontWeight: 800 }}
+            style={{ fontSize: "clamp(2.2rem, 7vw, 6rem)", fontWeight: 800 }}
           >
             <span className="block text-white/90">Upgrade Your Room.</span>
             <span
@@ -65,19 +65,19 @@ export function Hero() {
 
           <p
             ref={subtextRef}
-            className="text-lg leading-relaxed text-white/60 max-w-md font-light tracking-wide"
+            className="text-base leading-relaxed text-white/60 max-w-md font-light tracking-wide md:text-lg"
           >
             Premium RGB lights & aesthetic decor designed to elevate modern rooms, gaming setups, and daily ambience.
           </p>
 
           <div
             ref={ctasRef}
-            className="flex flex-wrap md:flex-nowrap items-center gap-4 sm:gap-6 pt-4"
+            className="flex flex-wrap items-center gap-4 pt-2 sm:pt-4"
           >
             <a
               ref={primaryCta.ref}
               href="#shop"
-              className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-9 py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
+              className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 sm:px-9 sm:py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
                 boxShadow: "0 0 0 1px rgba(139,92,246,0.3), 0 10px 40px rgba(109,40,217,0.5)",
@@ -103,7 +103,7 @@ export function Hero() {
 
           <div
             ref={statsRef}
-            className="flex flex-wrap md:flex-nowrap gap-6 md:gap-12 pt-6 border-t border-white/[0.08]"
+            className="flex flex-wrap gap-6 pt-4 border-t border-white/[0.08] sm:pt-6 md:gap-12"
           >
             {[
               ["4.9★", "Setup Review"],

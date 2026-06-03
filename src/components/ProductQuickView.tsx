@@ -112,7 +112,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0d0d16] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8),0_0_50px_rgba(138,46,255,0.08)] flex flex-col md:flex-row relative my-auto"
+        className="w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0d0d16] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8),0_0_50px_rgba(138,46,255,0.08)] flex flex-col md:flex-row relative my-auto"
         onClick={(e) => e.stopPropagation()}
         style={
           {
@@ -131,7 +131,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
         </button>
 
         {/* Product Image Section */}
-        <div className="w-full h-64 sm:h-72 md:h-auto md:w-2/5 md:min-h-[420px] relative bg-white/[0.01] border-b md:border-b-0 md:border-r border-white/[0.06] flex flex-col p-5 shrink-0 overflow-hidden">
+        <div className="w-full h-56 sm:h-72 md:h-auto md:w-2/5 md:min-h-[420px] relative bg-white/[0.01] border-b md:border-b-0 md:border-r border-white/[0.06] flex flex-col p-4 sm:p-5 shrink-0 overflow-hidden">
           <div className="flex-1 flex items-center justify-center relative overflow-hidden w-full h-full">
             <div
               className="absolute w-[80%] h-[80%] rounded-full opacity-30 blur-[40px] pointer-events-none"
@@ -169,7 +169,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
         </div>
 
         {/* Product Info Section */}
-        <div className="w-full md:w-3/5 p-5 md:p-7 flex flex-col justify-between overflow-y-auto">
+        <div className="w-full md:w-3/5 p-4 sm:p-5 md:p-7 flex flex-col justify-between overflow-y-auto">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-1.5">
               {product.stock === 0 ? (

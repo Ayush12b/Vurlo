@@ -1045,3 +1045,313 @@
   }
 }
 
+/* ============================================
+   PREMIUM POLISH v2 — ANTIGRAVITY UPGRADE
+   ============================================ */
+
+/* ── GLOW SYSTEM TOKENS ── */
+:root {
+  --glow-btn-low:    0 0 12px rgba(var(--brand-violet-rgb, 138,46,255), 0.18),
+                     0 2px 8px  rgba(0,0,0,0.4);
+  --glow-card-med:   0 0 28px rgba(var(--accent-rgb), 0.22),
+                     0 8px 32px rgba(0,0,0,0.5);
+  --glow-card-strong:0 0 0 1px rgba(var(--accent-rgb), 0.4),
+                     0 0 40px rgba(var(--accent-rgb), 0.35),
+                     0 20px 60px rgba(0,0,0,0.65);
+}
+
+/* ── TYPOGRAPHY POLISH ── */
+.pcard__price {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.5) !important;
+}
+
+.pcard__name {
+  color: rgba(255,255,255,0.72) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0em !important;
+  line-height: 1.4 !important;
+  margin-bottom: 10px !important;
+}
+
+.pcard:hover .pcard__name {
+  color: rgba(255,255,255,0.92) !important;
+}
+
+/* ── CARD 3D + GLOW UPGRADE ── */
+.pcard {
+  box-shadow:
+    0 2px 20px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.04) inset !important;
+  transition:
+    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+}
+
+.pcard:hover {
+  border-color: rgba(var(--accent-rgb), 0.42) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb), 0.3),
+    0 0 35px rgba(var(--accent-rgb), 0.28),
+    0 24px 60px rgba(0,0,0,0.7),
+    0 1px 0 rgba(255,255,255,0.06) inset !important;
+}
+
+/* ── BUTTON GLOW + CLICK BOUNCE ── */
+.pcard__cart {
+  transition:
+    background  0.2s ease,
+    box-shadow  0.2s ease,
+    border-color 0.2s ease,
+    transform   0.25s cubic-bezier(0.34, 1.7, 0.64, 1) !important;
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.12) !important;
+}
+
+.pcard__cart:hover {
+  box-shadow:
+    0 0 18px rgba(var(--accent-rgb), 0.35),
+    0 0 6px  rgba(var(--accent-rgb), 0.18) !important;
+  transform: scale(1.12) !important;
+}
+
+.pcard__cart:active {
+  transform: scale(0.92) !important;
+  transition-duration: 0.1s !important;
+}
+
+.pcard__view-btn:active {
+  transform: scale(0.95) !important;
+}
+
+/* ── GLOW PULSE ON ACTIONS ── */
+@keyframes glow-pulse-action {
+  0%   { box-shadow: 0 0 0 rgba(var(--accent-rgb),0); }
+  40%  { box-shadow: 0 0 22px rgba(var(--accent-rgb),0.55); }
+  100% { box-shadow: 0 0 0 rgba(var(--accent-rgb),0); }
+}
+
+.pcard__cart:active,
+.pcard__view-btn:active {
+  animation: glow-pulse-action 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+/* ── TEXT FADE-IN STAGGER FOR CARD BODY ── */
+@keyframes card-text-reveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pcard__name {
+  animation: card-text-reveal 0.55s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay: calc(var(--card-index, 0) * 60ms + 80ms);
+}
+
+.pcard__price {
+  animation: card-text-reveal 0.55s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay: calc(var(--card-index, 0) * 60ms + 140ms);
+}
+
+/* ── TOAST v2 IMPROVEMENTS ── */
+.premium-toast {
+  gap: 16px !important;
+  padding: 14px 20px 14px 16px !important;
+  box-shadow:
+    0 4px 6px rgba(0,0,0,0.1),
+    0 16px 48px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,255,255,0.05) inset !important;
+}
+
+/* icon-text gap already exists, tighten further */
+.premium-toast [data-icon] {
+  margin-right: 2px !important;
+}
+
+/* Stronger entry animation: scale+fade */
+@keyframes toast-enter-v2 {
+  0%   { opacity: 0; transform: perspective(800px) rotateX(6deg) translateY(32px) scale(0.9); }
+  60%  { transform: perspective(800px) rotateX(1deg) translateY(-3px) scale(1.015); }
+  100% { opacity: 1; transform: perspective(800px) rotateX(0deg) translateY(0) scale(1); }
+}
+
+.premium-toast[data-mounted="true"] {
+  animation: toast-enter-v2 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+             success-toast-float 4s ease-in-out 0.6s infinite !important;
+}
+
+.premium-toast[data-type="success"][data-mounted="true"] {
+  animation:
+    toast-enter-v2 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    success-glow-pulse-entry 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards,
+    success-toast-float 4s ease-in-out 0.6s infinite !important;
+}
+
+/* ── BUTTON GLOBAL POLISH (shadcn default) ── */
+button[class*="bg-primary"],
+button[class*="bg-gradient"],
+.btn-primary {
+  box-shadow: 0 0 14px rgba(138,46,255, 0.2), 0 2px 8px rgba(0,0,0,0.35) !important;
+  transition:
+    transform  0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease,
+    background 0.2s ease !important;
+}
+
+button[class*="bg-primary"]:hover,
+.btn-primary:hover {
+  box-shadow: 0 0 24px rgba(138,46,255, 0.4), 0 4px 16px rgba(0,0,0,0.4) !important;
+  transform: translateY(-1px) scale(1.015) !important;
+}
+
+button[class*="bg-primary"]:active,
+.btn-primary:active {
+  transform: scale(0.97) !important;
+  transition-duration: 0.08s !important;
+}
+
+/* ── MOBILE: disable tilt + heavy glow ── */
+@media (hover: none) and (pointer: coarse) {
+  .pcard {
+    transform: none !important;
+    transition: box-shadow 0.3s ease !important;
+  }
+  .pcard__light,
+  .pcard__img-glow {
+    display: none !important;
+  }
+  .pcard:hover {
+    transform: scale(1.01) !important;
+  }
+}
+
+/* ═══════════════════════════════════════
+   MOBILE RESPONSIVENESS IMPROVEMENTS
+   ═══════════════════════════════════════ */
+
+/* ── Reduce heavy blur/glow on mobile for performance ── */
+@media (max-width: 640px) {
+  .pcard__img-orb {
+    filter: blur(12px) !important;
+    opacity: 0.4 !important;
+  }
+
+  .pcard__light,
+  .pcard__img-glow {
+    display: none !important;
+  }
+
+  .pcard__ring {
+    display: none !important;
+  }
+
+  /* Disable float animation on mobile */
+  .pcard:nth-child(1) .pcard__float-zone,
+  .pcard:nth-child(2) .pcard__float-zone,
+  .pcard:nth-child(3) .pcard__float-zone,
+  .pcard:nth-child(4) .pcard__float-zone {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Disable 3D tilt on mobile */
+  .pcard {
+    transform: none !important;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
+    will-change: auto !important;
+  }
+
+  .pcard:active {
+    transform: scale(0.98) !important;
+    transition-duration: 0.08s !important;
+  }
+
+  .pcard__body {
+    transform: none !important;
+  }
+
+  .pcard__float-zone {
+    transform: none !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
+  }
+
+  /* Larger cart button tap target on mobile */
+  .pcard__cart {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+  }
+
+  /* Wishlist btn tap target */
+  .pcard__wishlist-btn {
+    transform: none !important;
+    padding: 10px !important;
+    top: 8px !important;
+    right: 8px !important;
+  }
+
+  /* Prevent text overflow in card name */
+  .pcard__name {
+    font-size: 13px !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
+  /* Quick View hover-cta: hide on touch devices */
+  .pcard__hover-cta {
+    display: none !important;
+  }
+
+  /* Toast: prevent overflow, keep within screen */
+  .premium-toast {
+    max-width: calc(100vw - 32px) !important;
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .premium-toast[data-mounted="true"] {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ── Hero section mobile fixes ── */
+@media (max-width: 767px) {
+  .hero-ambient-primary {
+    width: 300px !important;
+    height: 300px !important;
+  }
+
+  .hero-ambient-secondary {
+    width: 200px !important;
+    height: 200px !important;
+  }
+}
+
+/* ── Sonner toast position on mobile ── */
+@media (max-width: 640px) {
+  [data-sonner-toaster] {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 16px !important;
+    top: auto !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 400px !important;
+  }
+}
+
+/* ── Hide scrollbar for category tabs ── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

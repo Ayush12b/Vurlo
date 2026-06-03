@@ -3,113 +3,97 @@ import React, { useEffect } from "react";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
-// Web Audio API Synthesizer for high-fidelity soft UI clicks & feedback
-let lastPlayTime = 0;
+// ── Premium Glass-Tap Sound System ──
+// Single shared AudioContext + debounce prevents overlap
+let _audioCtx: AudioContext | null = null;
+let _lastPlay = 0;
+
+const getCtx = (): AudioContext | null => {
+  try {
+    const Ctor = window.AudioContext || (window as any).webkitAudioContext;
+    if (!Ctor) return null;
+    if (!_audioCtx) _audioCtx = new Ctor();
+    if (_audioCtx.state === "suspended") _audioCtx.resume();
+    return _audioCtx;
+  } catch {
+    return null;
+  }
+};
 
 const playSound = (type: "success" | "error") => {
-  try {
-    const now = Date.now();
-    if (now - lastPlayTime < 300) return; // Prevent sound overlapping spam
-    lastPlayTime = now;
+  const now = Date.now();
+  if (now - _lastPlay < 350) return; // hard debounce — no overlap
+  _lastPlay = now;
 
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
+  const ctx = getCtx();
+  if (!ctx) return;
 
-    const ctx = new AudioContextClass();
-    if (ctx.state === "suspended") {
-      ctx.resume();
-    }
+  const t = ctx.currentTime;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0, t);
+  master.connect(ctx.destination);
 
-    const t = ctx.currentTime;
-    const dest = ctx.destination;
+  if (type === "success") {
+    // Soft glass-tap chime: two sine partials + subtle room reverb tail
+    master.gain.setValueAtTime(0.14, t);
 
-    if (type === "success") {
-      // 1. Volume setting (0.2 - 0.3) & Lowpass warm filter
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(0.24, t);
-      
-      const filter = ctx.createBiquadFilter();
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(2000, t);
-      
-      // 2. Feedback delay loop for space / reverb feel
-      const delay = ctx.createDelay();
-      delay.delayTime.value = 0.06; // 60ms delay
-      const feedback = ctx.createGain();
-      feedback.gain.value = 0.25; // 25% feedback
-      
-      delay.connect(feedback);
-      feedback.connect(delay);
-      
-      filter.connect(masterGain);
-      masterGain.connect(dest);
-      
-      filter.connect(delay);
-      delay.connect(masterGain);
+    const hi = ctx.createBiquadFilter();
+    hi.type = "highshelf";
+    hi.frequency.value = 3500;
+    hi.gain.value = -4; // tame harshness
+    hi.connect(master);
 
-      // 3. Pitch variation (0.98 - 1.02)
-      const pitchFactor = 0.98 + Math.random() * 0.04;
-      // Soft high-end glass success chime frequencies:
-      // Note 1: A5 (880 Hz)
-      // Note 2: C#6 (1109.73 Hz)
-      const freq1 = 880 * pitchFactor;
-      const freq2 = 1109.73 * pitchFactor;
+    const pitchVar = 0.985 + Math.random() * 0.03;
 
-      // Tone 1 (Soft glass tap start)
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.type = "sine";
-      osc1.frequency.setValueAtTime(freq1, t);
-      gain1.gain.setValueAtTime(0, t);
-      gain1.gain.linearRampToValueAtTime(0.4, t + 0.015);
-      gain1.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
-      osc1.connect(gain1);
-      gain1.connect(filter);
+    // Partial 1 — fundamental glass tap (C6 ≈ 1046 Hz)
+    const o1 = ctx.createOscillator();
+    const g1 = ctx.createGain();
+    o1.type = "sine";
+    o1.frequency.setValueAtTime(1046 * pitchVar, t);
+    g1.gain.setValueAtTime(0, t);
+    g1.gain.linearRampToValueAtTime(0.55, t + 0.010); // sharp attack
+    g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.18); // quick glass decay
+    o1.connect(g1); g1.connect(hi);
 
-      // Tone 2 (Harmonic, delayed slightly for space)
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(freq2, t + 0.04);
-      gain2.gain.setValueAtTime(0, t + 0.04);
-      gain2.gain.linearRampToValueAtTime(0.3, t + 0.055);
-      gain2.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
-      osc2.connect(gain2);
-      gain2.connect(filter);
+    // Partial 2 — upper harmonic (E6 ≈ 1318 Hz), delayed for chime sparkle
+    const o2 = ctx.createOscillator();
+    const g2 = ctx.createGain();
+    o2.type = "sine";
+    o2.frequency.setValueAtTime(1318 * pitchVar, t + 0.032);
+    g2.gain.setValueAtTime(0, t + 0.032);
+    g2.gain.linearRampToValueAtTime(0.32, t + 0.044);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
+    o2.connect(g2); g2.connect(hi);
 
-      osc1.start(t);
-      osc1.stop(t + 0.25);
-      osc2.start(t + 0.04);
-      osc2.stop(t + 0.35);
-    } else {
-      // Premium warm error buzz
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(0.18, t);
-      masterGain.connect(dest);
+    // Subtle reverb tail via short comb delay
+    const delay = ctx.createDelay(0.5);
+    delay.delayTime.value = 0.055;
+    const fbGain = ctx.createGain();
+    fbGain.gain.value = 0.18;
+    g1.connect(delay); delay.connect(fbGain); fbGain.connect(delay); delay.connect(master);
 
-      const filter = ctx.createBiquadFilter();
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(1000, t);
-      filter.connect(masterGain);
+    o1.start(t);       o1.stop(t + 0.22);
+    o2.start(t + 0.032); o2.stop(t + 0.30);
 
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(260, t);
-      osc.frequency.exponentialRampToValueAtTime(160, t + 0.25);
+  } else {
+    // Warm soft error: descending triangle tone, very low volume
+    master.gain.setValueAtTime(0.10, t);
 
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.5, t + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(900, t);
+    lp.connect(master);
 
-      osc.connect(gain);
-      gain.connect(filter);
-
-      osc.start(t);
-      osc.stop(t + 0.35);
-    }
-  } catch (e) {
-    console.warn("Audio Context playback failed or blocked:", e);
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(320, t);
+    o.frequency.exponentialRampToValueAtTime(190, t + 0.22);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.6, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+    o.connect(g); g.connect(lp);
+    o.start(t); o.stop(t + 0.32);
   }
 };
 

@@ -102,7 +102,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
     return (
       <section
         id="shop"
-        className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-16 sm:px-6 md:py-20"
+        className="relative mx-auto max-w-7xl scroll-mt-28 px-4 py-10 sm:px-6 sm:py-16 md:py-20"
       >
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -top-40 left-1/3 w-[600px] h-[600px] rounded-full bg-violet-600/[0.04] blur-[120px]" />
@@ -117,7 +117,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
                 Featured Collection
               </span>
             </div>
-            <h2 className="font-display text-4xl font-bold tracking-tight text-white/90 leading-[1.05] sm:text-5xl md:text-6xl">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-white/90 leading-[1.05] sm:text-4xl md:text-6xl">
               Engineered
               <br />
               <span className="bg-gradient-to-r from-violet-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent">
@@ -141,7 +141,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
     return (
       <section
         id="shop"
-        className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-16 sm:px-6 md:py-20"
+        className="relative mx-auto max-w-7xl scroll-mt-28 px-4 py-10 sm:px-6 sm:py-16 md:py-20"
       >
         <div className="border border-white/[0.06] bg-[#0c0c14] rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
           <Search className="h-8 w-8 text-red-400" />
@@ -159,14 +159,14 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
   return (
     <section
       id="shop"
-      className="relative mx-auto max-w-7xl scroll-mt-28 px-5 py-16 sm:px-6 md:py-20"
+      className="relative mx-auto max-w-7xl scroll-mt-28 px-4 py-10 sm:px-6 sm:py-16 md:py-20"
     >
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 left-1/3 w-[600px] h-[600px] rounded-full bg-violet-600/[0.04] blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-cyan-500/[0.03] blur-[100px]" />
       </div>
 
-      <div ref={headingRef} className="mb-12 flex items-end justify-between gap-6 md:mb-16">
+      <div ref={headingRef} className="mb-8 flex items-end justify-between gap-4 md:mb-16">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.03] px-3 py-1.5 backdrop-blur-sm">
             <Sparkles className="h-3 w-3 text-violet-400" />
@@ -174,7 +174,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
               Featured Collection
             </span>
           </div>
-          <h2 className="font-display text-4xl font-bold tracking-tight text-white/90 leading-[1.05] sm:text-5xl md:text-6xl">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-white/90 leading-[1.05] sm:text-4xl md:text-6xl">
             Elevate
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent">
@@ -192,7 +192,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
       </div>
 
       {/* Search Bar */}
-      <div className="mb-6 max-w-md">
+      <div className="mb-6 w-full max-w-md">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
           <input
@@ -214,9 +214,9 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
       </div>
 
       {/* Category & Sale Filtering Controls */}
-      <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         {/* Category Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 border border-white/[0.06] bg-white/[0.02] p-1 rounded-xl">
+        <div className="flex items-center gap-1.5 border border-white/[0.06] bg-white/[0.02] p-1 rounded-xl overflow-x-auto no-scrollbar flex-nowrap min-w-0">
           {["all", "RGB Lights", "Ambient Lamps", "Bedroom Lighting", "Gaming Setup Lights", "Aesthetic Decor"].map((cat) => {
             const isSelected =
               (!category && cat === "all") || category?.toLowerCase() === cat.toLowerCase();

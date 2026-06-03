@@ -103,7 +103,7 @@ export function ProductCard({
       <article
         id={`product-${p.id}`}
         ref={tilt.cardRef}
-        className={`pcard group flex flex-col h-full p-5 ${isSelected ? "selected" : ""}`}
+        className={`pcard group flex flex-col h-full p-4 sm:p-5 ${isSelected ? "selected" : ""}`}
         onClick={() => {
           onSelect?.();
         }}
@@ -114,6 +114,7 @@ export function ProductCard({
           {
             "--accent": p.accent,
             "--accent-rgb": p.accentRgb,
+            "--card-index": index,
           } as React.CSSProperties
         }
       >
