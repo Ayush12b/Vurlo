@@ -1,4 +1,28 @@
+import { useState } from "react";
+import { toast } from "sonner";
+
 export function Newsletter() {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setSubmitting(true);
+    setTimeout(() => {
+      toast.success("You're on the list!", {
+        description: "We'll notify you about new drops and exclusive deals.",
+      });
+      setEmail("");
+      setSubmitting(false);
+    }, 500);
+  };
+
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-12 md:p-16 text-center">
@@ -10,17 +34,25 @@ export function Newsletter() {
             community discounts.
           </p>
           <form
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleSubmit}
             className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
           >
             <input
               type="email"
               required
               placeholder="e.g., you@domain.com"
-              className="flex-1 rounded-xl bg-background border border-border px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              maxLength={254}
+              disabled={submitting}
+              className="flex-1 rounded-xl bg-background border border-border px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors animate-none"
             />
-            <button className="rounded-xl bg-gradient-brand px-6 py-3 font-medium text-white glow-brand transition-transform hover:scale-[1.03]">
-              Subscribe
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-xl bg-gradient-brand px-6 py-3 font-medium text-white glow-brand transition-transform hover:scale-[1.03] disabled:opacity-50"
+            >
+              {submitting ? "Subscribing..." : "Subscribe"}
             </button>
           </form>
         </div>

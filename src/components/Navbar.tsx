@@ -6,13 +6,19 @@ import {
   Loader2,
   Sparkles,
   Heart,
+  Bell,
+  BellOff,
+  Package,
+  AlertCircle,
+  Info,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth, DEFAULT_AVATAR } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/AuthModal";
 import { SearchModal } from "@/components/SearchModal";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useNotifications, Notification } from "@/hooks/use-notifications";
 import { resolveProductImage } from "@/components/FeaturedProducts";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { checkIsAdmin } from "@/lib/admin-auth";
@@ -40,6 +46,52 @@ import { Input } from "@/components/ui/input";
 
 const links = ["Home", "Shop", "Categories", "Contact"];
 
+const formatTimeAgo = (timestamp: any) => {
+  if (!timestamp) return "Just now";
+  let date: Date;
+  if (typeof timestamp.toDate === "function") {
+    date = timestamp.toDate();
+  } else if (timestamp instanceof Date) {
+    date = timestamp;
+  } else if (timestamp.seconds) {
+    date = new Date(timestamp.seconds * 1000);
+  } else {
+    date = new Date(timestamp);
+  }
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return "Just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
+
+const getNotificationIcon = (type: "order" | "system" | "alert") => {
+  switch (type) {
+    case "order":
+      return Package;
+    case "alert":
+      return AlertCircle;
+    case "system":
+    default:
+      return Info;
+  }
+};
+
+const getNotificationIconStyles = (type: "order" | "system" | "alert") => {
+  switch (type) {
+    case "order":
+      return "bg-violet-500/10 text-violet-400 border-violet-500/20";
+    case "alert":
+      return "bg-red-500/10 text-red-400 border-red-500/20";
+    case "system":
+    default:
+      return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+  }
+};
+
 export function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -47,6 +99,16 @@ export function Navbar() {
     useAuth();
   const { cartItems, cartCount, updateQuantity, removeFromCart, placeOrder, addToCart } = useCart();
   const { wishlistCount } = useWishlist();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+
+  const handleNotificationClick = async (n: Notification) => {
+    if (!n.read) {
+      await markAsRead(n.id);
+    }
+    if (n.link) {
+      navigate({ to: n.link });
+    }
+  };
   const [animateCart, setAnimateCart] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
@@ -61,7 +123,10 @@ export function Navbar() {
   const [shippingPhone, setShippingPhone] = useState("");
 
   const { data: allProducts } = useProducts();
-  const recommendedProducts = allProducts ? allProducts.slice(0, 3) : undefined;
+  const recommendedProducts = useMemo(
+    () => (allProducts ? allProducts.slice(0, 3) : undefined),
+    [allProducts]
+  );
 
   useEffect(() => {
     if (!user) {
@@ -350,6 +415,152 @@ export function Navbar() {
                     <span className="vurlo-cart-badge bg-rose-500 text-white">{wishlistCount}</span>
                   )}
                 </Link>
+
+                {/* Notifications Bell Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="vurlo-icon-btn relative cursor-pointer focus:outline-none flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95"
+                      aria-label="Notifications"
+                    >
+                      <Bell size={16} className="transition-transform duration-300 hover:rotate-12" />
+                      {unreadCount > 0 && (
+                        <span className="absolute top-[3px] right-[3px] min-w-[8px] h-2 bg-rose-500 rounded-full border border-[#0f0f18] shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse" />
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-80 sm:w-[400px] bg-[#0c0c14]/95 border border-white/[0.08] text-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(138,46,255,0.05)] p-4.5 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-300 max-sm:fixed max-sm:inset-0 max-sm:w-full max-sm:h-[100dvh] max-sm:rounded-none max-sm:max-h-none max-sm:z-50 max-sm:flex max-sm:flex-col"
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] max-sm:pt-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-white/90">
+                        Notifications
+                      </span>
+                      <div className="flex items-center gap-3">
+                        {user && unreadCount > 0 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAllAsRead();
+                            }}
+                            className="text-[10px] font-bold text-violet-400 hover:text-violet-300 transition-colors uppercase tracking-wider cursor-pointer"
+                          >
+                            Mark all
+                          </button>
+                        )}
+                        {/* Mobile close button inside DropdownMenuItem so it closes the dropdown */}
+                        <DropdownMenuItem asChild>
+                          <button className="sm:hidden w-7 h-7 rounded-lg flex items-center justify-center border border-white/[0.06] hover:bg-white/[0.04] text-white/60 hover:text-white cursor-pointer focus:outline-none focus:bg-transparent">
+                            <X size={14} />
+                          </button>
+                        </DropdownMenuItem>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="max-h-[320px] sm:max-h-[360px] overflow-y-auto py-2.5 space-y-2 pr-1 mt-2 flex-1">
+                      {!user ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                          <Bell className="h-8 w-8 text-white/20" />
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold text-white tracking-tight">
+                              Login to view updates
+                            </p>
+                            <p className="text-[10px] text-gray-400 max-w-[200px] leading-relaxed mx-auto">
+                              Get instant updates on your orders and account alerts.
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAuthModalOpen(true);
+                            }}
+                            className="text-[10px] font-bold uppercase tracking-wider h-8 px-4 rounded-lg text-white transition-all duration-300 cursor-pointer"
+                            style={{
+                              background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
+                            }}
+                          >
+                            Login Now
+                          </button>
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
+                          <BellOff className="h-8 w-8 text-white/20" />
+                          <div>
+                            <p className="text-xs font-bold text-white/80">No notifications yet</p>
+                            <p className="text-[10px] text-gray-400 max-w-[200px] leading-relaxed mx-auto mt-0.5">
+                              We'll alert you about order updates, tracking, and promotions.
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        notifications.slice(0, 7).map((n) => {
+                          const IconComponent = getNotificationIcon(n.type);
+                          return (
+                            <DropdownMenuItem
+                              key={n.id}
+                              asChild
+                              className="focus:bg-transparent focus:text-white p-0"
+                            >
+                              <div
+                                onClick={() => handleNotificationClick(n)}
+                                className={`flex items-start gap-3 p-3 rounded-xl border transition-all duration-300 ease-out cursor-pointer hover:scale-[1.01] ${
+                                  n.read
+                                    ? "bg-transparent border-transparent border-l-2 border-l-transparent hover:bg-white/[0.03] hover:border-white/[0.04] hover:shadow-[0_4px_12px_rgba(255,255,255,0.01)]"
+                                    : "bg-violet-500/[0.03] border-white/[0.04] border-l-2 border-l-violet-500 hover:bg-violet-500/[0.05] hover:border-white/[0.06] hover:shadow-[0_4px_15px_rgba(139,92,246,0.04)]"
+                                }`}
+                              >
+                                {/* Icon container */}
+                                <div
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${getNotificationIconStyles(
+                                    n.type
+                                  )}`}
+                                >
+                                  <IconComponent size={14} />
+                                </div>
+
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                  <p
+                                    className={`text-[11px] leading-normal ${
+                                      n.read ? "text-white/60" : "text-white/90 font-medium"
+                                    }`}
+                                  >
+                                    {n.message}
+                                  </p>
+                                  <span className="text-[9px] text-white/30 block mt-1">
+                                    {formatTimeAgo(n.timestamp)}
+                                  </span>
+                                </div>
+
+                                {/* Unread indicator */}
+                                {!n.read && (
+                                  <div className="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0 self-center shadow-[0_0_8px_rgba(139,92,246,0.8)] animate-pulse" />
+                                )}
+                              </div>
+                            </DropdownMenuItem>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {/* View All Footer Link */}
+                    {user && notifications.length > 0 && (
+                      <div className="pt-3 border-t border-white/[0.08] mt-2 flex justify-center">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/notifications"
+                            className="text-[10px] font-bold text-white/40 hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1 cursor-pointer focus:outline-none focus:bg-transparent"
+                          >
+                            View All Notifications
+                          </Link>
+                        </DropdownMenuItem>
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 <Sheet open={cartOpen} onOpenChange={setCartOpen}>
                   <SheetTrigger asChild>

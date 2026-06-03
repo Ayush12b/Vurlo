@@ -36,7 +36,8 @@ service cloud.firestore {
 
       // Users can only view or edit items inside their own wishlist
       match /wishlist/{productId} {
-        allow read, delete: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        allow delete: if request.auth != null && request.auth.uid == userId;
         allow create, update: if request.auth != null && request.auth.uid == userId
           && request.resource.data.name is string
           && request.resource.data.price is number
@@ -89,6 +90,22 @@ service cloud.firestore {
         request.resource.data.stock >= 0
       );
       allow create, delete: if isAdmin();
+    }
+
+    // Notifications Collection
+    match /notifications/{notificationId} {
+      allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow create: if request.auth != null
+        && (request.resource.data.userId == request.auth.uid || isAdmin())
+        && request.resource.data.message is string
+        && (request.resource.data.type == 'order'
+          || request.resource.data.type == 'system'
+          || request.resource.data.type == 'alert')
+        && request.resource.data.read is bool
+        && request.resource.data.link is string;
     }
   }
 }

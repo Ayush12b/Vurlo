@@ -1,8 +1,8 @@
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -10,16 +10,19 @@ import {
   Loader2,
   ArrowLeft,
   ShoppingBag,
-  Calendar,
   Clock,
   ShieldAlert,
   Check,
   Truck,
   Package,
+  ChevronDown,
+  RefreshCw,
+  Copy,
 } from "lucide-react";
 import { resolveProductImage, formatPrice } from "@/components/FeaturedProducts";
 import { toast } from "sonner";
 import { getProductImage } from "@/utils/product";
+import { useCart } from "@/hooks/use-cart";
 
 export const Route = createFileRoute("/orders")({
   component: OrdersPage,
@@ -78,77 +81,143 @@ function OrdersPage() {
   );
 }
 
-const stepsConfig = [
-  {
-    key: "pending",
-    label: "Pending",
-    icon: Clock,
-    colorClass: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20 shadow-yellow-500/10",
-    completedColorClass: "bg-yellow-500 border-yellow-500 text-black shadow-yellow-500/20",
-    message: "Awaiting payment verification.",
-    estDays: "3-5 business days",
-  },
-  {
-    key: "confirmed",
-    label: "Confirmed",
-    icon: Check,
-    colorClass: "text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-blue-500/10",
-    completedColorClass: "bg-blue-500 border-blue-500 text-white shadow-blue-500/20",
-    message: "Order confirmed. Preparing your aesthetic lighting setup for dispatch.",
-    estDays: "2-4 business days",
-  },
-  {
-    key: "shipped",
-    label: "Shipped",
-    icon: Truck,
-    colorClass: "text-purple-400 bg-purple-500/10 border-purple-500/20 shadow-purple-500/10",
-    completedColorClass: "bg-purple-500 border-purple-500 text-white shadow-purple-500/20",
-    message: "Dispatched. Shipped via Vurlo Express Cargo.",
-    estDays: "1-2 business days",
-  },
-  {
-    key: "delivered",
-    label: "Delivered",
-    icon: Package,
-    colorClass: "text-green-400 bg-green-500/10 border-green-500/20 shadow-green-500/10",
-    completedColorClass: "bg-green-500 border-green-500 text-white shadow-green-500/20",
-    message: "Delivered to your address.",
-    estDays: "",
-  },
-];
+function getLogisticsLogs(order: any) {
+  const logs: { time: string; event: string; done: boolean }[] = [];
+  const baseTime = order.createdAt ? order.createdAt.seconds * 1000 : Date.now();
+
+  const formatLogTime = (ms: number) => {
+    return new Date(ms).toLocaleDateString("en-IN", {
+      month: "short",
+      day: "numeric",
+    }) + ", " + new Date(ms).toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Step 1: Placed
+  logs.push({
+    time: formatLogTime(baseTime),
+    event: "Order placed successfully & payment processed",
+    done: true,
+  });
+
+  const isConfirmed = ["confirmed", "shipped", "delivered"].includes(order.status);
+  const isShipped = ["shipped", "delivered"].includes(order.status);
+  const isDelivered = order.status === "delivered";
+
+  // Step 2: Confirmed
+  if (isConfirmed) {
+    logs.push({
+      time: formatLogTime(baseTime + 6 * 60 * 60 * 1000), // 6 hrs later
+      event: "Order confirmed and item prepared for packaging",
+      done: true,
+    });
+  } else if (order.status !== "cancelled") {
+    logs.push({
+      time: "Pending",
+      event: "Preparing package for dispatch",
+      done: false,
+    });
+  }
+
+  // Step 3: Shipped
+  if (isShipped) {
+    logs.push({
+      time: formatLogTime(baseTime + 18 * 60 * 60 * 1000), // 18 hrs later
+      event: "Package picked up by Vurlo Express Cargo & in transit",
+      done: true,
+    });
+    logs.push({
+      time: formatLogTime(baseTime + 28 * 60 * 60 * 1000), // 28 hrs later
+      event: "Arrived at destination distribution center",
+      done: true,
+    });
+  } else if (order.status !== "cancelled") {
+    logs.push({
+      time: "Pending",
+      event: "Awaiting courier pickup",
+      done: false,
+    });
+  }
+
+  // Step 4: Delivered
+  if (isDelivered) {
+    logs.push({
+      time: formatLogTime(baseTime + 42 * 60 * 60 * 1000), // 42 hrs later
+      event: "Out for delivery - Courier partner assigned",
+      done: true,
+    });
+    logs.push({
+      time: formatLogTime(baseTime + 45 * 60 * 60 * 1000), // 45 hrs later
+      event: "Delivered & signed by customer",
+      done: true,
+    });
+  } else if (order.status !== "cancelled") {
+    logs.push({
+      time: "Pending",
+      event: "Delivery to recipient address",
+      done: false,
+    });
+  }
+
+  if (order.status === "cancelled") {
+    logs.push({
+      time: formatLogTime(Date.now()),
+      event: "Order cancelled - refund initiated if applicable",
+      done: true,
+    });
+  }
+
+  return logs.reverse();
+}
 
 function OrderStatusTimeline({ status }: { status: string }) {
   if (status === "cancelled") {
     return (
-      <div className="flex items-center justify-center gap-2 border border-red-500/20 bg-red-500/5 px-3 py-1.5 rounded-xl text-xs font-semibold text-red-400 max-w-xs mx-auto">
-        <ShieldAlert className="h-4 w-4" />
-        Order Cancelled
+      <div className="flex items-center justify-center gap-2 border border-red-500/20 bg-red-500/5 px-4 py-3 rounded-2xl text-xs font-bold text-red-400 max-w-md mx-auto">
+        <ShieldAlert className="h-4.5 w-4.5" />
+        This order has been cancelled.
       </div>
     );
   }
 
   const steps = [
-    { key: "pending", label: "Pending" },
-    { key: "confirmed", label: "Confirmed" },
+    { key: "placed", label: "Placed" },
     { key: "shipped", label: "Shipped" },
     { key: "delivered", label: "Delivered" },
   ];
 
-  const currentIdx = steps.findIndex((s) => s.key === status);
-  const currentStep = stepsConfig[currentIdx] || stepsConfig[0];
-  const mockCarrier = "VURLO Express Cargo";
-  const mockTrackingId = `VRL-${status.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
+  let currentIdx = 0; // Placed
+  if (status === "shipped") {
+    currentIdx = 1;
+  } else if (status === "delivered") {
+    currentIdx = 2;
+  } else if (status === "confirmed") {
+    currentIdx = 0;
+  }
+
+  // Stepper colors based on status
+  let activeTrackColor = "from-yellow-500 to-yellow-600";
+  if (status === "shipped") {
+    activeTrackColor = "from-yellow-500 via-blue-500 to-blue-500";
+  } else if (status === "delivered") {
+    activeTrackColor = "from-yellow-500 via-blue-500 to-green-500";
+  }
 
   return (
-    <div className="w-full space-y-6">
-      {/* Desktop Stepper */}
-      <div className="hidden md:block relative w-full py-6">
-        <div className="absolute left-[12.5%] right-[12.5%] top-[20px] h-[2px] -translate-y-1/2 bg-white/[0.06]" />
+    <div className="w-full py-2">
+      {/* Visual Stepper Progress Bar */}
+      <div className="relative w-full py-4 mb-2">
+        {/* Background track line */}
+        <div className="absolute left-[15%] right-[15%] top-[24px] h-[3px] -translate-y-1/2 bg-white/[0.06] rounded-full" />
 
+        {/* Active colored progress track line */}
         <div
-          className="absolute left-[12.5%] top-[20px] h-[2px] -translate-y-1/2 bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-500"
+          className={`absolute left-[15%] top-[24px] h-[3px] -translate-y-1/2 bg-gradient-to-r ${activeTrackColor} transition-all duration-700 rounded-full`}
           style={{
-            width: `${(currentIdx / (steps.length - 1)) * 75}%`,
+            width: `${(currentIdx / (steps.length - 1)) * 70}%`,
             transformOrigin: "left",
           }}
         />
@@ -158,125 +227,49 @@ function OrderStatusTimeline({ status }: { status: string }) {
             const isCompleted = idx < currentIdx;
             const isCurrent = idx === currentIdx;
             const isUpcoming = idx > currentIdx;
-            const config = stepsConfig[idx];
-            const StepIcon = config.icon;
 
-            let dotClass = "";
-            let textClass = "";
+            let nodeDot = "";
+            let labelClass = "";
 
             if (isCompleted) {
-              dotClass = `${config.completedColorClass} scale-100`;
-              textClass = "text-white/80 font-semibold";
+              nodeDot = "bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.3)]";
+              labelClass = "text-white/80 font-bold";
             } else if (isCurrent) {
-              dotClass = `${config.colorClass} scale-125 border border-current`;
-              textClass = "text-white font-extrabold";
+              if (status === "delivered") {
+                nodeDot = "bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.3)]";
+              } else if (status === "shipped") {
+                nodeDot = "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-white/20 animate-pulse";
+              } else {
+                nodeDot = "bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.3)] border border-white/10 animate-pulse";
+              }
+              labelClass = "text-white font-extrabold";
             } else {
-              dotClass = "bg-[#090910] border-white/[0.12] text-white/30 border";
-              textClass = "text-white/30";
+              nodeDot = "bg-[#090910] border border-white/[0.12] text-white/30";
+              labelClass = "text-white/30 font-medium";
             }
 
             return (
-              <div key={step.key} className="flex flex-col items-center gap-3 w-1/4 relative z-10">
+              <div key={step.key} className="flex flex-col items-center gap-2.5 w-[30%] relative z-10">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${dotClass}`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 text-xs ${nodeDot}`}
                 >
-                  {isCompleted ? (
-                    <Check className="h-4.5 w-4.5" />
+                  {isCompleted || (isCurrent && status === "delivered") ? (
+                    <Check className="h-4 w-4" />
+                  ) : idx === 1 ? (
+                    <Truck className="h-3.5 w-3.5" />
+                  ) : idx === 2 ? (
+                    <Package className="h-3.5 w-3.5" />
                   ) : (
-                    <StepIcon className="h-4.5 w-4.5" />
+                    <Clock className="h-3.5 w-3.5" />
                   )}
                 </div>
-                <div className="text-center space-y-1">
-                  <span className={`text-[10px] uppercase tracking-widest block ${textClass}`}>
-                    {step.label}
-                  </span>
-                </div>
+                <span className={`text-[10px] uppercase tracking-wider block text-center leading-tight ${labelClass}`}>
+                  {step.label}
+                </span>
               </div>
             );
           })}
         </div>
-      </div>
-
-      {/* Mobile Stepper */}
-      <div className="md:hidden relative flex flex-col gap-6 pl-4 py-2">
-        <div className="absolute left-[31px] top-6 bottom-6 w-[2px] bg-white/[0.06]" />
-
-        <div
-          className="absolute left-[31px] top-6 w-[2px] bg-gradient-to-b from-violet-500 to-cyan-400 transition-all duration-500"
-          style={{
-            height: `${(currentIdx / (steps.length - 1)) * 82}%`,
-            transformOrigin: "top",
-          }}
-        />
-
-        {steps.map((step, idx) => {
-          const isCompleted = idx < currentIdx;
-          const isCurrent = idx === currentIdx;
-          const isUpcoming = idx > currentIdx;
-          const config = stepsConfig[idx];
-          const StepIcon = config.icon;
-
-          let dotClass = "";
-          let textClass = "";
-
-          if (isCompleted) {
-            dotClass = `${config.completedColorClass} scale-100`;
-            textClass = "text-white/80 font-semibold";
-          } else if (isCurrent) {
-            dotClass = `${config.colorClass} scale-110 border border-current`;
-            textClass = "text-white font-bold";
-          } else {
-            dotClass = "bg-[#090910] border-white/[0.12] text-white/30 border";
-            textClass = "text-white/30";
-          }
-
-          return (
-            <div key={step.key} className="flex items-center gap-4 relative z-10">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${dotClass} shrink-0`}
-              >
-                {isCompleted ? <Check className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
-              </div>
-              <div className="space-y-0.5">
-                <span className={`text-[11px] uppercase tracking-wider block ${textClass}`}>
-                  {step.label}
-                </span>
-                {isCurrent && (
-                  <span className="text-[10px] text-gray-400 block leading-tight">
-                    {config.message}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Details Box */}
-      <div className="mt-4 p-4 rounded-xl border border-white/[0.05] bg-white/[0.01] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span
-              className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-full tracking-wider shrink-0 ${currentStep.colorClass}`}
-            >
-              {status}
-            </span>
-            <p className="text-xs text-white/80 font-medium leading-tight">{currentStep.message}</p>
-          </div>
-          <p className="text-[10px] text-gray-400">
-            Courier: <span className="text-white/60 font-semibold">{mockCarrier}</span> &middot;
-            Tracking: <span className="font-mono text-white/60">{mockTrackingId}</span>
-          </p>
-        </div>
-
-        {currentStep.estDays && (
-          <div className="text-left sm:text-right shrink-0">
-            <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
-              Estimated Delivery
-            </p>
-            <p className="text-xs font-bold text-violet-400 mt-0.5">{currentStep.estDays}</p>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -284,10 +277,18 @@ function OrderStatusTimeline({ status }: { status: string }) {
 
 function OrdersContent() {
   const { user } = useAuth();
+  const { addMultipleToCart } = useCart();
+  const navigate = useNavigate();
+
+  const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState<"all" | "active" | "completed" | "cancelled">("all");
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
   const unsubRef = useRef<(() => void) | null>(null);
   const queryKey = ["orders", user?.uid] as const;
+
   // Real-time listener: pushes every Firestore update into React Query cache.
   // Runs once when user is available, cleans up on unmount.
   useEffect(() => {
@@ -305,12 +306,12 @@ function OrdersContent() {
       },
       (err) => {
         console.error("Orders listener error:", err);
-        // Do NOT clear cache on error — keep showing last known orders
       },
     );
     unsubRef.current = unsub;
     return () => unsub();
   }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const {
     data: orders,
     isLoading,
@@ -318,7 +319,6 @@ function OrdersContent() {
   } = useQuery<Order[]>({
     queryKey,
     enabled: !!user,
-    // queryFn only runs on first mount before onSnapshot fires (provides initial data)
     queryFn: () =>
       new Promise<Order[]>((resolve) => {
         const q = query(collection(db, "orders"), where("userId", "==", user!.uid));
@@ -328,18 +328,123 @@ function OrdersContent() {
             ...doc.data(),
           })) as Order[];
           items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-          unsub(); // one-shot — the useEffect listener takes over after this
+          unsub();
           resolve(items);
         });
       }),
-    staleTime: Infinity, // onSnapshot keeps data fresh — never re-fetch on focus
-    refetchOnWindowFocus: false, // prevents the wipe-on-focus bug
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    retry: false, // don't retry on error — onSnapshot will recover
-    placeholderData: (prev) => prev, // preserve previous orders if query re-runs
+    retry: false,
+    placeholderData: (prev) => prev,
   });
 
+  const toggleExpand = (orderId: string) => {
+    setExpandedOrderIds((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
 
+  const handleReorder = async (orderItems: OrderItem[], orderId: string) => {
+    setReorderingId(orderId);
+    try {
+      const itemsToCart = orderItems.map((item) => ({
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        quantity: item.quantity,
+      }));
+      await addMultipleToCart(itemsToCart);
+      navigate({ to: "/" });
+    } catch (e) {
+      console.error("Reorder failed:", e);
+    } finally {
+      setReorderingId(null);
+    }
+  };
+
+  const getStatusBadgeConfig = (status: string) => {
+    switch (status) {
+      case "pending":
+        return {
+          bg: "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
+          dot: "bg-yellow-400",
+          label: "Pending",
+        };
+      case "confirmed":
+        return {
+          bg: "bg-blue-500/10 border-blue-500/20 text-blue-400",
+          dot: "bg-blue-400",
+          label: "Confirmed",
+        };
+      case "shipped":
+        return {
+          bg: "bg-purple-500/10 border-purple-500/20 text-purple-400",
+          dot: "bg-purple-400",
+          label: "Shipped",
+        };
+      case "delivered":
+        return {
+          bg: "bg-green-500/10 border-green-500/20 text-green-400",
+          dot: "bg-green-400",
+          label: "Delivered",
+        };
+      case "cancelled":
+        return {
+          bg: "bg-red-500/10 border-red-500/20 text-red-400",
+          dot: "bg-red-400",
+          label: "Cancelled",
+        };
+      default:
+        return {
+          bg: "bg-white/10 border-white/20 text-white/80",
+          dot: "bg-white",
+          label: status,
+        };
+    }
+  };
+
+  // Stats Calculations
+  const totalOrders = orders?.length || 0;
+  const totalSpent =
+    orders?.reduce((acc, o) => (o.status !== "cancelled" ? acc + o.totalAmount : acc), 0) || 0;
+  const activeOrdersCount =
+    orders?.filter((o) => ["pending", "confirmed", "shipped"].includes(o.status)).length || 0;
+
+  const tabs = [
+    { id: "all", label: "All Orders", count: totalOrders },
+    { id: "active", label: "Active", count: activeOrdersCount },
+    {
+      id: "completed",
+      label: "Completed",
+      count: orders?.filter((o) => o.status === "delivered").length || 0,
+    },
+    {
+      id: "cancelled",
+      label: "Cancelled",
+      count: orders?.filter((o) => o.status === "cancelled").length || 0,
+    },
+  ] as const;
+
+  // Filter & Paginate
+  const filteredOrders =
+    orders?.filter((order) => {
+      if (activeTab === "all") return true;
+      if (activeTab === "active") {
+        return ["pending", "confirmed", "shipped"].includes(order.status);
+      }
+      if (activeTab === "completed") {
+        return order.status === "delivered";
+      }
+      if (activeTab === "cancelled") {
+        return order.status === "cancelled";
+      }
+      return true;
+    }) || [];
+
+  const paginatedOrders = filteredOrders.slice(0, visibleCount);
 
   return (
     <div className="relative mx-auto max-w-4xl px-6 py-16 sm:py-24">
@@ -349,7 +454,7 @@ function OrdersContent() {
         <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] rounded-full bg-cyan-500/[0.02] blur-[100px]" />
       </div>
 
-      <div className="mb-10 flex items-center justify-between">
+      <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <Link
             to="/"
@@ -363,6 +468,47 @@ function OrdersContent() {
           </h1>
           <p className="text-sm text-white/45">Track and view details of your premium purchases</p>
         </div>
+
+        {/* Premium Stats Grid */}
+        {orders && orders.length > 0 && (
+          <div className="grid grid-cols-3 gap-4 border border-white/[0.06] bg-white/[0.02] rounded-2xl p-4 min-w-[280px] md:min-w-[360px]">
+            <div className="text-center">
+              <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Orders</p>
+              <p className="text-sm font-extrabold text-white mt-0.5">{totalOrders}</p>
+            </div>
+            <div className="text-center border-x border-white/[0.06] px-2">
+              <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Total Spent</p>
+              <p className="text-sm font-extrabold text-violet-400 mt-0.5">₹{formatPrice(totalSpent)}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Active</p>
+              <p className="text-sm font-extrabold text-cyan-400 mt-0.5">{activeOrdersCount}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2 mb-8 border-b border-white/[0.06] pb-4">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              setActiveTab(tab.id);
+              setVisibleCount(5);
+            }}
+            className={`px-4 py-2 text-xs font-semibold tracking-wider rounded-lg transition-all duration-200 cursor-pointer ${
+              activeTab === tab.id
+                ? "bg-violet-600/20 text-violet-400 border border-violet-500/30"
+                : "text-white/40 hover:text-white/70 border border-transparent"
+            }`}
+          >
+            {tab.label}{" "}
+            <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-white/[0.04] text-[10px] text-white/50">
+              {tab.count}
+            </span>
+          </button>
+        ))}
       </div>
 
       {isLoading ? (
@@ -392,9 +538,15 @@ function OrdersContent() {
             Start Shopping
           </Link>
         </div>
+      ) : filteredOrders.length === 0 ? (
+        <div className="border border-white/[0.06] bg-white/[0.01] rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-2">
+          <p className="text-sm font-semibold text-white/60">No orders matching this filter</p>
+          <p className="text-xs text-white/40">Try switching tabs to view other orders.</p>
+        </div>
       ) : (
-        <div className="space-y-6">
-          {orders.map((order) => {
+        <div className="space-y-4">
+          {paginatedOrders.map((order) => {
+            const isExpanded = !!expandedOrderIds[order.id];
             const date = order.createdAt
               ? new Date(order.createdAt.seconds * 1000).toLocaleDateString("en-IN", {
                   year: "numeric",
@@ -403,97 +555,218 @@ function OrdersContent() {
                 })
               : "Pending processing";
 
+            const badge = getStatusBadgeConfig(order.status);
+
             return (
               <div
                 key={order.id}
-                className="overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-[#0f0f18] to-[#090910] shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
+                className="overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-[#0f0f18] to-[#090910] shadow-[0_4px_30px_rgba(0,0,0,0.4)] transition-all duration-300 hover:border-white/[0.12]"
               >
-                {/* Order Header */}
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.06] bg-white/[0.02] px-6 py-4">
-                  <div className="flex items-center gap-6">
-                    <div>
-                      <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">
-                        Date Placed
-                      </p>
-                      <p className="text-xs font-medium text-white/80 mt-0.5">{date}</p>
+                {/* 1. Amazon-Style Header */}
+                <div className="grid grid-cols-2 md:flex md:flex-wrap items-center justify-between gap-y-4 gap-x-8 bg-white/[0.02] px-6 py-4.5 border-b border-white/[0.06]">
+                  <div>
+                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                      Order Placed
+                    </p>
+                    <p className="text-xs font-semibold text-white/80 mt-1">{date}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                      Total
+                    </p>
+                    <p className="text-xs font-extrabold text-white/95 mt-1">
+                      ₹{formatPrice(order.totalAmount)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                      Ship To
+                    </p>
+                    <div className="relative group mt-1">
+                      <span className="text-xs font-semibold text-white/80 border-b border-dashed border-white/20 hover:text-violet-400 transition-colors cursor-help">
+                        {order.shippingDetails?.name}
+                      </span>
+                      {order.shippingDetails && (
+                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-30 w-64 p-3 bg-[#0f0f18]/95 border border-white/[0.08] rounded-xl shadow-2xl text-[11px] text-white/70 backdrop-blur-md">
+                          <p className="font-bold text-white mb-1">{order.shippingDetails.name}</p>
+                          <p className="leading-relaxed">{order.shippingDetails.address}</p>
+                          <p>{order.shippingDetails.city} - {order.shippingDetails.pinCode}</p>
+                          <p className="text-[10px] text-white/40 mt-1.5 font-medium">Phone: {order.shippingDetails.phone}</p>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">
-                        Order Ref
-                      </p>
-                      <p className="text-xs font-medium text-white/80 mt-0.5 font-mono">
-                        #{order.id.slice(0, 8).toUpperCase()}
-                      </p>
+                  </div>
+                  <div className="text-right md:text-left md:ml-auto">
+                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                      Order ID
+                    </p>
+                    <div className="flex items-center justify-end md:justify-start gap-1.5 mt-1">
+                      <span className="text-xs font-mono font-semibold text-white/60">
+                        {order.id.slice(0, 12).toUpperCase()}...
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(order.id);
+                          toast.success("Order ID copied to clipboard!");
+                        }}
+                        className="hover:text-violet-400 text-white/30 transition-colors p-1 rounded hover:bg-white/[0.04] cursor-pointer"
+                        title="Copy full Order ID"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Status Timeline */}
-                <div className="border-b border-white/[0.04] bg-white/[0.01] px-6 py-5">
-                  <OrderStatusTimeline status={order.status} />
-                </div>
-
-                {/* Order Items */}
-                <div className="divide-y divide-white/[0.04] px-6 py-2">
-                  {order.items?.map((item) => (
-                    <div key={item.productId} className="flex items-center gap-4 py-4">
-                      <img
-                        src={resolveProductImage(getProductImage(item), item.name)}
-                        alt={item.name}
-                        className="w-14 h-14 rounded-xl object-cover bg-white/[0.03] border border-white/[0.06] flex-shrink-0"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = resolveProductImage(
-                            "",
-                            item.name,
-                          );
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-semibold text-white/90 truncate leading-snug">
-                          {item.name}
-                        </h4>
-                        <p className="text-[10px] text-white/40 mt-1">
-                          Qty: {item.quantity} &middot; ₹{formatPrice(item.price)} each
-                        </p>
-                      </div>
-                      <p className="text-xs font-bold text-white/80 shrink-0">
-                        ₹{formatPrice(item.price * item.quantity)}
+                {/* 2. Card Body (Layout: split columns) */}
+                <div className="p-6">
+                  {/* Real-time Status Message */}
+                  <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-white flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${badge.dot} animate-pulse`} />
+                        {order.status === "delivered"
+                          ? `Delivered on ${date}`
+                          : order.status === "cancelled"
+                            ? "Cancelled"
+                            : order.status === "shipped"
+                              ? "Package shipped - In Transit"
+                              : "Order received - Preparing for shipment"}
+                      </p>
+                      <p className="text-xs text-white/40 mt-0.5">
+                        {order.status === "delivered"
+                          ? "Your setup upgrade has successfully arrived."
+                          : order.status === "cancelled"
+                            ? "Your order has been cancelled and refunded."
+                            : "VURLO Express Cargo Trackable Shipment."}
                       </p>
                     </div>
-                  ))}
+
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase rounded-full tracking-wider border ${badge.bg}`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
+                      {badge.label}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col md:flex-row justify-between gap-8">
+                    {/* Left Column: Products List */}
+                    <div className="flex-1 divide-y divide-white/[0.04]">
+                      {order.items?.map((item) => (
+                        <div key={item.productId} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+                          <img
+                            src={resolveProductImage(getProductImage(item), item.name)}
+                            alt={item.name}
+                            className="w-14 h-14 rounded-xl object-cover bg-white/[0.03] border border-white/[0.06] flex-shrink-0 transition-transform duration-300 hover:scale-105"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = resolveProductImage(
+                                "",
+                                item.name,
+                              );
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-semibold text-white/95 truncate leading-snug">
+                              {item.name}
+                            </h4>
+                            <p className="text-[10px] text-white/40 mt-1">
+                              Qty: {item.quantity} &middot; ₹{formatPrice(item.price)} each
+                            </p>
+                          </div>
+                          <p className="text-xs font-bold text-white/80 shrink-0">
+                            ₹{formatPrice(item.price * item.quantity)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Right Column: Actions Stack */}
+                    <div className="w-full md:w-52 shrink-0 flex flex-col gap-2.5">
+                      <button
+                        onClick={() => toggleExpand(order.id)}
+                        className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                          isExpanded
+                            ? "bg-white/[0.08] border border-white/[0.12] text-white"
+                            : "bg-transparent border border-white/[0.08] hover:border-white/[0.16] hover:bg-white/[0.02] text-white/80 hover:text-white"
+                        }`}
+                      >
+                        {isExpanded ? "Hide Tracking" : "Track Order"}
+                        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+                      </button>
+
+                      <button
+                        onClick={() => handleReorder(order.items, order.id)}
+                        disabled={reorderingId !== null}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-[0_4px_15px_rgba(124,58,237,0.2)]"
+                      >
+                        {reorderingId === order.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                        ) : (
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        )}
+                        Buy It Again
+                      </button>
+
+                      <Link
+                        to="/contact"
+                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-transparent hover:bg-white/[0.03] text-white/50 hover:text-white/80 px-4 py-2 text-xs font-semibold transition-all text-center"
+                      >
+                        Contact Support
+                      </Link>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Shipping Details */}
-                {order.shippingDetails && (
-                  <div className="border-t border-white/[0.04] bg-white/[0.01] px-6 py-4">
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">
-                      Shipping Details
-                    </p>
-                    <div className="text-xs text-white/70">
-                      <p className="font-semibold text-white/95">{order.shippingDetails.name}</p>
-                      <p className="text-white/60 mt-0.5">
-                        {order.shippingDetails.address}, {order.shippingDetails.city} -{" "}
-                        {order.shippingDetails.pinCode}
+                {/* 3. Expanded Tracking Drawer */}
+                {isExpanded && (
+                  <div className="border-t border-white/[0.06] bg-white/[0.005] px-6 py-6 transition-all duration-300">
+                    <OrderStatusTimeline status={order.status} />
+
+                    {/* Logistics History Scan */}
+                    <div className="mt-6 border-t border-white/[0.04] pt-5">
+                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4">
+                        Logistics History & Tracking Scan
                       </p>
-                      <p className="text-white/40 text-[10px] mt-1">
-                        Phone: {order.shippingDetails.phone}
-                      </p>
+                      <div className="relative pl-6 space-y-4">
+                        {/* Vertical timeline line */}
+                        <div className="absolute left-[7px] top-2 bottom-2 w-[1.5px] bg-white/[0.06]" />
+
+                        {getLogisticsLogs(order).map((log, logIdx) => (
+                          <div key={logIdx} className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            {/* Timeline Node dot */}
+                            <div className={`absolute -left-[23px] w-2.5 h-2.5 rounded-full border-2 border-[#090910] ${
+                              log.done ? "bg-violet-500 shadow-[0_0_8px_rgba(124,58,237,0.5)]" : "bg-white/10"
+                            }`} />
+                            
+                            <p className={`text-xs font-medium ${log.done ? "text-white/80" : "text-white/30"}`}>
+                              {log.event}
+                            </p>
+                            <span className="text-[10px] text-white/35 font-mono shrink-0">
+                              {log.time}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
-
-                {/* Order Footer */}
-                <div className="flex items-center justify-between bg-white/[0.01] px-6 py-4 border-t border-white/[0.04]">
-                  <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">
-                    Total Amount
-                  </span>
-                  <span className="text-sm font-extrabold text-white/90">
-                    ₹{formatPrice(order.totalAmount)}
-                  </span>
-                </div>
               </div>
             );
           })}
+
+          {/* Load More Pagination */}
+          {filteredOrders.length > visibleCount && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={() => setVisibleCount((prev) => prev + 5)}
+                className="bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-white/80 rounded-full px-6 py-2 text-xs font-semibold tracking-wider uppercase transition-colors cursor-pointer"
+              >
+                Load More
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

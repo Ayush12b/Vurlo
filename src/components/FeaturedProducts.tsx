@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { Sparkles, Search, ArrowUpRight } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-premium-interactions";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -76,27 +76,31 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
     });
   };
 
-  const displayProducts = [...dbProducts]
-    .filter((p) => p.active !== false)
-    .sort((a, b) => {
-      const timeA = (a as any).createdAt?.seconds || 0;
-      const timeB = (b as any).createdAt?.seconds || 0;
-      if (timeA !== timeB) return timeB - timeA;
-      
-      const featA = a.isFeatured ? 1 : 0;
-      const featB = b.isFeatured ? 1 : 0;
-      return featB - featA;
-    });
+  const displayProducts = useMemo(() => {
+    return [...dbProducts]
+      .filter((p) => p.active !== false)
+      .sort((a, b) => {
+        const timeA = (a as any).createdAt?.seconds || 0;
+        const timeB = (b as any).createdAt?.seconds || 0;
+        if (timeA !== timeB) return timeB - timeA;
+        
+        const featA = a.isFeatured ? 1 : 0;
+        const featB = b.isFeatured ? 1 : 0;
+        return featB - featA;
+      });
+  }, [dbProducts]);
 
-  const filteredProducts = displayProducts.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      !category ||
-      category.toLowerCase() === "all" ||
-      p.category?.toLowerCase() === category.toLowerCase();
-    const matchesSale = !sale || p.isOnSale === true;
-    return matchesSearch && matchesCategory && matchesSale && p.active !== false;
-  });
+  const filteredProducts = useMemo(() => {
+    return displayProducts.filter((p) => {
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory =
+        !category ||
+        category.toLowerCase() === "all" ||
+        p.category?.toLowerCase() === category.toLowerCase();
+      const matchesSale = !sale || p.isOnSale === true;
+      return matchesSearch && matchesCategory && matchesSale && p.active !== false;
+    });
+  }, [displayProducts, searchQuery, category, sale]);
 
   if (isLoading) {
     return (

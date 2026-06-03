@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { resolveProductImage, formatPrice } from "@/components/FeaturedProducts";
@@ -28,6 +28,7 @@ interface OrderItem {
 interface Order {
   id: string;
   userId: string;
+  userEmail?: string;
   items: OrderItem[];
   totalAmount: number;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
@@ -96,11 +97,75 @@ export default function AdminOrders() {
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
       await updateDoc(doc(db, "orders", orderId), { status });
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
       // Invalidate customer orders view so updates show on their end too
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       toast.success(`Order status updated to "${variables.status}"`);
+
+      const orderObj = orders?.find((o) => o.id === variables.orderId);
+
+      // Trigger notification if status is updated to 'confirmed', 'shipped', or 'delivered'
+      if (orderObj && ["confirmed", "shipped", "delivered"].includes(variables.status)) {
+        let notifMsg = "";
+        if (variables.status === "confirmed") {
+          notifMsg = `Your order #${orderObj.id.slice(0, 8).toUpperCase()} has been confirmed! ✨`;
+        } else if (variables.status === "shipped") {
+          notifMsg = `Your order #${orderObj.id.slice(0, 8).toUpperCase()} has been shipped! 🚚`;
+        } else if (variables.status === "delivered") {
+          notifMsg = `Your order #${orderObj.id.slice(0, 8).toUpperCase()} has been delivered! ✅`;
+        }
+
+        console.log("[notifications] Writing status notification for userId:", orderObj.userId, "msg:", notifMsg);
+        try {
+          await addDoc(collection(db, "notifications"), {
+            userId: orderObj.userId,
+            message: notifMsg,
+            type: "order",
+            read: false,
+            timestamp: serverTimestamp(),
+            link: "/orders",
+          });
+          console.log("[notifications] Status notification written OK");
+        } catch (e) {
+          console.error("Notification error:", e);
+        }
+      }
+
+      // Trigger Delivery Email if status is updated to 'delivered'
+      if (variables.status === "delivered") {
+        if (orderObj) {
+          const customerProfile = usersMap?.[orderObj.userId];
+          const destEmail = orderObj?.userEmail || customerProfile?.email || null;
+
+          if (typeof destEmail === "string" && destEmail.includes("@") && destEmail !== "No email") {
+            fetch("/api/send-delivery-email", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                orderId: orderObj.id,
+                customerEmail: destEmail,
+                customerName: orderObj.shippingDetails?.name || customerProfile?.name || "Customer",
+                deliveredItems: orderObj.items.map((item) => ({
+                  name: item.name,
+                  quantity: item.quantity,
+                })),
+              }),
+            })
+              .then(async (res) => {
+                if (!res.ok) throw new Error("API failed");
+                let data: any = null;
+                try { data = await res.json(); } catch {}
+                if (data?.success) {
+                  toast.success("Delivery notification email sent to customer!");
+                }
+              })
+              .catch((err) => console.error("Failed to trigger delivery email:", err));
+          }
+        }
+      }
     },
     onError: (error) => {
       console.error(error);

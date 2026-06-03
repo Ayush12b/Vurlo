@@ -107,10 +107,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const forgotPassword = async (email: string) => {
     try {
-      await sendPasswordResetEmail(auth, email, {
-        url: window.location.origin + "/reset-password",
-        handleCodeInApp: true,
+      console.log("[forgotPassword] API hit for:", email);
+      const response = await fetch("/api/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
       });
+
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch {}
+
+      if (!response.ok) {
+        throw new Error(data?.error || "API failed");
+      }
     } catch (error: unknown) {
       console.error(`[Firebase Auth] Password reset request failed:`, error);
       throw error;

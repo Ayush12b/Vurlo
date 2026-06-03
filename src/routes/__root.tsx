@@ -68,6 +68,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 import { WishlistProvider } from "@/hooks/use-wishlist";
+import { NotificationsProvider } from "@/hooks/use-notifications";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -77,8 +78,10 @@ function RootComponent() {
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
-            <Outlet />
-            <Toaster />
+            <NotificationsProvider>
+              <Outlet />
+              <Toaster />
+            </NotificationsProvider>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

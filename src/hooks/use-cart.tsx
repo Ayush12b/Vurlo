@@ -8,7 +8,6 @@ import {
   writeBatch,
   serverTimestamp,
   getDoc,
-  increment,
   runTransaction,
 } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
@@ -37,6 +36,7 @@ interface CartContextType {
     pinCode: string;
     phone: string;
   }) => Promise<string | undefined>;
+  addMultipleToCart: (items: CartItem[]) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -457,7 +457,51 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         batch.delete(itemRef);
       });
 
+      // Add Order Placement Notification
+      const notifColRef = collection(db, "notifications");
+      const notifDocRef = doc(notifColRef);
+      batch.set(notifDocRef, {
+        userId: user.uid,
+        message: `Your order #${orderDocRef.id.slice(0, 8).toUpperCase()} has been placed successfully!`,
+        type: "order",
+        read: false,
+        timestamp: serverTimestamp(),
+        link: "/orders",
+      });
+
       await batch.commit();
+
+      // Trigger Resend Order Confirmation email in the background (non-blocking)
+      try {
+        fetch("/api/send-order-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId: orderDocRef.id,
+            customerName: shippingDetails.name,
+            customerEmail: user.email || "",
+            products: fetchedItems.map((item) => ({
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+            })),
+            totalAmount,
+            deliveryAddress: `${shippingDetails.address}, ${shippingDetails.city} - ${shippingDetails.pinCode}`,
+            estimatedDelivery: "3-5 business days",
+          }),
+        })
+          .then(async (res) => {
+            if (!res.ok) throw new Error("API failed");
+            let data: any = null;
+            try { data = await res.json(); } catch {}
+            if (!data?.success) throw new Error("API failed");
+          })
+          .catch((err) => console.error("Order confirmation dispatch failed:", err));
+      } catch (err) {
+        console.error("Order email call failed:", err);
+      }
 
       toast.success("Order placed successfully!", {
         description: "Thank you for your purchase.",
@@ -494,6 +538,65 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addMultipleToCart = async (items: CartItem[]) => {
+    if (!user) {
+      // Guest User cart loading from local storage
+      try {
+        const local = localStorage.getItem("vurlo_local_cart");
+        let cart: CartItem[] = local ? JSON.parse(local) : [];
+
+        for (const item of items) {
+          const existing = cart.find((i) => i.productId === item.productId);
+          if (existing) {
+            existing.quantity = Math.min(10, existing.quantity + item.quantity);
+          } else {
+            cart.push({
+              productId: item.productId,
+              name: item.name,
+              price: item.price,
+              image: item.image,
+              quantity: Math.min(10, item.quantity),
+            });
+          }
+        }
+
+        localStorage.setItem("vurlo_local_cart", JSON.stringify(cart));
+        setCartItems(cart);
+        toast.success("Added items from order to your bag!");
+      } catch (e) {
+        console.error("Error adding multiple to local cart:", e);
+        toast.error("Failed to add items to bag.");
+      }
+      return;
+    }
+
+    // Logged-in Firestore flow
+    try {
+      const batch = writeBatch(db);
+      for (const item of items) {
+        const itemDocRef = doc(db, "users", user.uid, "cart", item.productId);
+        const itemSnap = await getDoc(itemDocRef);
+        const existingQty = itemSnap.exists() ? (itemSnap.data().quantity ?? 0) : 0;
+        const newQty = Math.min(10, existingQty + item.quantity);
+        batch.set(
+          itemDocRef,
+          {
+            name: item.name,
+            price: item.price,
+            image: item.image,
+            quantity: newQty,
+          },
+          { merge: true }
+        );
+      }
+      await batch.commit();
+      toast.success("Added items from order to your bag!");
+    } catch (error) {
+      console.error("Error adding multiple items to Firestore cart:", error);
+      toast.error("Failed to add items to bag.");
+    }
+  };
+
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
@@ -505,6 +608,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updateQuantity,
         removeFromCart,
         placeOrder,
+        addMultipleToCart,
       }}
     >
       {children}

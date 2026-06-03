@@ -37,10 +37,35 @@ function ContactContent() {
       return;
     }
 
+    if (name.trim().length > 100) {
+      toast.error("Name is too long (max 100 characters).");
+      return;
+    }
+    if (message.trim().length > 5000) {
+      toast.error("Message is too long (max 5000 characters).");
+      return;
+    }
+
     setSending(true);
-    // Mock API call to simulate sending message
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      console.log("[contact] Sending email for:", email);
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, message }),
+      });
+
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch {}
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to send message. Please try again.");
+      }
+
       toast.success("Message sent successfully!", {
         description: "Thank you for reaching out. We will get back to you shortly.",
         duration: 3500,
@@ -48,9 +73,9 @@ function ContactContent() {
       setName("");
       setEmail("");
       setMessage("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending message:", error);
-      toast.error("Failed to send message. Please try again later.");
+      toast.error(error.message || "Failed to send message. Please try again later.");
     } finally {
       setSending(false);
     }
@@ -97,6 +122,7 @@ function ContactContent() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={sending}
+                  maxLength={100}
                   className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-xl placeholder:text-white/20 h-11 pl-10 pr-4 text-sm transition-all"
                 />
               </div>
@@ -133,6 +159,7 @@ function ContactContent() {
                   onChange={(e) => setMessage(e.target.value)}
                   disabled={sending}
                   rows={5}
+                  maxLength={5000}
                   className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-xl placeholder:text-white/20 pl-10 pr-4 py-3 text-sm resize-none transition-all"
                 />
               </div>

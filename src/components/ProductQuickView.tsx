@@ -150,19 +150,24 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
 
           {/* 8. THUMBNAILS */}
           {resolvedImages.length > 1 && (
-            <div className="flex gap-2 justify-center mt-4 overflow-x-auto py-1">
+            <div className="flex gap-2 justify-start mt-4 overflow-x-auto py-1 min-h-[52px]">
               {resolvedImages.map((img: string, idx: number) => (
-                <img
+                <div
                   key={idx}
-                  src={img}
                   onClick={() => setCurrentImageIndex(idx)}
-                  className={`w-12 h-12 rounded-xl overflow-hidden border shrink-0 bg-white/[0.02] transition-all duration-200 cursor-pointer object-cover ${
+                  className={`w-12 h-12 rounded-xl border shrink-0 bg-white/[0.02] transition-all duration-200 cursor-pointer overflow-hidden flex-none ${
                     idx === currentImageIndex
                       ? "border-violet-500 scale-105 opacity-100"
                       : "border-white/[0.08] opacity-50"
                   }`}
-                  alt=""
-                />
+                >
+                  <img
+                    src={img || resolveProductImage("", "")}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = resolveProductImage("", ""); }}
+                  />
+                </div>
               ))}
             </div>
           )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, doc, addDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, addDoc, setDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase";
 import { formatPrice } from "@/lib/utils";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -160,8 +160,22 @@ export default function AdminProducts() {
   // 3. Edit Product Mutation
   const editMutation = useMutation({
     mutationFn: async (updatedProduct: Product) => {
+      if (!updatedProduct.id) throw new Error("Missing productId");
       const { id, ...data } = updatedProduct;
-      await setDoc(doc(db, "products", id), data, { merge: true });
+      const updateData = Object.fromEntries(
+        Object.entries({
+          ...data,
+          stock: Number(data.stock),
+          tag: data.tag ?? null,
+          badge: data.badge ?? null,
+        }).filter(([, value]) => value !== undefined),
+      );
+      try {
+        await updateDoc(doc(db, "products", id), updateData);
+      } catch (err) {
+        console.error("Stock/product update failed:", err);
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
@@ -586,13 +600,13 @@ export default function AdminProducts() {
       discountPercent: finalDiscountPercentage,
       stock: finalStock,
       tag: tag || null,
-      rating: currentProduct.rating,
-      reviewsCount: currentProduct.reviewsCount,
       badge: badge.trim() || null,
       slug: currentProduct.slug || name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
       features: finalFeatures,
       tags: currentProduct.tags || [],
-      defaultVariant: currentProduct.defaultVariant || undefined,
+      ...(currentProduct.rating !== undefined && { rating: currentProduct.rating }),
+      ...(currentProduct.reviewsCount !== undefined && { reviewsCount: currentProduct.reviewsCount }),
+      ...(currentProduct.defaultVariant ? { defaultVariant: currentProduct.defaultVariant } : {}),
     } as any);
   };
 
