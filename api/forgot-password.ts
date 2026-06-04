@@ -57,7 +57,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       from: `VURLO <${process.env.RESEND_FROM_EMAIL ?? "noreply@vurlo.store"}>`,
       to: email,
       subject: "Reset your VURLO password",
-      html: `<p>Click the link below to reset your password:</p><a href="${resetLink}">${resetLink}</a>`,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset your VURLO password</title>
+</head>
+<body style="margin:0;padding:24px;background-color:#030308;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div style="max-width:560px;margin:0 auto;background-color:#0b0b12;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:32px;box-shadow:0 20px 40px rgba(0,0,0,0.6);">
+
+    <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:20px;margin-bottom:28px;">
+      <span style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">
+        Vurlo<span style="color:#00e5ff;">.store</span>
+      </span>
+    </div>
+
+    <h1 style="font-size:20px;font-weight:700;color:#ffffff;margin:0 0 12px 0;letter-spacing:-0.02em;">
+      Reset your password
+    </h1>
+
+    <p style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.6;margin:0 0 24px 0;">
+      We received a request to reset the password for your Vurlo account. Click the button below to choose a new password. This link expires in 1 hour.
+    </p>
+
+    <a href="${resetLink}"
+      style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#7c3aed 0%,#22d3ee 100%);color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;border-radius:12px;letter-spacing:0.04em;text-transform:uppercase;">
+      Reset Password
+    </a>
+
+    <p style="font-size:12px;color:rgba(255,255,255,0.3);line-height:1.6;margin:28px 0 0 0;">
+      If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.
+    </p>
+
+    <div style="margin-top:32px;border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;font-size:11px;color:rgba(255,255,255,0.2);text-align:center;line-height:1.5;">
+      Sent by Vurlo.store &nbsp;·&nbsp;
+      <a href="mailto:support@vurlo.store" style="color:#a78bfa;text-decoration:none;">support@vurlo.store</a><br>
+      &copy; 2026 Vurlo.store. All rights reserved.
+    </div>
+
+  </div>
+</body>
+</html>`,
     });
 
     return res.status(200).json({ success: true });
