@@ -77,7 +77,7 @@ export function Hero() {
           >
             <a
               ref={primaryCta.ref}
-              href="#shop"
+              href="/search"
               className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 sm:px-9 sm:py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
@@ -93,7 +93,7 @@ export function Hero() {
 
             <a
               ref={secondaryCta.ref}
-              href="#categories"
+              href="/#categories"
               className="premium-text-link text-sm text-white/50 hover:text-white transition"
               onPointerMove={secondaryCta.onPointerMove}
               onPointerLeave={secondaryCta.onPointerLeave}
