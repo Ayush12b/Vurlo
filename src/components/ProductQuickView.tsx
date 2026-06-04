@@ -112,7 +112,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0d0d16] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8),0_0_50px_rgba(138,46,255,0.08)] flex flex-col md:flex-row relative my-auto"
+        className="w-full max-w-4xl max-h-[90dvh] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0d0d16] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8),0_0_50px_rgba(138,46,255,0.08)] flex flex-col md:flex-row relative my-auto"
         onClick={(e) => e.stopPropagation()}
         style={
           {

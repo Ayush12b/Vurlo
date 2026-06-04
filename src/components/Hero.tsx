@@ -25,9 +25,9 @@ export function Hero() {
       onPointerMove={hero.onPointerMove}
       onPointerLeave={hero.onPointerLeave}
     >
-      <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-purple-600 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
+      <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] max-w-full h-[800px] bg-purple-600 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
 
-      <div className="hero-ambient-secondary absolute top-1/3 left-2/3 w-[500px] h-[500px] bg-cyan-500 blur-[120px] rounded-full" />
+      <div className="hero-ambient-secondary absolute top-1/3 left-2/3 w-[500px] max-w-full h-[500px] bg-cyan-500 blur-[120px] rounded-full" />
 
       <div
         className="hero-grid-parallax absolute inset-0 opacity-[0.03]"
@@ -38,7 +38,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-20 pt-10 pb-16 md:pt-20 md:pb-24 grid md:grid-cols-2 gap-10 md:gap-20 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-20 pt-10 pb-16 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
         <div className="space-y-10">
           <div className="inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
@@ -118,7 +118,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden">
+        <div className="hero-img-wrapper relative hidden md:flex justify-center items-center overflow-hidden">
           <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
 
           <img

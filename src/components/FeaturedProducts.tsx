@@ -220,7 +220,7 @@ export function FeaturedProducts({ category, sale }: FeaturedProductsProps) {
       {/* Category & Sale Filtering Controls */}
       <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         {/* Category Tabs */}
-        <div className="flex items-center gap-1.5 border border-white/[0.06] bg-white/[0.02] p-1 rounded-xl overflow-x-auto no-scrollbar flex-nowrap min-w-0">
+        <div className="flex items-center gap-1.5 border border-white/[0.06] bg-white/[0.02] p-1 rounded-xl overflow-x-auto no-scrollbar flex-nowrap min-w-0 touch-pan-x">
           {["all", "RGB Lights", "Ambient Lamps", "Bedroom Lighting", "Gaming Setup Lights", "Aesthetic Decor"].map((cat) => {
             const isSelected =
               (!category && cat === "all") || category?.toLowerCase() === cat.toLowerCase();
