@@ -163,7 +163,7 @@ You received this email because you placed an order on Vurlo.store.
   `.trim();
 
   return sendEmailWithRetry({
-    from: "onboarding@vurlo.store",
+    from: "VURLO <onboarding@vurlo.store>",
     to: [customerEmail],
     subject: "Your Order Confirmation",
     html,

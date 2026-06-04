@@ -120,7 +120,7 @@ You received this email because your Vurlo order was successfully delivered.
   `.trim();
 
   return sendEmailWithRetry({
-    from: "onboarding@vurlo.store",
+    from: "VURLO <onboarding@vurlo.store>",
     to: [customerEmail],
     subject: "Your order has been delivered",
     html,

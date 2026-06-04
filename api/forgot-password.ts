@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? "noreply@vurlo.store",
+      from: `VURLO <${process.env.RESEND_FROM_EMAIL ?? "noreply@vurlo.store"}>`,
       to: email,
       subject: "Reset your VURLO password",
       html: `<p>Click the link below to reset your password:</p><a href="${resetLink}">${resetLink}</a>`,
