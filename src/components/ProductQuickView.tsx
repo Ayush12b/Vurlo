@@ -108,7 +108,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-black/75 overflow-y-auto"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-black/75 overflow-y-auto overflow-x-hidden"
       onClick={onClose}
     >
       <div

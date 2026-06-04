@@ -44,6 +44,7 @@
   }
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
   body {
     background-color: var(--background);
@@ -1238,7 +1239,12 @@ button[class*="bg-primary"]:active,
     opacity: 0.4 !important;
   }
 
-  .pcard__light,
+  .pcard__light {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
   .pcard__img-glow {
     display: none !important;
   }
