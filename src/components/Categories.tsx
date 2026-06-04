@@ -14,7 +14,7 @@ export function Categories() {
     <section id="categories" className="mx-auto max-w-7xl px-6 py-24">
       <div className="mb-12">
         <p className="text-sm text-secondary font-medium mb-2">Categories</p>
-        <h2 className="font-display text-4xl md:text-5xl font-bold">Shop by collection.</h2>
+        <h2 className="font-display text-4xl md:text-5xl font-bold">Shop by collection</h2>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
         {cats.map(({ name, icon: Icon }) => (

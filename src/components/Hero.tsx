@@ -67,7 +67,7 @@ export function Hero() {
             ref={subtextRef}
             className="text-base leading-relaxed text-white/60 max-w-md font-light tracking-wide md:text-lg"
           >
-            Premium RGB lights & aesthetic decor designed to elevate modern rooms, gaming setups, and daily ambience.
+            Lights and decor that actually make your room look good. Built for setups, bedrooms, and anyone tired of boring spaces.
           </p>
 
           <div
@@ -106,8 +106,8 @@ export function Hero() {
             className="flex flex-wrap gap-6 pt-4 border-t border-white/[0.08] sm:pt-6 md:gap-12"
           >
             {[
-              ["4.9★", "Setup Review"],
-              ["2-Year", "Warranty"],
+              ["4.9★", "Avg Rating"],
+              ["48hr", "Dispatch"],
               ["Free", "Shipping"],
             ].map(([n, l]) => (
               <div key={l}>

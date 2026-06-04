@@ -42,7 +42,7 @@ export function Footer() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            Elevating your room aesthetics
+            Ships across India
           </div>
         </div>
       </div>
@@ -53,7 +53,7 @@ export function Footer() {
             VU<span className="text-gradient-brand">RLO</span>
           </Link>
           <p className="mt-4 text-sm text-muted-foreground max-w-xs">
-            Premium ambient lighting & room decor. Elevate your room aesthetics and set the perfect vibe.
+            Lights and decor for people who actually care what their room looks like. Based in India, ships everywhere.
           </p>
           <div className="mt-6 flex gap-3">
             {[

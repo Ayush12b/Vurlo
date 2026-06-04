@@ -3,18 +3,18 @@ import { ShieldCheck, Truck, Rocket } from "lucide-react";
 const features = [
   {
     icon: ShieldCheck,
-    title: "Room Aesthetics",
-    desc: "Every light is crafted to complement clean desk setups, gaming rigs, and minimalist room aesthetics.",
+    title: "Looks Good, Actually",
+    desc: "Every product is picked to work in real rooms — not just studio photoshoots. Clean desks, gaming rigs, bedroom corners, it all works.",
   },
   {
     icon: Truck,
-    title: "Carbon-Neutral Shipping",
-    desc: "Packaged securely in fully recyclable materials and shipped to your door within 48 hours.",
+    title: "Ships Fast, Packed Well",
+    desc: "Orders go out within 48 hours. Packed properly so nothing arrives broken — which, honestly, should be standard but isn't.",
   },
   {
     icon: Rocket,
-    title: "Built for Ambience",
-    desc: "Premium RGB lighting and decor designed specifically to elevate your daily environment and vibe.",
+    title: "Priced to Make Sense",
+    desc: "Aesthetic lighting shouldn't cost a fortune. We keep it affordable without making it feel cheap.",
   },
 ];
 
@@ -26,7 +26,7 @@ export function WhyVurlo() {
           Why VURLO
         </p>
         <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-white/90">
-          A new standard for setup aesthetics.
+          Why people actually keep coming back.
         </h2>
       </div>
       <div className="grid md:grid-cols-3 gap-6">

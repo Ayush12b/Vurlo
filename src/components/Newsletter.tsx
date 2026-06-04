@@ -49,10 +49,9 @@ export function Newsletter() {
       <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-12 md:p-16 text-center">
         <div className="absolute inset-0 bg-gradient-brand opacity-10 blur-3xl" />
         <div className="relative">
-          <h2 className="font-display text-4xl md:text-5xl font-bold">Join the Setup Lab.</h2>
+          <h2 className="font-display text-4xl md:text-5xl font-bold">First to know.</h2>
           <p className="mt-4 text-muted-foreground max-w-md mx-auto">
-            Get early access to new product releases, setup design inspiration, and exclusive
-            community discounts.
+            New drops, restocks, and the occasional discount — straight to your inbox. No spam, unsubscribe anytime.
           </p>
           <form
             onSubmit={handleSubmit}
