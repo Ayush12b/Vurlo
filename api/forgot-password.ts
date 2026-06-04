@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
 
-if (!admin.apps.length) {
+if (!admin.apps || !admin.apps.length) {
   const privateKey = (process.env.FIREBASE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
   admin.initializeApp({
     credential: admin.credential.cert({
