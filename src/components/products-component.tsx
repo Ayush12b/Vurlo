@@ -72,6 +72,7 @@ export default function AdminProducts() {
   const [localVariants, setLocalVariants] = useState<{ name: string; images: string[] }[]>([]);
   const [editingVariantName, setEditingVariantName] = useState<string>("Galaxy");
   const [variantUrlInput, setVariantUrlInput] = useState("");
+  const [newVariantName, setNewVariantName] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -255,6 +256,7 @@ export default function AdminProducts() {
     setLocalVariants([]);
     setEditingVariantName("Galaxy");
     setVariantUrlInput("");
+    setNewVariantName("");
     setCurrentProduct(null);
     setFeaturesText("");
     setBadge("");
@@ -586,7 +588,12 @@ export default function AdminProducts() {
         const key = v.name.toLowerCase();
         imgObj[key] = v.images;
       });
-      finalImages = imgObj;
+      // Only use variant object if at least one variant has images
+      const hasAnyVariantImages = Object.values(imgObj).some(arr => arr.length > 0);
+      if (hasAnyVariantImages) {
+        finalImages = imgObj;
+      }
+      // else fall through to imagesList (empty array) which gets filtered by editMutation
     }
 
     const defaultImg = Array.isArray(finalImages)
@@ -1648,35 +1655,66 @@ export default function AdminProducts() {
               </div>
 
               {/* Product Variants (Galaxy / Moon / Saturn) Section */}
-              {localVariants && localVariants.length > 0 && (
-                <div className="space-y-3.5 border-t border-white/[0.06] pt-4 mt-4">
+              <div className="space-y-3.5 border-t border-white/[0.06] pt-4 mt-4">
+                <div className="flex items-center justify-between">
                   <label className="text-[10px] font-bold text-violet-400 uppercase tracking-widest block">
                     Variant-Specific Galleries
                   </label>
-                  
-                  {/* Variant selector tabs */}
-                  <div className="flex flex-wrap gap-1.5 bg-white/[0.02] border border-white/[0.06] p-1 rounded-xl w-fit">
-                    {localVariants.map((v) => {
-                      const isEditingActive = v.name.toLowerCase() === editingVariantName.toLowerCase();
-                      return (
-                        <button
-                          key={v.name}
-                          type="button"
-                          onClick={() => {
-                            setEditingVariantName(v.name);
-                            setVariantUrlInput("");
-                          }}
-                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition cursor-pointer select-none focus:outline-none ${
-                            isEditingActive
-                              ? "bg-violet-500/15 text-violet-400 border border-violet-500/30"
-                              : "text-white/45 hover:text-white/70 border border-transparent"
-                          }`}
-                        >
-                          {v.name} ({v.images?.length || 0})
-                        </button>
-                      );
-                    })}
-                  </div>
+                </div>
+
+                {/* Add Variant Row */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Variant name (e.g. Galaxy)"
+                    value={newVariantName}
+                    onChange={(e) => setNewVariantName(e.target.value)}
+                    className="bg-white/[0.02] border border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-9 px-3 text-xs flex-1 focus:outline-none"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      const trimmed = newVariantName.trim();
+                      if (!trimmed) return;
+                      const alreadyExists = localVariants.some(v => v.name.toLowerCase() === trimmed.toLowerCase());
+                      if (alreadyExists) { toast.error("Variant already exists."); return; }
+                      const newVar = { name: trimmed.charAt(0).toUpperCase() + trimmed.slice(1), images: [] };
+                      setLocalVariants(prev => [...prev, newVar]);
+                      setEditingVariantName(newVar.name);
+                      setNewVariantName("");
+                      toast.success(`Variant "${newVar.name}" added!`);
+                    }}
+                    className="bg-violet-500/10 border border-violet-500/30 hover:bg-violet-500/20 text-xs font-semibold px-3 rounded-xl h-9 text-violet-400 cursor-pointer"
+                  >
+                    + Add Variant
+                  </Button>
+                </div>
+
+                {localVariants && localVariants.length > 0 && (
+                  <>
+                    {/* Variant selector tabs */}
+                    <div className="flex flex-wrap gap-1.5 bg-white/[0.02] border border-white/[0.06] p-1 rounded-xl w-fit">
+                      {localVariants.map((v) => {
+                        const isEditingActive = v.name.toLowerCase() === editingVariantName.toLowerCase();
+                        return (
+                          <button
+                            key={v.name}
+                            type="button"
+                            onClick={() => {
+                              setEditingVariantName(v.name);
+                              setVariantUrlInput("");
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition cursor-pointer select-none focus:outline-none ${
+                              isEditingActive
+                                ? "bg-violet-500/15 text-violet-400 border border-violet-500/30"
+                                : "text-white/45 hover:text-white/70 border border-transparent"
+                            }`}
+                          >
+                            {v.name} ({v.images?.length || 0})
+                          </button>
+                        );
+                      })}
+                    </div>
 
                   {/* Active Variant Editing Section */}
                   {(() => {
@@ -1691,9 +1729,23 @@ export default function AdminProducts() {
                           <h4 className="text-[11px] font-bold text-white uppercase tracking-wider">
                             {activeEditingVar.name} Images
                           </h4>
-                          <span className="text-[9px] text-white/30">
-                            {activeEditingVar.images?.length || 0} / 8 images
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] text-white/30">
+                              {activeEditingVar.images?.length || 0} / 8 images
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLocalVariants(prev => prev.filter(v => v.name !== activeEditingVar.name));
+                                const remaining = localVariants.filter(v => v.name !== activeEditingVar.name);
+                                if (remaining.length > 0) setEditingVariantName(remaining[0].name);
+                                toast.success(`Variant "${activeEditingVar.name}" removed.`);
+                              }}
+                              className="text-[9px] text-red-400/60 hover:text-red-400 border border-red-500/20 hover:border-red-500/40 px-2 py-0.5 rounded-lg transition cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
 
                         {/* Image Previews grid */}
@@ -1809,7 +1861,9 @@ export default function AdminProducts() {
                     );
                   })()}
                 </div>
-              )}
+            </>
+          )}
+        </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t border-white/[0.06]">
                 <Button
