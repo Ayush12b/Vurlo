@@ -2,19 +2,22 @@ import { Star } from "lucide-react";
 
 const reviews = [
   {
-    name: "Aarav Mehta",
-    role: "Gaming Content Creator",
-    text: "The Vurlo Aura RGB LED strip lights completely transformed my streaming room. The colors are incredibly vibrant, and the remote control makes it seamless to change the vibe instantly.",
+    name: "Rohit Sharma",
+    role: "College Student, Delhi",
+    initials: "RS",
+    text: "Got the RGB strip lights for my hostel room and honestly wasn't expecting much at this price. But the colors are actually really good, the app works fine and it sticks properly. My roommates keep asking where I bought it from lol",
   },
   {
-    name: "Sanya Sen",
-    role: "Interior Stylist",
-    text: "I bought the Humidifier Lamp and the Crystal Lamp for my bedroom. The ambient glow is so soft and warm, it makes my nighttime routine feel like a premium spa experience.",
+    name: "Priya Nair",
+    role: "Work from Home, Bangalore",
+    initials: "PN",
+    text: "Ordered the humidifier lamp mostly for the aesthetic and it looks exactly like the photos. Been using it for 2 months now, no issues. The mist is quiet so it doesn't disturb calls. Happy with the purchase overall.",
   },
   {
-    name: "Karan Johar",
-    role: "Setup Architect",
-    text: "Vurlo's Moon Lamp is a masterpiece of decor. The texture is hyper-realistic and the dual-tone light sets the perfect mood for my late-night desk work.",
+    name: "Arjun Verma",
+    role: "Gaming Setup, Pune",
+    initials: "AV",
+    text: "The moon lamp I ordered for my desk is genuinely nice. The glow is warm and not too harsh for late nights. Packaging was also good, came without any damage. Would order again if I need something for gifting.",
   },
 ];
 
@@ -35,7 +38,9 @@ export function Testimonials() {
             </div>
             <blockquote className="text-foreground/90 leading-relaxed">"{r.text}"</blockquote>
             <figcaption className="mt-6 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-brand" />
+              <div className="h-10 w-10 rounded-full bg-gradient-brand flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {r.initials}
+              </div>
               <div>
                 <div className="font-medium text-sm">{r.name}</div>
                 <div className="text-xs text-muted-foreground">{r.role}</div>
