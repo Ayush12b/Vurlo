@@ -336,10 +336,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  console.log("API HIT");
-  console.log("[send-email] API hit, method:", req.method);
-  console.log("BODY:", req.body);
-
   if (req.method === "OPTIONS") {
     return res.status(200).json({ success: true });
   }
@@ -360,7 +356,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const body = req.body || {};
-    console.log("[send-email] Request body:", body);
     const { name, email, message } = body;
 
     // Validation
@@ -417,6 +412,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (err: any) {
     console.error("ERROR:", err);
     console.error("Unexpected error in send-email API:", err);
-    return res.status(500).json({ error: err.message || "Internal error" });
+    return res.status(500).json({ error: "Something went wrong. Please try again later." });
   }
 }

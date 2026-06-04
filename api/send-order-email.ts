@@ -216,12 +216,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  console.log("API HIT");
-  console.log("[send-order-email] API hit, method:", req.method);
-  console.log("BODY:", req.body);
-
   if (req.method === "OPTIONS") {
     return res.status(200).json({ success: true });
+  }
+
+  const secret = req.headers["x-internal-secret"];
+  if (secret !== process.env.INTERNAL_API_SECRET) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   if (req.method !== "POST") {
@@ -239,7 +240,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const body = req.body || {};
-    console.log("[send-order-email] Request body:", JSON.stringify(body).slice(0, 200));
     const {
       orderId,
       customerName,
@@ -294,6 +294,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error: any) {
     console.error("ERROR:", error);
     console.error("Error dispatching order confirmation email:", error);
-    return res.status(500).json({ error: error.message || "Internal error" });
+    return res.status(500).json({ error: "Something went wrong. Please try again later." });
   }
 }

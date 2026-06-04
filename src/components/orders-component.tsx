@@ -143,6 +143,7 @@ export default function AdminOrders() {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                "x-internal-secret": import.meta.env.VITE_INTERNAL_API_SECRET,
               },
               body: JSON.stringify({
                 orderId: orderObj.id,

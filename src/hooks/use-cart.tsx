@@ -507,6 +507,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "x-internal-secret": import.meta.env.VITE_INTERNAL_API_SECRET,
           },
           body: JSON.stringify({
             orderId: orderDocRef.id,
