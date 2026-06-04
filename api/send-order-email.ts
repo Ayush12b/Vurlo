@@ -48,159 +48,99 @@ async function sendOrderEmail(details: {
         <strong>${p.name}</strong> <span style="color: rgba(255,255,255,0.4); font-size: 12px;">x${p.quantity}</span>
       </td>
       <td style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: right; color: #00e5ff; font-weight: 600; font-size: 14px;">
-        ₹${p.price}
+        &#8377;${p.price}
       </td>
     </tr>
   `
     )
     .join("");
 
-  const html = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Your Order Confirmation</title>
-      <style>
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-          background-color: #030308;
-          color: #ededf0;
-          padding: 24px;
-          margin: 0;
-        }
-        .container {
-          max-width: 580px;
-          margin: 0 auto;
-          background-color: #0b0b12;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 16px;
-          padding: 32px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-        }
-        .header {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          padding-bottom: 20px;
-          margin-bottom: 28px;
-        }
-        .brand {
-          font-size: 22px;
-          font-weight: 800;
-          color: #ffffff;
-          letter-spacing: -0.02em;
-        }
-        .brand-cyan {
-          color: #00e5ff;
-        }
-        h1 {
-          font-size: 20px;
-          font-weight: 700;
-          color: #ffffff;
-          margin: 0 0 10px 0;
-          letter-spacing: -0.02em;
-        }
-        p {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.6);
-          line-height: 1.6;
-          margin: 0 0 20px 0;
-        }
-        .table-container {
-          margin: 24px 0;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        .details-grid {
-          background-color: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          border-radius: 12px;
-          padding: 20px;
-          margin: 24px 0;
-        }
-        .details-row {
-          margin-bottom: 12px;
-        }
-        .details-row:last-child {
-          margin-bottom: 0;
-        }
-        .label {
-          font-size: 9px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.12em;
-          color: rgba(255, 255, 255, 0.4);
-          margin-bottom: 4px;
-        }
-        .value {
-          font-size: 13px;
-          color: #ffffff;
-        }
-        .footer {
-          margin-top: 32px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          padding-top: 20px;
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.25);
-          text-align: center;
-          line-height: 1.5;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="brand">Vurlo<span class="brand-cyan">.store</span></div>
-        </div>
-        
-        <h1>Thank you for your order!</h1>
-        <p>Hi ${customerName},</p>
-        <p>Your order has been received and is currently being processed. Here is a summary of your order details:</p>
- 
-        <div class="details-grid">
-          <div class="details-row">
-            <div class="label">Order ID</div>
-            <div class="value" style="font-family: monospace; font-size: 14px; font-weight: bold; color: #a78bfa;">#${orderId}</div>
-          </div>
-          <div class="details-row">
-            <div class="label">Estimated Delivery</div>
-            <div class="value" style="font-weight: 600; color: #22d3ee;">${estimatedDelivery}</div>
-          </div>
-          <div class="details-row">
-            <div class="label">Delivery Address</div>
-            <div class="value">${deliveryAddress}</div>
-          </div>
-        </div>
- 
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th style="text-align: left; padding-bottom: 8px; border-bottom: 2px solid rgba(255,255,255,0.08); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4);">Item</th>
-                <th style="text-align: right; padding-bottom: 8px; border-bottom: 2px solid rgba(255,255,255,0.08); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4);">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${productsListHtml}
-              <tr>
-                <td style="padding: 16px 0 0 0; font-size: 15px; font-weight: bold; color: #ffffff;">Total Amount</td>
-                <td style="padding: 16px 0 0 0; text-align: right; font-size: 18px; font-weight: 800; color: #00e5ff;">₹${totalAmount}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
- 
-        <div class="footer">
-          If you have any questions or need to make changes, reach out to us at <a href="mailto:support@vurlo.store" style="color: #a78bfa; text-decoration: none;">support@vurlo.store</a>.<br>
-          You received this email because you placed an order on Vurlo.store.<br>
-          &copy; 2026 Vurlo.store. All rights reserved.
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Confirmed – VURLO</title>
+</head>
+<body style="margin:0;padding:0;background:#050508;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#050508;padding:40px 16px;">
+  <tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+
+      <!-- Header -->
+      <tr><td style="background:linear-gradient(135deg,#0d0d1a 0%,#12122a 100%);border-radius:20px 20px 0 0;padding:36px 40px;border:1px solid rgba(255,255,255,0.07);border-bottom:none;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td><span style="font-size:24px;font-weight:900;color:#fff;letter-spacing:-0.03em;">VURLO<span style="color:#7c3aed;">.</span></span></td>
+            <td align="right"><span style="background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;font-size:10px;font-weight:700;letter-spacing:0.15em;padding:5px 12px;border-radius:20px;text-transform:uppercase;">Order Confirmed</span></td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Hero -->
+      <tr><td style="background:linear-gradient(135deg,#0d0d1a,#0f0f2a);padding:40px 40px 32px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);">
+        <div style="width:56px;height:56px;background:linear-gradient(135deg,#7c3aed22,#06b6d422);border:1px solid rgba(124,58,237,0.3);border-radius:16px;margin-bottom:20px;text-align:center;line-height:56px;font-size:24px;">✦</div>
+        <h1 style="margin:0 0 10px;font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.02em;">Thank you, ${customerName}!</h1>
+        <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.5);line-height:1.6;">Your order has been received and is being prepared with care.</p>
+      </td></tr>
+
+      <!-- Order Meta -->
+      <tr><td style="background:#0d0d1a;padding:0 40px 24px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:14px;overflow:hidden;">
+          <tr>
+            <td style="padding:20px 24px;border-right:1px solid rgba(255,255,255,0.06);">
+              <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:6px;">Order ID</div>
+              <div style="font-size:14px;font-weight:700;color:#a78bfa;font-family:monospace;">#${orderId}</div>
+            </td>
+            <td style="padding:20px 24px;border-right:1px solid rgba(255,255,255,0.06);">
+              <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:6px;">Est. Delivery</div>
+              <div style="font-size:14px;font-weight:700;color:#22d3ee;">${estimatedDelivery}</div>
+            </td>
+            <td style="padding:20px 24px;">
+              <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:6px;">Status</div>
+              <div style="font-size:13px;font-weight:600;color:#4ade80;">Processing</div>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Address -->
+      <tr><td style="background:#0d0d1a;padding:0 40px 24px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:8px;">Delivering To</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:14px 18px;">📍 ${deliveryAddress}</div>
+      </td></tr>
+
+      <!-- Items -->
+      <tr><td style="background:#0d0d1a;padding:0 40px 8px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:14px;">Items Ordered</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);">Product</td>
+            <td align="right" style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);">Price</td>
+          </tr>
+          ${products.map(p => `
+          <tr>
+            <td style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);color:#fff;font-size:14px;">${p.name} <span style="color:rgba(255,255,255,0.35);font-size:12px;">×${p.quantity}</span></td>
+            <td align="right" style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);color:#22d3ee;font-weight:600;font-size:14px;">&#8377;${p.price}</td>
+          </tr>`).join('')}
+          <tr>
+            <td style="padding:18px 0 4px;font-size:15px;font-weight:700;color:#fff;">Total</td>
+            <td align="right" style="padding:18px 0 4px;font-size:20px;font-weight:900;background:linear-gradient(90deg,#a78bfa,#22d3ee);-webkit-background-clip:text;color:#a78bfa;">&#8377;${totalAmount}</td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="background:linear-gradient(135deg,#0a0a18,#0d0d1a);border-radius:0 0 20px 20px;padding:28px 40px;border:1px solid rgba(255,255,255,0.07);border-top:none;text-align:center;">
+        <p style="margin:0 0 8px;font-size:12px;color:rgba(255,255,255,0.25);">Questions? Email us at <a href="mailto:support@vurlo.store" style="color:#a78bfa;text-decoration:none;">support@vurlo.store</a></p>
+        <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.15);">© 2026 VURLO. All rights reserved.</p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
 
   // Human-friendly plain text fallback
   const text = `
@@ -214,9 +154,9 @@ Order Summary:
 - Delivery Address: ${deliveryAddress}
 
 Items Purchased:
-${products.map((p) => `- ${p.name} x${p.quantity} (Price: ₹${p.price})`).join("\n")}
+${products.map((p) => `- ${p.name} x${p.quantity} (Price: &#8377;${p.price})`).join("\n")}
 
-Total Amount: ₹${totalAmount}
+Total Amount: &#8377;${totalAmount}
 
 If you have any questions, reply to this email or contact support@vurlo.store.
 You received this email because you placed an order on Vurlo.store.

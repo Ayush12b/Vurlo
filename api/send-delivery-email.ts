@@ -46,108 +46,65 @@ async function sendDeliveryEmail(data: {
     )
     .join("");
 
-  const html = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Your Order Has Been Delivered</title>
-      <style>
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-          background-color: #030308;
-          color: #ededf0;
-          padding: 24px;
-          margin: 0;
-        }
-        .container {
-          max-width: 580px;
-          margin: 0 auto;
-          background-color: #0b0b12;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 16px;
-          padding: 32px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-        }
-        .header {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          padding-bottom: 20px;
-          margin-bottom: 28px;
-        }
-        .brand {
-          font-size: 22px;
-          font-weight: 800;
-          color: #ffffff;
-          letter-spacing: -0.02em;
-        }
-        .brand-cyan {
-          color: #00e5ff;
-        }
-        h1 {
-          font-size: 20px;
-          font-weight: 700;
-          color: #ffffff;
-          margin: 0 0 10px 0;
-          letter-spacing: -0.02em;
-        }
-        p {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.6);
-          line-height: 1.6;
-          margin: 0 0 20px 0;
-        }
-        .items-box {
-          background-color: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          border-radius: 12px;
-          padding: 20px;
-          margin: 24px 0;
-        }
-        ul {
-          list-style: none;
-          padding: 0;
-          margin: 12px 0 0 0;
-        }
-        .footer {
-          margin-top: 32px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          padding-top: 20px;
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.25);
-          text-align: center;
-          line-height: 1.5;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="brand">Vurlo<span class="brand-cyan">.store</span></div>
-        </div>
-        
-        <h1>Your package has arrived!</h1>
-        <p>Hi ${customerName},</p>
-        <p>We are pleased to inform you that your order has been successfully delivered. We hope you love your new setup addition!</p>
- 
-        <div class="items-box">
-          <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255, 255, 255, 0.4);">Delivered Items (Order #${orderId})</div>
-          <ul>
-            ${itemsHtml}
-          </ul>
-        </div>
- 
-        <p>If you have any feedback or concerns regarding the delivery, please don't hesitate to reach out to our team.</p>
- 
-        <div class="footer">
-          Need support? Reply to this message or contact <a href="mailto:support@vurlo.store" style="color: #a78bfa; text-decoration: none;">support@vurlo.store</a>.<br>
-          You received this email because your Vurlo order was successfully delivered.<br>
-          &copy; 2026 Vurlo.store. All rights reserved.
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delivered – VURLO</title>
+</head>
+<body style="margin:0;padding:0;background:#050508;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#050508;padding:40px 16px;">
+  <tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+
+      <!-- Header -->
+      <tr><td style="background:linear-gradient(135deg,#071a0f,#0a2016);border-radius:20px 20px 0 0;padding:36px 40px;border:1px solid rgba(74,222,128,0.1);border-bottom:none;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td><span style="font-size:24px;font-weight:900;color:#fff;letter-spacing:-0.03em;">VURLO<span style="color:#4ade80;">.</span></span></td>
+            <td align="right"><span style="background:linear-gradient(135deg,#16a34a,#22d3ee);color:#fff;font-size:10px;font-weight:700;letter-spacing:0.15em;padding:5px 12px;border-radius:20px;text-transform:uppercase;">Delivered ✓</span></td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Hero -->
+      <tr><td style="background:linear-gradient(135deg,#071a0f,#0a1a14);padding:40px 40px 32px;border-left:1px solid rgba(74,222,128,0.08);border-right:1px solid rgba(74,222,128,0.08);">
+        <div style="width:56px;height:56px;background:linear-gradient(135deg,#4ade8022,#22d3ee22);border:1px solid rgba(74,222,128,0.3);border-radius:16px;margin-bottom:20px;text-align:center;line-height:56px;font-size:24px;">📦</div>
+        <h1 style="margin:0 0 10px;font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.02em;">Your order arrived!</h1>
+        <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.5);line-height:1.6;">Hi ${customerName}, order <span style="color:#4ade80;font-weight:600;">#${orderId}</span> has been successfully delivered.</p>
+      </td></tr>
+
+      <!-- Items -->
+      <tr><td style="background:#071a0f;padding:0 40px 24px;border-left:1px solid rgba(74,222,128,0.08);border-right:1px solid rgba(74,222,128,0.08);">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:14px;">Items Delivered</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${deliveredItems.map(item => `
+          <tr>
+            <td style="padding:12px 16px;background:rgba(74,222,128,0.04);border:1px solid rgba(74,222,128,0.08);border-radius:10px;margin-bottom:8px;color:#fff;font-size:14px;display:block;margin-bottom:6px;">
+              ✦ ${item.name} <span style="color:rgba(255,255,255,0.4);">× ${item.quantity}</span>
+            </td>
+          </tr>`).join('')}
+        </table>
+      </td></tr>
+
+      <!-- CTA -->
+      <tr><td style="background:#071a0f;padding:0 40px 32px;border-left:1px solid rgba(74,222,128,0.08);border-right:1px solid rgba(74,222,128,0.08);text-align:center;">
+        <p style="font-size:14px;color:rgba(255,255,255,0.45);margin:0 0 20px;">Enjoying your purchase? We'd love to hear from you.</p>
+        <a href="https://vurlo.store" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#0d9488);color:#fff;font-size:13px;font-weight:700;letter-spacing:0.05em;padding:14px 32px;border-radius:50px;text-decoration:none;">Shop Again at VURLO</a>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="background:linear-gradient(135deg,#050f07,#071a0f);border-radius:0 0 20px 20px;padding:28px 40px;border:1px solid rgba(74,222,128,0.08);border-top:none;text-align:center;">
+        <p style="margin:0 0 8px;font-size:12px;color:rgba(255,255,255,0.25);">Questions? <a href="mailto:support@vurlo.store" style="color:#4ade80;text-decoration:none;">support@vurlo.store</a></p>
+        <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.15);">© 2026 VURLO. All rights reserved.</p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
 
   // Human-friendly plain text fallback
   const text = `
