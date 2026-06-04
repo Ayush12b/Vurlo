@@ -48,8 +48,18 @@ function ProductDetailPage() {
   const { toggleWishlist, isWishlisted } = useWishlist();
 
   const product = useMemo(() => {
-    return dbProducts.find((p) => getProductSlug(p.name) === slug);
+    return dbProducts.find((p) => p.slug.toLowerCase() === slug.toLowerCase());
   }, [dbProducts, slug]);
+
+  // Debug logging for product slugs and error handling
+  useEffect(() => {
+    if (!isLoading && dbProducts.length > 0) {
+      console.log("All product slugs:", dbProducts.map((p) => p.slug));
+      if (!product) {
+        console.error(`Product slug not found: "${slug}". Showing fallback UI.`);
+      }
+    }
+  }, [dbProducts, isLoading, product, slug]);
 
   // Variant Detection
   const hasVariants = useMemo(() => {

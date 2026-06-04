@@ -48,6 +48,7 @@ export function getProductSlug(name: string): string {
   if (!name) return "";
   return name
     .toLowerCase()
+    .replace(/^vurlo\s+/i, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }

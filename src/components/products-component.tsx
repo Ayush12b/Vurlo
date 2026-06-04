@@ -5,7 +5,7 @@ import { formatPrice } from "@/lib/utils";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { resolveProductImage } from "@/components/FeaturedProducts";
-import { getProductImage } from "@/utils/product";
+import { getProductImage, getProductSlug } from "@/utils/product";
 import { Loader2, Plus, Edit2, Trash2, Eye, EyeOff, X, Sparkles, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -538,7 +538,7 @@ export default function AdminProducts() {
       tag: tag || null,
       features: finalFeatures,
       badge: badge.trim() || null,
-      slug: name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+      slug: getProductSlug(name.trim()),
     });
   };
 
@@ -639,7 +639,7 @@ export default function AdminProducts() {
       stock: finalStock,
       tag: tag || null,
       badge: badge.trim() || null,
-      slug: currentProduct.slug || name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+      slug: getProductSlug(name.trim()),
       features: finalFeatures,
       tags: currentProduct.tags || [],
       ...(currentProduct.rating !== undefined && { rating: currentProduct.rating }),
