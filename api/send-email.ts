@@ -155,7 +155,7 @@ Sent automatically by Vurlo.store Support System.
   `.trim();
 
   return sendEmailWithRetry({
-    from: "onboarding@vurlo.store",
+    from: "VURLO <onboarding@vurlo.store>",
     to: receiverEmails,
     subject: `New Inquiry Received - from ${name}`,
     html,
@@ -285,7 +285,7 @@ You received this email because you submitted a contact inquiry on Vurlo.store.
   `.trim();
 
   return sendEmailWithRetry({
-    from: "onboarding@vurlo.store",
+    from: "VURLO <onboarding@vurlo.store>",
     to: [email],
     subject: "We received your complaint",
     html,
