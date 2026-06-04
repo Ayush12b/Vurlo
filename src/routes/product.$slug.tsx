@@ -15,26 +15,25 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/product/$slug")({
   head: ({ params }) => {
     const slug = params.slug;
-    const name = slug
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+    const seo = PRODUCT_SEO_DATA[slug];
+    const metaTitle = seo?.metaTitle || `${slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")} - Vurlo | Premium Lighting & Decor`;
+    const metaDesc = seo?.metaDescription || `Shop the premium ${slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")} on Vurlo. High-quality aesthetic lighting, crystal lamps, galaxy projectors, and ambient room decor. Free shipping available.`;
     return {
       meta: [
-        { title: `${name} - Vurlo | Premium Lighting & Decor` },
+        { title: metaTitle },
         {
           name: "description",
-          content: `Shop the premium ${name} on Vurlo. High-quality aesthetic lighting, crystal lamps, galaxy projectors, and ambient room decor. Free shipping available.`,
+          content: metaDesc,
         },
         { property: "og:type", content: "website" },
         { property: "og:url", content: `https://vurlo.store/product/${slug}` },
-        { property: "og:title", content: `${name} - Vurlo | Premium Lighting & Decor` },
-        { property: "og:description", content: `Premium ambient lamps, RGB lights, and aesthetic decor for your setup.` },
+        { property: "og:title", content: metaTitle },
+        { property: "og:description", content: metaDesc },
         { property: "og:image", content: "https://vurlo.store/preview.jpg" },
         { property: "twitter:card", content: "summary_large_image" },
         { property: "twitter:url", content: `https://vurlo.store/product/${slug}` },
-        { property: "twitter:title", content: `${name} - Vurlo | Premium Lighting & Decor` },
-        { property: "twitter:description", content: `Premium ambient lamps, RGB lights, and aesthetic decor for your setup.` },
+        { property: "twitter:title", content: metaTitle },
+        { property: "twitter:description", content: metaDesc },
         { property: "twitter:image", content: "https://vurlo.store/preview.jpg" },
       ],
     };
@@ -357,7 +356,7 @@ function ProductDetailPage() {
 
                 {/* H1 Title */}
                 <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                  {product.name}
+                  {seoData?.title || product.name}
                 </h1>
 
                 {/* Rating & Reviews */}
@@ -430,7 +429,7 @@ function ProductDetailPage() {
               {/* Description & Variant Specific text */}
               <div className="space-y-4">
                 <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
-                  {product.description ||
+                  {seoData?.description || product.description ||
                     "Premium aesthetic setup upgrade designed to elevate your room and workspace ambiance with stylish lighting and high quality build."}
                 </p>
 
@@ -675,9 +674,9 @@ function ProductDetailPage() {
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "Product",
-                "name": product.name,
-                "description": seoData.description,
-                "image": resolvedImages[0] || resolveProductImage("", product.name),
+                "name": seoData?.title || product.name,
+                "description": seoData?.description || product.description,
+                "image": resolvedImages[0] || resolveProductImage("", seoData?.title || product.name),
                 "brand": {
                   "@type": "Brand",
                   "name": "Vurlo"
