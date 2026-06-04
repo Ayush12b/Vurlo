@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -30,6 +31,11 @@ import { Route as AdminContactsRouteImport } from './routes/admin/contacts'
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/shop': typeof ShopRoute
   '/wishlist': typeof WishlistRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/shop': typeof ShopRoute
   '/wishlist': typeof WishlistRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/shop': typeof ShopRoute
   '/wishlist': typeof WishlistRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/search'
+    | '/shop'
     | '/wishlist'
     | '/admin/contacts'
     | '/admin/dashboard'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/search'
+    | '/shop'
     | '/wishlist'
     | '/admin/contacts'
     | '/admin/dashboard'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/search'
+    | '/shop'
     | '/wishlist'
     | '/admin/contacts'
     | '/admin/dashboard'
@@ -242,6 +254,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
+  ShopRoute: typeof ShopRoute
   WishlistRoute: typeof WishlistRoute
 }
 
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -400,6 +420,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
+  ShopRoute: ShopRoute,
   WishlistRoute: WishlistRoute,
 }
 export const routeTree = rootRouteImport

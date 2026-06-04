@@ -77,7 +77,7 @@ export function Hero() {
           >
             <a
               ref={primaryCta.ref}
-              href="/search"
+              href="/shop"
               className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 sm:px-9 sm:py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
