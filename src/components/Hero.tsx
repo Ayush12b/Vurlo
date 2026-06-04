@@ -50,6 +50,7 @@ export function Hero() {
             className="font-display leading-[1.02] tracking-tight hero-heading"
             style={{ fontSize: "clamp(2.2rem, 7vw, 6rem)", fontWeight: 800 }}
           >
+            <span className="sr-only">Vurlo - Premium Lighting & Decor</span>
             <span className="block text-white/90">Upgrade Your Room.</span>
             <span
               className="block"
