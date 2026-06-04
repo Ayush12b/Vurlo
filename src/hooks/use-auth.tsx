@@ -8,7 +8,7 @@ import {
   updateProfile,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 export const DEFAULT_AVATAR =
@@ -26,6 +26,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   updateProfileName: (newName: string) => Promise<void>;
+  savedAddress: { name: string; address: string; city: string; state: string; pinCode: string; phone: string } | null;
+  saveAddress: (addr: { name: string; address: string; city: string; state: string; pinCode: string; phone: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [savedAddress, setSavedAddress] = useState<{ name: string; address: string; city: string; state: string; pinCode: string; phone: string } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const data = userDoc.data();
             setProfileName(data.name || currentUser.displayName || "User");
             setProfilePhoto(data.photoURL || currentUser.photoURL || DEFAULT_AVATAR);
+            if (data.savedAddress) setSavedAddress(data.savedAddress);
           } else {
             setProfileName(currentUser.displayName || "User");
             setProfilePhoto(currentUser.photoURL || DEFAULT_AVATAR);
@@ -59,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfileName(null);
         setProfilePhoto(null);
+        setSavedAddress(null);
       }
       setLoading(false);
     });
@@ -161,6 +166,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfileName(sanitizedName);
   };
 
+  const saveAddress = async (addr: { name: string; address: string; city: string; state: string; pinCode: string; phone: string }) => {
+    if (!auth.currentUser) return;
+    await updateDoc(doc(db, "users", auth.currentUser.uid), { savedAddress: addr });
+    setSavedAddress(addr);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -175,6 +186,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         forgotPassword,
         updateProfileName,
+        savedAddress,
+        saveAddress,
       }}
     >
       {children}

@@ -73,6 +73,8 @@ function isFuzzyMatch(word: string, target: string, threshold = 2): boolean {
 function SearchPage() {
   const { q = "", category = "" } = Route.useSearch();
   const [selectedProduct, setSelectedProduct] = useState<FirestoreProduct | null>(null);
+  const [sortBy, setSortBy] = useState<"relevance" | "price_asc" | "price_desc" | "rating">("relevance");
+  const [maxPrice, setMaxPrice] = useState<number>(5000);
 
   const { data: dbProducts = [], isLoading } = useProducts();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -107,6 +109,15 @@ function SearchPage() {
 
     return true;
   });
+
+  const sortedProducts = [...productsToDisplay]
+    .filter((p) => p.price <= maxPrice)
+    .sort((a, b) => {
+      if (sortBy === "price_asc") return a.price - b.price;
+      if (sortBy === "price_desc") return b.price - a.price;
+      if (sortBy === "rating") return (b.rating || 0) - (a.rating || 0);
+      return 0; // relevance — keep original order
+    });
 
   const isFuzzyFallbackUsed = false;
 
@@ -149,7 +160,7 @@ function SearchPage() {
               </h1>
               <p className="text-xs text-white/45">
                 {category || q
-                  ? `We found ${productsToDisplay.length} lighting products matching your criteria.`
+                  ? `We found ${sortedProducts.length} lighting products matching your criteria.`
                   : "Type a query or choose a collection in the navbar to find aesthetic lighting & decor."}
               </p>
             </div>
@@ -162,12 +173,52 @@ function SearchPage() {
             </Link>
           </div>
 
+          {/* Sort & Filter Bar */}
+          <div className="flex flex-wrap items-center gap-3 mb-8">
+            <div className="flex items-center gap-2 border border-white/[0.06] bg-white/[0.02] px-3 py-2 rounded-xl">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Sort</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-transparent text-white/80 text-xs font-semibold focus:outline-none cursor-pointer"
+              >
+                <option value="relevance" className="bg-[#0f0f18]">Relevance</option>
+                <option value="price_asc" className="bg-[#0f0f18]">Price: Low to High</option>
+                <option value="price_desc" className="bg-[#0f0f18]">Price: High to Low</option>
+                <option value="rating" className="bg-[#0f0f18]">Top Rated</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2 border border-white/[0.06] bg-white/[0.02] px-3 py-2 rounded-xl">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Max Price</span>
+              <span className="text-xs font-bold text-violet-400">₹{maxPrice.toLocaleString("en-IN")}</span>
+              <input
+                type="range"
+                min={100}
+                max={5000}
+                step={100}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="w-24 accent-violet-500 cursor-pointer"
+              />
+            </div>
+
+            {(sortBy !== "relevance" || maxPrice < 5000) && (
+              <button
+                onClick={() => { setSortBy("relevance"); setMaxPrice(5000); }}
+                className="text-[10px] font-bold text-white/40 hover:text-white/80 uppercase tracking-widest border border-white/[0.06] px-3 py-2 rounded-xl transition-colors cursor-pointer"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
               <p className="text-sm text-white/40">Searching catalog...</p>
             </div>
-          ) : productsToDisplay.length === 0 ? (
+          ) : sortedProducts.length === 0 ? (
             <div className="space-y-16">
               <div className="py-20 text-center flex flex-col items-center justify-center gap-4 border border-white/[0.04] bg-white/[0.01] rounded-2xl max-w-xl mx-auto shadow-[0_4px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm animate-in fade-in duration-300">
                 <div className="relative w-16 h-16 rounded-full bg-white/[0.02] border border-white/[0.06] flex items-center justify-center text-white/40 shadow-[0_0_30px_rgba(138,46,255,0.06)]">
@@ -247,7 +298,7 @@ function SearchPage() {
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-in fade-in duration-300">
-                {productsToDisplay.map((p, i) => (
+                {sortedProducts.map((p, i) => (
                   <ProductCard
                     key={p.id}
                     product={{

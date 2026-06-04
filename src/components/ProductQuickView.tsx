@@ -3,6 +3,8 @@ import { ShoppingBag, Loader2, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/use-cart";
 import { formatPrice, resolveProductImage } from "@/hooks/use-products";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore";
 
 interface ProductQuickViewProps {
   product: any;
@@ -41,6 +43,9 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
   const [selectedVariant, setSelectedVariant] = useState(getInitialVariant);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState("");
+  const [notifySubmitting, setNotifySubmitting] = useState(false);
+  const [notifyDone, setNotifyDone] = useState(false);
 
   // RULE 3 — resolvedImages WITH useMemo
   const resolvedImages = useMemo(() => {
@@ -103,6 +108,40 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
       setAddingToCart(false);
     }
   }, [addingToCart, product, hasVariants, selectedVariant, resolvedImages, addToCart, onClose]);
+
+  const handleNotifyMe = async () => {
+    const cleanEmail = notifyEmail.trim().toLowerCase();
+    if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+    setNotifySubmitting(true);
+    try {
+      const q = query(
+        collection(db, "stock_notifications"),
+        where("productId", "==", product.id),
+        where("email", "==", cleanEmail)
+      );
+      const existing = await getDocs(q);
+      if (!existing.empty) {
+        toast.info("You're already on the list for this product.");
+        setNotifyDone(true);
+        return;
+      }
+      await addDoc(collection(db, "stock_notifications"), {
+        productId: product.id,
+        productName: product.name,
+        email: cleanEmail,
+        createdAt: serverTimestamp(),
+      });
+      setNotifyDone(true);
+      toast.success("We'll notify you when it's back!");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setNotifySubmitting(false);
+    }
+  };
 
   if (!product || !product.id) return null;
 
@@ -307,34 +346,49 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
           </div>
 
           <div className="pt-6 mt-6 border-t border-white/[0.06]">
-            <button
-              disabled={addingToCart || product.stock === 0}
-              onClick={handleAddToCart}
-              className={`w-full text-xs font-bold uppercase tracking-wider h-11 rounded-xl text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] flex items-center justify-center gap-2 ${
-                product.stock === 0
-                  ? "opacity-50 pointer-events-none cursor-not-allowed bg-neutral-800"
-                  : ""
-              }`}
-              style={
-                product.stock === 0
-                  ? { background: "#1f1f2e", border: "1px solid rgba(255,255,255,0.06)" }
-                  : { background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }
-              }
-            >
-              {addingToCart ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Adding to Cart...</span>
-                </>
-              ) : product.stock === 0 ? (
-                <span>Sold Out</span>
-              ) : (
-                <>
-                  <ShoppingBag className="h-4 w-4" />
-                  <span>Add to Cart</span>
-                </>
-              )}
-            </button>
+            {product.stock === 0 ? (
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest text-center">
+                  Out of Stock — Get Notified
+                </p>
+                {notifyDone ? (
+                  <div className="w-full h-11 rounded-xl border border-green-500/20 bg-green-500/5 flex items-center justify-center text-xs font-bold text-green-400">
+                    ✓ You're on the list!
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={notifyEmail}
+                      onChange={(e) => setNotifyEmail(e.target.value)}
+                      className="flex-1 bg-white/[0.03] border border-white/[0.08] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-11 px-4 text-xs focus:outline-none transition-all"
+                    />
+                    <button
+                      onClick={handleNotifyMe}
+                      disabled={notifySubmitting}
+                      className="h-11 px-4 rounded-xl text-xs font-bold text-white cursor-pointer disabled:opacity-50 transition-all"
+                      style={{ background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }}
+                    >
+                      {notifySubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Notify Me"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                disabled={addingToCart}
+                onClick={handleAddToCart}
+                className={`w-full text-xs font-bold uppercase tracking-wider h-11 rounded-xl text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] flex items-center justify-center gap-2`}
+                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }}
+              >
+                {addingToCart ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /><span>Adding to Cart...</span></>
+                ) : (
+                  <><ShoppingBag className="h-4 w-4" /><span>Add to Cart</span></>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

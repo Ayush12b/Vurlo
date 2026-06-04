@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Navigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/checkout")({
 type PaymentMethod = "cod" | "upi";
 
 function CheckoutPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, savedAddress, saveAddress } = useAuth();
   const { cartItems, placeOrder } = useCart();
   const navigate = useNavigate();
 
@@ -36,6 +36,17 @@ function CheckoutPage() {
   // UI state
   const [placingOrder, setPlacingOrder] = useState(false);
   const [shippingDone, setShippingDone] = useState(false);
+
+  useEffect(() => {
+    if (savedAddress && !name) {
+      setName(savedAddress.name);
+      setAddress(savedAddress.address);
+      setCity(savedAddress.city);
+      setState(savedAddress.state || "");
+      setPinCode(savedAddress.pinCode);
+      setPhone(savedAddress.phone);
+    }
+  }, [savedAddress]);
 
   if (loading) {
     return (
@@ -79,6 +90,14 @@ function CheckoutPage() {
     setPlacingOrder(true);
     try {
       const orderId = await placeOrder({
+        name: name.trim(),
+        address: address.trim(),
+        city: city.trim(),
+        state: state.trim(),
+        pinCode: pinCode.trim(),
+        phone: phone.trim(),
+      });
+      await saveAddress({
         name: name.trim(),
         address: address.trim(),
         city: city.trim(),

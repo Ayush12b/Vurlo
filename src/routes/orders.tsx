@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
   Loader2,
@@ -284,6 +284,7 @@ function OrdersContent() {
   const [activeTab, setActiveTab] = useState<"all" | "active" | "completed" | "cancelled">("all");
   const [visibleCount, setVisibleCount] = useState(5);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
   const unsubRef = useRef<(() => void) | null>(null);
@@ -362,6 +363,22 @@ function OrdersContent() {
       console.error("Reorder failed:", e);
     } finally {
       setReorderingId(null);
+    }
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    const confirmed = window.confirm("Are you sure you want to cancel this order? This cannot be undone.");
+    if (!confirmed) return;
+    setCancellingId(orderId);
+    try {
+      await updateDoc(doc(db, "orders", orderId), { status: "cancelled" });
+      toast.success("Order cancelled successfully.", {
+        description: "If payment was made, a refund will be initiated.",
+      });
+    } catch (e) {
+      toast.error("Failed to cancel order. Please contact support.");
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -708,6 +725,20 @@ function OrdersContent() {
                         )}
                         Buy It Again
                       </button>
+
+                      {order.status === "pending" && (
+                        <button
+                          onClick={() => handleCancelOrder(order.id)}
+                          disabled={cancellingId === order.id}
+                          className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/20 hover:bg-red-500/10 text-red-400 hover:text-red-300 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          {cancellingId === order.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            "Cancel Order"
+                          )}
+                        </button>
+                      )}
 
                       <Link
                         to="/contact"
