@@ -1,0 +1,9 @@
+# Exclude generated release/archive files from git archive export
+vurlo99.zip export-ignore
+scratch/ export-ignore
+node_modules/ export-ignore
+dist/ export-ignore
+.git/ export-ignore
+.github/ export-ignore
+.env export-ignore
+.env.local export-ignore
