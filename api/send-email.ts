@@ -3,6 +3,8 @@ import { Resend } from "resend";
 import * as admin from "firebase-admin";
 import { IncomingForm } from "formidable";
 import fs from "fs";
+
+export const config = { api: { bodyParser: false } };
  
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
