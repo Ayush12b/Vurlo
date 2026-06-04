@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, User as UserIcon, Mail, Lock } from "lucide-react";
+import { Sparkles, Loader2, User as UserIcon, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface AuthModalProps {
@@ -27,6 +27,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,6 +119,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setError("");
     setSuccess("");
     setMode("login");
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const getHeaderDetails = () => {
@@ -244,13 +248,21 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 <div className="relative focus-glow rounded-lg">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 transition-colors" />
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
-                    className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-lg placeholder:text-white/20 h-10 pl-10 pr-3.5 text-sm transition-all"
+                    className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-lg placeholder:text-white/20 h-10 pl-10 pr-10 text-sm transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors cursor-pointer focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
             )}
@@ -263,13 +275,21 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 <div className="relative focus-glow rounded-lg">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 transition-colors" />
                   <Input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={loading}
-                    className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-lg placeholder:text-white/20 h-10 pl-10 pr-3.5 text-sm transition-all"
+                    className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-lg placeholder:text-white/20 h-10 pl-10 pr-10 text-sm transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors cursor-pointer focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
             )}

@@ -775,6 +775,31 @@ export function Navbar() {
                   )}
                 </div>
 
+                {/* Auth Button Mobile — visible only on mobile */}
+                <div className="flex md:hidden items-center">
+                  {!loading && (
+                    user ? (
+                      <button
+                        onClick={() => setOpen(!open)}
+                        className="flex items-center justify-center rounded-full p-0.5 border border-white/10 hover:border-violet-500/30 transition-all duration-300 cursor-pointer focus:outline-none"
+                      >
+                        <img
+                          src={profilePhoto || DEFAULT_AVATAR}
+                          alt={profileName || "User"}
+                          className="w-7 h-7 rounded-full object-cover"
+                        />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setAuthModalOpen(true)}
+                        className="px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white/90 border border-white/[0.08] bg-white/[0.03] hover:border-white/20 transition duration-300 cursor-pointer"
+                      >
+                        Login
+                      </button>
+                    )
+                  )}
+                </div>
+
                 <button
                   className="vurlo-icon-btn mobile active:scale-90 transition-transform"
                   onClick={() => setOpen(!open)}
