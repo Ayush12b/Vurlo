@@ -179,8 +179,17 @@ export default function AdminProducts() {
           badge: data.badge ?? null,
         }).filter(([key, value]) => {
           if (value === undefined) return false;
+          // Never overwrite image with empty or fallback
           if (key === "image" && (value === "" || value === "/fallback.jpg")) return false;
+          // Never overwrite images with empty array
           if (key === "images" && Array.isArray(value) && value.length === 0) return false;
+          // Never overwrite images with empty variant object {}
+          if (key === "images" && value && typeof value === "object" && !Array.isArray(value) && Object.keys(value as any).length === 0) return false;
+          // Never overwrite images with variant object where ALL variant arrays are empty
+          if (key === "images" && value && typeof value === "object" && !Array.isArray(value)) {
+            const hasAny = Object.values(value as any).some(arr => Array.isArray(arr) && arr.length > 0);
+            if (!hasAny) return false;
+          }
           return true;
         }),
       );
@@ -297,7 +306,10 @@ export default function AdminProducts() {
       setImagesList([]);
     } else {
       setLocalVariants([]);
-      setImagesList(Array.isArray(product.images) ? product.images : (product.image ? [product.image] : []));
+      // Only load real URLs — never load fallback.jpg into imagesList
+      const rawImgs = Array.isArray(product.images) ? product.images : [];
+      const cleanImgs = rawImgs.filter((img: string) => img && img.trim() !== "" && img !== "/fallback.jpg");
+      setImagesList(cleanImgs);
     }
     setVariantUrlInput("");
     setIsEditModalOpen(true);
@@ -581,29 +593,30 @@ export default function AdminProducts() {
       return;
     }
 
-    let finalImages: string[] | Record<string, string[]> = imagesList;
+    let finalImages: string[] | Record<string, string[]> | undefined = undefined;
+
     if (localVariants.length > 0) {
       const imgObj: Record<string, string[]> = {};
       localVariants.forEach((v) => {
         const key = v.name.toLowerCase();
         imgObj[key] = v.images;
       });
-      // Only use variant object if at least one variant has images
-      const hasAnyVariantImages = Object.values(imgObj).some(arr => arr.length > 0);
-      if (hasAnyVariantImages) {
-        finalImages = imgObj;
-      }
-      // else fall through to imagesList (empty array) which gets filtered by editMutation
+      // Only use if at least one variant has real images
+      const hasAny = Object.values(imgObj).some(arr => arr.length > 0);
+      if (hasAny) finalImages = imgObj;
+    } else if (imagesList.length > 0) {
+      finalImages = imagesList;
     }
+    // If neither — leave as undefined so editMutation filter drops it (keeps existing Firestore value)
 
-    const defaultImg = Array.isArray(finalImages)
-      ? (finalImages[0] || currentProduct.image || "/fallback.jpg")
-      : (
-          Object.values(finalImages as Record<string, string[]>)
-            .find(arr => Array.isArray(arr) && arr.length > 0)?.[0] ||
-          currentProduct.image ||
-          "/fallback.jpg"
-        );
+    const defaultImg = finalImages
+      ? (
+          Array.isArray(finalImages)
+            ? finalImages[0]
+            : Object.values(finalImages as Record<string, string[]>).find(arr => Array.isArray(arr) && arr.length > 0)?.[0]
+        )
+      : undefined;
+    // Only set image field if we have a real URL — otherwise keep existing Firestore value
 
     const finalFeatures = featuresText.split("\n").map((f) => f.trim()).filter(Boolean);
 
@@ -612,8 +625,8 @@ export default function AdminProducts() {
       name: name.trim(),
       description: description.trim(),
       price: finalPrice,
-      image: defaultImg,
-      images: finalImages,
+      ...(defaultImg ? { image: defaultImg } : {}),
+      ...(finalImages !== undefined ? { images: finalImages } : {}),
       isFeatured,
       isNew,
       category: category.trim(),
