@@ -36,9 +36,10 @@ function CheckoutPage() {
   // UI state
   const [placingOrder, setPlacingOrder] = useState(false);
   const [shippingDone, setShippingDone] = useState(false);
+  const [usingSavedAddress, setUsingSavedAddress] = useState(true);
 
   useEffect(() => {
-    if (savedAddress && !name) {
+    if (savedAddress && usingSavedAddress) {
       setName(savedAddress.name);
       setAddress(savedAddress.address);
       setCity(savedAddress.city);
@@ -46,7 +47,15 @@ function CheckoutPage() {
       setPinCode(savedAddress.pinCode);
       setPhone(savedAddress.phone);
     }
-  }, [savedAddress]);
+    if (!usingSavedAddress) {
+      setName("");
+      setAddress("");
+      setCity("");
+      setState("");
+      setPinCode("");
+      setPhone("");
+    }
+  }, [savedAddress, usingSavedAddress]);
 
   if (loading) {
     return (
@@ -97,14 +106,16 @@ function CheckoutPage() {
         pinCode: pinCode.trim(),
         phone: phone.trim(),
       });
-      await saveAddress({
-        name: name.trim(),
-        address: address.trim(),
-        city: city.trim(),
-        state: state.trim(),
-        pinCode: pinCode.trim(),
-        phone: phone.trim(),
-      });
+      if (!usingSavedAddress) {
+        await saveAddress({
+          name: name.trim(),
+          address: address.trim(),
+          city: city.trim(),
+          state: state.trim(),
+          pinCode: pinCode.trim(),
+          phone: phone.trim(),
+        });
+      }
       navigate({ to: "/order-success", search: { orderId } });
     } catch (e) {
       // placeOrder already shows toast on error
@@ -187,6 +198,32 @@ function CheckoutPage() {
                 </div>
               ) : (
                 <form onSubmit={handleShippingSubmit} className="space-y-3">
+                  {savedAddress && (
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setUsingSavedAddress(true)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition cursor-pointer ${
+                          usingSavedAddress
+                            ? "bg-violet-500/10 border-violet-500/40 text-violet-400"
+                            : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:text-white/70"
+                        }`}
+                      >
+                        Saved Address
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setUsingSavedAddress(false)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition cursor-pointer ${
+                          !usingSavedAddress
+                            ? "bg-violet-500/10 border-violet-500/40 text-violet-400"
+                            : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:text-white/70"
+                        }`}
+                      >
+                        New Address
+                      </button>
+                    </div>
+                  )}
                   <Field label="Full Name">
                     <Input
                       type="text"
