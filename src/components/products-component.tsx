@@ -107,7 +107,13 @@ export default function AdminProducts() {
           name: data.name || "",
           price: data.price ?? 0,
           image: imgUrl,
-          images: Array.isArray(data.images) ? data.images : data.image ? [data.image] : [],
+          images: Array.isArray(data.images)
+            ? data.images
+            : (data.images && typeof data.images === "object")
+              ? data.images
+              : data.image
+                ? [data.image]
+                : [],
           tag: data.tag || null,
           active: data.active !== false, // default to true
           isOnSale: data.isOnSale !== undefined ? data.isOnSale : data.onSale || false,
@@ -170,9 +176,8 @@ export default function AdminProducts() {
           badge: data.badge ?? null,
         }).filter(([key, value]) => {
           if (value === undefined) return false;
-          // Never wipe images/variants with empty values
+          if (key === "image" && (value === "" || value === "/fallback.jpg")) return false;
           if (key === "images" && Array.isArray(value) && value.length === 0) return false;
-          if (key === "image" && (value === "/fallback.jpg" || value === "")) return false;
           return true;
         }),
       );
@@ -285,7 +290,7 @@ export default function AdminProducts() {
       }));
       setLocalVariants(vars);
       setEditingVariantName(vars[0]?.name || "Galaxy");
-      setImagesList(Object.values(imgObj).flat().slice(0, 1));
+      setImagesList([]);
     } else {
       setLocalVariants([]);
       setImagesList(Array.isArray(product.images) ? product.images : (product.image ? [product.image] : []));
@@ -585,9 +590,8 @@ export default function AdminProducts() {
     const defaultImg = Array.isArray(finalImages)
       ? (finalImages[0] || currentProduct.image || "/fallback.jpg")
       : (
-          (finalImages as Record<string, string[]>)[
-            Object.keys(finalImages as Record<string, string[]>)[0]
-          ]?.[0] ||
+          Object.values(finalImages as Record<string, string[]>)
+            .find(arr => Array.isArray(arr) && arr.length > 0)?.[0] ||
           currentProduct.image ||
           "/fallback.jpg"
         );
