@@ -26,7 +26,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!email) return res.status(400).json({ error: "Email is required" });
 
   try {
-    await admin.auth().generatePasswordResetLink(email);
+    const resetLink = await admin.auth().generatePasswordResetLink(email);
+
+    const { Resend } = await import("resend");
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL ?? "noreply@vurlo.store",
+      to: email,
+      subject: "Reset your VURLO password",
+      html: `<p>Click the link below to reset your password:</p><a href="${resetLink}">${resetLink}</a>`,
+    });
+
     return res.status(200).json({ success: true });
   } catch (err: any) {
     console.error("[forgot-password]", err?.code, err?.message);
