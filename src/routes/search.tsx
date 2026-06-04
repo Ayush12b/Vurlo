@@ -152,16 +152,15 @@ function SearchPage() {
                 </span>
               </div>
               <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                {category
-                  ? `Collection: ${category}`
-                  : q
-                    ? `Results for "${q}"`
-                    : "Search Lighting & Decor"}
+                Shop Aesthetic Room Lights & RGB Lights in India
               </h1>
               <p className="text-xs text-white/45">
-                {category || q
-                  ? `We found ${sortedProducts.length} lighting products matching your criteria.`
-                  : "Type a query or choose a collection in the navbar to find aesthetic lighting & decor."}
+                {category
+                  ? `Category: ${category}`
+                  : q
+                    ? `Search results for "${q}"`
+                    : "Discover premium ambient lighting and aesthetic decor collections."}
+                {` — We found ${sortedProducts.length} premium lighting products matching your criteria.`}
               </p>
             </div>
             <Link
@@ -335,6 +334,16 @@ function SearchPage() {
               </div>
             </div>
           )}
+
+          {/* Bottom SEO Text Block */}
+          <div className="mt-20 border-t border-white/[0.06] pt-12 text-left max-w-4xl space-y-4">
+            <h2 className="font-display text-lg font-bold text-white uppercase tracking-wider">
+              Aesthetic Room Lights & Smart RGB Ambient Lighting
+            </h2>
+            <p className="text-xs text-white/45 leading-relaxed">
+              Explore aesthetic lighting, RGB lights, and ambient lamps for bedrooms and gaming setups in India at Vurlo. We specialize in bringing state-of-the-art room lights that instantly shift the mood of your living space. From 3D laser-engraved crystal ball lamps to color-pulsing smart LED strips and realistic sunset projectors, our curated collection is engineered to enhance your comfort, visual setup, and home styling. Whether you are searching for aesthetic desk setups, baby nursery night lights, or neon-inspired workspace decor, find the highest quality products in India with USB-powered convenience and secure shipping. Calm your space, boost your productivity, and elevate your daily atmosphere with premium lights.
+            </p>
+          </div>
         </section>
       </div>
 

@@ -5,6 +5,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useProducts, resolveProductImage, formatPrice } from "@/hooks/use-products";
 import { getProductSlug } from "@/utils/product";
+import { PRODUCT_SEO_DATA } from "@/utils/seo-data";
 import { ShoppingBag, Loader2, Heart, ArrowLeft, ShieldCheck, Truck, RefreshCw, Sparkles } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { db } from "@/lib/firebase";
@@ -50,6 +51,19 @@ function ProductDetailPage() {
   const product = useMemo(() => {
     return dbProducts.find((p) => p.slug === slug);
   }, [dbProducts, slug]);
+
+  const seoData = useMemo(() => {
+    if (!product) return null;
+    return PRODUCT_SEO_DATA[product.slug] || null;
+  }, [product]);
+
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    const filtered = dbProducts.filter((p) => p.id !== product.id && p.active !== false);
+    const sameCategory = filtered.filter((p) => p.category === product.category);
+    const pool = sameCategory.length >= 3 ? sameCategory : filtered;
+    return pool.slice(0, 3);
+  }, [dbProducts, product]);
 
   // Debug logging for product slugs and error handling
   useEffect(() => {
@@ -547,6 +561,143 @@ function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* SEO Content Sections, FAQs, and Related Products */}
+        {seoData && (
+          <div className="mt-20 border-t border-white/[0.06] pt-16 space-y-16 animate-in fade-in duration-500">
+            {/* 1. Unique SEO-optimized Description */}
+            <section className="space-y-4 max-w-4xl text-left">
+              <h2 className="font-display text-2xl font-extrabold text-white sm:text-3xl">
+                About {product.name}
+              </h2>
+              <p className="text-sm text-white/60 leading-relaxed">
+                {seoData.description}
+              </p>
+            </section>
+
+            {/* 2. Structured Sections: Use Cases & Why Buy */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 text-left">
+              <section className="space-y-4">
+                <h2 className="font-display text-xl font-bold text-white flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-violet-400" />
+                  <span>Typical Use Cases</span>
+                </h2>
+                <ul className="space-y-3">
+                  {seoData.useCases.map((useCase, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5 text-xs text-white/50 leading-relaxed">
+                      <span className="text-violet-400 font-bold select-none">•</span>
+                      <span>{useCase}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="space-y-4">
+                <h2 className="font-display text-xl font-bold text-white">
+                  Why Choose Vurlo Lighting
+                </h2>
+                <ul className="space-y-3">
+                  {seoData.whyBuy.map((point, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5 text-xs text-white/50 leading-relaxed">
+                      <span className="text-cyan-400 font-bold select-none">✓</span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+
+            {/* 3. FAQ Section */}
+            {seoData.faqs.length > 0 && (
+              <section className="space-y-6 text-left">
+                <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
+                  Frequently Asked Questions
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {seoData.faqs.map((faq, idx) => (
+                    <div key={idx} className="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.01] space-y-2">
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">{faq.question}</h3>
+                      <p className="text-xs text-white/50 leading-relaxed">{faq.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 4. Related Products Section */}
+            {relatedProducts.length > 0 && (
+              <section className="space-y-6 text-left">
+                <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
+                  Related Products
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {relatedProducts.map((related) => {
+                    const relatedImage = (() => {
+                      if (Array.isArray(related.images)) {
+                        return related.images[0] || related.image || "";
+                      }
+                      if (related.images && typeof related.images === "object") {
+                        const defVar = (related.defaultVariant || "Galaxy").toLowerCase();
+                        const varImages = (related.images as Record<string, string[]>)[defVar] || Object.values(related.images)[0] || [];
+                        return varImages[0] || related.image || "";
+                      }
+                      return related.image || "";
+                    })();
+
+                    return (
+                      <Link
+                        key={related.id}
+                        to="/product/$slug"
+                        params={{ slug: related.slug }}
+                        className="group rounded-2xl border border-white/[0.06] bg-white/[0.01] hover:border-violet-500/30 p-4 transition-all duration-300 flex flex-col h-full hover:shadow-[0_8px_30px_rgba(138,46,255,0.05)]"
+                      >
+                        <div className="aspect-square w-full rounded-xl bg-white/[0.02] flex items-center justify-center p-4 overflow-hidden relative">
+                          <img
+                            src={resolveProductImage(relatedImage, related.name)}
+                            alt={related.name}
+                            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
+                          />
+                        </div>
+                        <div className="flex flex-col flex-1 mt-4 space-y-2">
+                          <h3 className="text-xs font-bold text-white truncate">{related.name}</h3>
+                          <p className="text-[10px] text-white/30 truncate uppercase tracking-widest">{related.category}</p>
+                          <p className="text-xs font-bold text-violet-400 mt-auto">₹{formatPrice(related.price)}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* JSON-LD Structured Data */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Product",
+                "name": product.name,
+                "description": seoData.description,
+                "image": resolvedImages[0] || resolveProductImage("", product.name),
+                "brand": {
+                  "@type": "Brand",
+                  "name": "Vurlo"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "price": product.price,
+                  "priceCurrency": "INR",
+                  "availability": (product.stock ?? 10) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                  "url": `https://vurlo.store/product/${product.slug}`
+                },
+                "aggregateRating": {
+                  "@type": "AggregateRating",
+                  "ratingValue": product.rating || 4.7,
+                  "reviewCount": product.reviewsCount || 38
+                }
+              })}
+            </script>
+          </div>
+        )}
       </div>
 
       <Footer />
