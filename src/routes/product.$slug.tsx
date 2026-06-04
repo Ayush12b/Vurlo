@@ -6,7 +6,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useProducts, resolveProductImage, formatPrice } from "@/hooks/use-products";
 import { getProductSlug } from "@/utils/product";
 import { PRODUCT_SEO_DATA } from "@/utils/seo-data";
-import { ShoppingBag, Loader2, Heart, ArrowLeft, ShieldCheck, Truck, RefreshCw, Sparkles } from "lucide-react";
+import { ShoppingBag, Loader2, Heart, ArrowLeft, ShieldCheck, Truck, Users, Sparkles } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore";
@@ -541,7 +541,7 @@ function ProductDetailPage() {
                 {[
                   [Truck, "Free Shipping", "On all orders"],
                   [ShieldCheck, "Secure Checkout", "SSL Encrypted"],
-                  [RefreshCw, "30-Day Returns", "Hassle-free refund"],
+                  [Users, "Trusted by 1000+ Customers", "Satisfied buyers"],
                 ].map(([Icon, label, sub]: any, idx) => (
                   <div
                     key={idx}
