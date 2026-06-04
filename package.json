@@ -6,7 +6,7 @@
   "scripts": {
     "dev:api": "vercel dev --listen 3001",
     "dev": "vercel dev",
-    "build": "vite build",
+    "build": "node ./scripts/generate-sitemap.js && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."
