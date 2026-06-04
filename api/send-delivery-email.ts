@@ -35,16 +35,52 @@ function sanitize(str: string): string {
   });
 }
 
+async function parseBody(req: VercelRequest): Promise<any> {
+  let body = req.body;
+  if (!body) {
+    body = req;
+  }
+
+  if (body instanceof Buffer) {
+    try {
+      return JSON.parse(body.toString("utf-8"));
+    } catch {
+      return {};
+    }
+  }
+
+  if (typeof body === "string") {
+    try {
+      return JSON.parse(body);
+    } catch {
+      return {};
+    }
+  }
+
+  if (body && typeof body.on === "function") {
+    try {
+      const chunks: any[] = [];
+      await new Promise<void>((resolve, reject) => {
+        body.on("data", (chunk: any) => chunks.push(chunk));
+        body.on("end", () => resolve());
+        body.on("error", (err: any) => reject(err));
+      });
+      const buffer = Buffer.concat(chunks);
+      return JSON.parse(buffer.toString("utf-8"));
+    } catch {
+      return {};
+    }
+  }
+
+  return body && typeof body === "object" ? body : {};
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS Headers
+  // CORS Headers set before any guard clause
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN || "https://vurlo.store");
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  console.log("API HIT");
-  console.log("[send-delivery-email] API hit, method:", req.method);
-  console.log("BODY:", req.body);
 
   if (req.method === "OPTIONS") {
     return res.status(200).json({ success: true });
@@ -64,13 +100,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const body = req.body || {};
-    console.log("[send-delivery-email] Request body:", JSON.stringify(body).slice(0, 200));
+    let body: any;
+    try {
+      body = await parseBody(req);
+    } catch (err: any) {
+      console.error("[send-delivery-email] body parsing failed:", err);
+      return res.status(400).json({ error: "Invalid request payload format." });
+    }
+
     const { orderId, customerEmail, customerName, deliveredItems } = body;
 
-    // Validate inputs
+    // Validate inputs explicitly
     if (!orderId || !customerEmail || !customerName || !deliveredItems) {
       return res.status(400).json({ error: "Missing required delivery information fields." });
+    }
+
+    if (typeof orderId !== "string" || typeof customerEmail !== "string" || typeof customerName !== "string") {
+      return res.status(400).json({ error: "Required fields (orderId, customerEmail, customerName) must be strings." });
     }
 
     if (!Array.isArray(deliveredItems) || deliveredItems.length === 0) {
@@ -79,6 +125,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (deliveredItems.length > 50) {
       return res.status(400).json({ error: "Delivered items list cannot exceed 50 items." });
+    }
+
+    for (let i = 0; i < deliveredItems.length; i++) {
+      const item = deliveredItems[i];
+      if (!item || typeof item !== "object") {
+        return res.status(400).json({ error: `Delivered item at index ${i} is not a valid object.` });
+      }
+      if (!item.name || typeof item.name !== "string") {
+        return res.status(400).json({ error: `Delivered item at index ${i} has an invalid or missing name.` });
+      }
+      if (item.quantity === undefined || isNaN(Number(item.quantity))) {
+        return res.status(400).json({ error: `Delivered item at index ${i} has an invalid quantity.` });
+      }
     }
 
     if (!/^\S+@\S+\.\S+$/.test(customerEmail)) {
@@ -93,18 +152,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       quantity: Math.max(1, Math.min(100, Number(item.quantity) || 1)),
     }));
 
-    // Call reusable email function
-    const data = await sendDeliveryEmail({
-      orderId: sanitizedOrderId,
-      deliveredItems: sanitizedDeliveredItems,
-      customerEmail,
-      customerName: sanitizedCustomerName,
-    });
+    // Call reusable email function wrapped in its own try-catch
+    let data;
+    try {
+      data = await sendDeliveryEmail({
+        orderId: sanitizedOrderId,
+        deliveredItems: sanitizedDeliveredItems,
+        customerEmail,
+        customerName: sanitizedCustomerName,
+      });
+    } catch (error: any) {
+      console.error("[send-delivery-email] sendDeliveryEmail failed:", error);
+      return res.status(502).json({ error: error.message || "Failed to send delivery email." });
+    }
 
     return res.status(200).json({ success: true, id: data?.id });
   } catch (error: any) {
-    console.error("ERROR:", error);
-    console.error("Error dispatching delivery completion email:", error);
-    return res.status(500).json({ error: error.message || "Internal error" });
+    console.error("[send-delivery-email] unexpected error:", error);
+    return res.status(500).json({ error: error.message || "Internal server error" });
   }
 }
+

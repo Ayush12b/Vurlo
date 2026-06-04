@@ -4,7 +4,8 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev:api": "vercel dev --listen 3001",
+    "dev": "vercel dev",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -77,6 +78,7 @@
     "@types/react-dom": "^19.2.0",
     "@vercel/node": "^5.8.9",
     "@vitejs/plugin-react": "^5.0.4",
+    "concurrently": "^10.0.3",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
