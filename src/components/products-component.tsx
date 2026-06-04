@@ -80,6 +80,8 @@ export default function AdminProducts() {
   // 1. Fetch Products
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["admin", "products"],
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const querySnapshot = await getDocs(collection(db, "products"));
       return querySnapshot.docs.map((docSnap) => {
@@ -92,12 +94,14 @@ export default function AdminProducts() {
           const t = String(data.tag).toUpperCase();
           if (t === "FEATURED") feat = true;
           if (t === "NEW") nw = true;
-          // Asynchronously update in Firestore
-          setDoc(
-            doc(db, "products", docSnap.id),
-            { isFeatured: feat, isNew: nw, tag: null },
-            { merge: true },
-          ).catch(console.error);
+          // Only migrate if isFeatured/isNew not already set
+          if (data.isFeatured === undefined && data.isNew === undefined) {
+            setDoc(
+              doc(db, "products", docSnap.id),
+              { isFeatured: feat, isNew: nw, tag: null },
+              { merge: true },
+            ).catch(console.error);
+          }
         }
 
         const imgUrl = getProductImage(data);
@@ -111,9 +115,7 @@ export default function AdminProducts() {
             ? data.images
             : (data.images && typeof data.images === "object")
               ? data.images
-              : data.image
-                ? [data.image]
-                : [],
+              : data.image ? [data.image] : [],
           tag: data.tag || null,
           active: data.active !== false, // default to true
           isOnSale: data.isOnSale !== undefined ? data.isOnSale : data.onSale || false,
