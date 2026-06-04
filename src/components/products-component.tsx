@@ -168,7 +168,13 @@ export default function AdminProducts() {
           stock: Number(data.stock),
           tag: data.tag ?? null,
           badge: data.badge ?? null,
-        }).filter(([, value]) => value !== undefined),
+        }).filter(([key, value]) => {
+          if (value === undefined) return false;
+          // Never wipe images/variants with empty values
+          if (key === "images" && Array.isArray(value) && value.length === 0) return false;
+          if (key === "image" && (value === "/fallback.jpg" || value === "")) return false;
+          return true;
+        }),
       );
       try {
         await updateDoc(doc(db, "products", id), updateData);
@@ -279,7 +285,7 @@ export default function AdminProducts() {
       }));
       setLocalVariants(vars);
       setEditingVariantName(vars[0]?.name || "Galaxy");
-      setImagesList([]);
+      setImagesList(Object.values(imgObj).flat().slice(0, 1));
     } else {
       setLocalVariants([]);
       setImagesList(Array.isArray(product.images) ? product.images : (product.image ? [product.image] : []));
@@ -577,8 +583,14 @@ export default function AdminProducts() {
     }
 
     const defaultImg = Array.isArray(finalImages)
-      ? (finalImages[0] || "/fallback.jpg")
-      : ((finalImages as Record<string, string[]>).galaxy?.[0] || Object.values(finalImages)[0]?.[0] || "/fallback.jpg");
+      ? (finalImages[0] || currentProduct.image || "/fallback.jpg")
+      : (
+          (finalImages as Record<string, string[]>)[
+            Object.keys(finalImages as Record<string, string[]>)[0]
+          ]?.[0] ||
+          currentProduct.image ||
+          "/fallback.jpg"
+        );
 
     const finalFeatures = featuresText.split("\n").map((f) => f.trim()).filter(Boolean);
 
