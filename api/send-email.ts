@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
 import * as admin from "firebase-admin";
-
+ 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -13,7 +13,7 @@ if (!admin.apps.length) {
   });
 }
 const adminDb = admin.firestore();
-
+ 
 async function sendEmailWithRetry(payload: any, retries = 2): Promise<any> {
   const resend = new Resend(process.env.RESEND_API_KEY);
   for (let attempt = 1; attempt <= retries + 1; attempt++) {
@@ -34,7 +34,7 @@ async function sendEmailWithRetry(payload: any, retries = 2): Promise<any> {
     }
   }
 }
-
+ 
 async function sendContactNotificationEmail(details: {
   name: string;
   email: string;
@@ -43,7 +43,7 @@ async function sendContactNotificationEmail(details: {
   receiverEmails: string[];
 }) {
   const { name, email, message, timestamp, receiverEmails } = details;
-
+ 
   const html = `
     <!DOCTYPE html>
     <html lang="en">
@@ -153,20 +153,20 @@ async function sendContactNotificationEmail(details: {
     </body>
     </html>
   `;
-
+ 
   const text = `
 New Contact Inquiry Received
-
+ 
 - User Name: ${name}
 - User Email: ${email}
 - Submitted At: ${timestamp}
-
+ 
 Message:
 ${message}
-
+ 
 Sent automatically by Vurlo.store Support System.
   `.trim();
-
+ 
   return sendEmailWithRetry({
     from: "VURLO <onboarding@vurlo.store>",
     to: receiverEmails,
@@ -175,13 +175,13 @@ Sent automatically by Vurlo.store Support System.
     text,
     replyTo: email,
     headers: {
-      "X-Entity-Ref-ID": cleanEmail + "-notify",
+      "X-Entity-Ref-ID": email + "-notify",
       "Precedence": "bulk",
       "List-Unsubscribe": "<mailto:support@vurlo.store>",
     },
   });
 }
-
+ 
 async function sendContactAutoReplyEmail(details: {
   name: string;
   email: string;
@@ -189,7 +189,7 @@ async function sendContactAutoReplyEmail(details: {
 }) {
   const { name, email, message } = details;
   const shortMessage = message.length > 120 ? message.slice(0, 120) + "..." : message;
-
+ 
   const html = `
     <!DOCTYPE html>
     <html lang="en">
@@ -287,21 +287,21 @@ async function sendContactAutoReplyEmail(details: {
     </body>
     </html>
   `;
-
+ 
   const text = `
 Hi ${name},
-
+ 
 Thank you for reaching out to Vurlo support. We have successfully received your message and our team is already reviewing it.
-
+ 
 We strive to address all requests as quickly as possible. You can expect a response from us within 24 hours.
-
+ 
 Your message summary:
 "${message}"
-
+ 
 If you have any questions, reply to this email or contact support@vurlo.store.
 You received this email because you submitted a contact inquiry on Vurlo.store.
   `.trim();
-
+ 
   return sendEmailWithRetry({
     from: "VURLO <onboarding@vurlo.store>",
     to: [email],
@@ -313,10 +313,10 @@ You received this email because you submitted a contact inquiry on Vurlo.store.
     },
   });
 }
-
+ 
 // Simple in-memory rate limiting map
 const ipCache = new Map<string, number>();
-
+ 
 // Rate limit: 1 request every 15 seconds per IP
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -325,7 +325,7 @@ function checkRateLimit(ip: string): boolean {
     return true;
   }
   ipCache.set(ip, now);
-
+ 
   // Periodically clean up cache to prevent memory leaks
   if (ipCache.size > 500) {
     for (const [key, val] of ipCache.entries()) {
@@ -336,7 +336,7 @@ function checkRateLimit(ip: string): boolean {
   }
   return false;
 }
-
+ 
 // Basic HTML escaping sanitizer
 function sanitize(str: string): string {
   return str
@@ -346,36 +346,36 @@ function sanitize(str: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
+ 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS Headers
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN || "https://vurlo.store");
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
+ 
   if (req.method === "OPTIONS") {
     return res.status(200).json({ success: true });
   }
-
+ 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
-
+ 
   // Rate limiting check
   const xForwardedFor = req.headers["x-forwarded-for"] as string;
   const ip = xForwardedFor
     ? xForwardedFor.split(",")[0].trim()
     : req.socket.remoteAddress || "anonymous";
-
+ 
   if (checkRateLimit(ip)) {
     return res.status(429).json({ error: "Too many submissions. Please wait 15 seconds before trying again." });
   }
-
+ 
   try {
     const body = req.body || {};
     const { name, email, message } = body;
-
+ 
     // Validation
     if (!name || !name.trim()) {
       return res.status(400).json({ error: "Name is required." });
@@ -386,25 +386,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!message || !message.trim()) {
       return res.status(400).json({ error: "Message content is required." });
     }
-
+ 
     if (name.trim().length > 100) {
       return res.status(400).json({ error: "Name cannot exceed 100 characters." });
     }
     if (message.trim().length > 5000) {
       return res.status(400).json({ error: "Message cannot exceed 5000 characters." });
     }
-
+ 
     // Sanitize inputs
     const cleanName = sanitize(name.trim());
     const cleanEmail = sanitize(email.trim());
     const cleanMessage = sanitize(message.trim());
     const timestamp = new Date().toLocaleString("en-US", { timeZone: "UTC" }) + " UTC";
-
+ 
     // Setup receiver emails (support environment variable or fallback to 2 standard addresses)
     const receiverEmails = process.env.COMPLAINTS_RECEIVER_EMAIL
       ? [process.env.COMPLAINTS_RECEIVER_EMAIL]
       : ["hello@vurlo.store", "ayush@vurlo.store"];
-
+ 
     // Send notification email to the workspace/owner inbox
     const notificationResult = await sendContactNotificationEmail({
       name: cleanName,
@@ -413,7 +413,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       timestamp,
       receiverEmails,
     });
-
+ 
     // Save to Firestore contacts collection
     try {
       await adminDb.collection("contacts").add({
@@ -427,7 +427,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn("Firestore contacts save failed:", fsErr.message);
       // Non-fatal — email already sent
     }
-
+ 
     // Send auto-reply confirmation email to the user
     try {
       await sendContactAutoReplyEmail({
@@ -439,7 +439,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn("Resend user auto-reply failed to dispatch:", autoReplyErr.message);
       // We still return 200 since the core notification succeeded
     }
-
+ 
     return res.status(200).json({ success: true, id: notificationResult?.id });
   } catch (err: any) {
     console.error("ERROR:", err);
