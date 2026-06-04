@@ -54,7 +54,7 @@ function Index() {
               Best RGB Lights for Rooms in India
             </h2>
             <p className="text-xs text-white/50 leading-relaxed">
-              Elevate your home aesthetics with premium ambient lighting designed for modern setups. Finding the best RGB lights for rooms in India involves prioritizing color richness, installation flexibility, and smart integrations. Vurlo smart RGB strip lights and ambient projection lamps offer over 16 million colors and customizable dynamic modes to suit any occasion. Whether you are setting up a cozy bedroom sanctuary, lighting up a house party, or backlight-mounting your workspace desk, high-density smart LEDs provide consistent, flicker-free glow. With solid adhesive backing and smart app/remote controls, you can effortlessly customize brightness, sync patterns with your favorite music beats, and upgrade your living environment instantly.
+              Upgrade your space with the best RGB lights in India designed for modern rooms, gaming setups, and aesthetic interiors. Whether you're creating a cozy bedroom vibe or a high-energy gaming setup, the right lighting can completely transform your environment. Our collection of aesthetic lighting solutions includes ambient lamps, projection lights, and RGB strips that add depth, color, and mood to any space. Perfect for content creators, gamers, and anyone who wants their room to stand out, these lights are easy to set up and built for everyday use. If you're looking for affordable and stylish gaming setup lights in India, Vurlo offers options that combine performance with design. Create your perfect vibe with lighting that actually makes a difference.
             </p>
           </div>
 
@@ -65,7 +65,7 @@ function Index() {
               How to Create an Aesthetic Room Setup
             </h2>
             <p className="text-xs text-white/50 leading-relaxed">
-              Creating a stunning, cozy, and aesthetic room setup requires a thoughtful blend of layered lighting, clean furniture layouts, and curated accent pieces. Start by introducing a primary ambient source, like the Vurlo Orbit Galaxy Projector or Sunset Projection Lamp, to cast soft color washes across your walls and ceilings. Next, layer accent lighting such as 3D laser-engraved crystal ball lamps or smart RGB strips behind screens and under shelves to create visual depth and reduce eye strain. Keep cables managed, focus on neutral or dark-themed accessories, and place a few green plants or modern art frames. By mixing functional task lights with warm decorative glows, you can create a relaxing sanctuary that inspires focus and represents your unique style.
+              Creating an aesthetic room setup is all about combining lighting, layout, and mood. Start with ambient lighting like RGB lamps or projection lights to set the tone of your space. Use warm or colorful lighting to highlight key areas such as your desk, bed, or wall decor. Keep your setup clean and minimal, adding only elements that enhance the vibe. For gaming setups, RGB lights can add depth and energy, while softer lighting works best for relaxation. Layer your lighting by mixing different sources to avoid harsh shadows. Small details like positioning and color choice can make a huge difference in how your room feels.
             </p>
           </div>
         </div>
