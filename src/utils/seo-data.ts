@@ -1,5 +1,6 @@
 export interface SeoProductData {
-  title: string;
+  displayName: string;
+  seoTitle: string;
   metaTitle: string;
   metaDescription: string;
   description: string;
@@ -10,7 +11,8 @@ export interface SeoProductData {
 
 export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
   "lunar-wooden-3d-moon-lamp": {
-    title: "Vurlo 3D Lunar Moon Lamp – Premium Wooden Base Aesthetic Night Light for Bedroom",
+    displayName: "Lunar 3D Moon Lamp",
+    seoTitle: "Vurlo 3D Lunar Moon Lamp – Premium Wooden Base Aesthetic Night Light for Bedroom",
     metaTitle: "Moon Night Lamp – Ambient Bedroom Decor Lighting | Vurlo",
     metaDescription: "Shop 3D lunar moon lamp on Vurlo. Features adjustable color modes & a premium wooden base, perfect for ambient lighting and aesthetic bedroom decor in India.",
     description: "Transform your room into a serene, glowing sanctuary with the Vurlo 3D Lunar Moon Lamp. Using advanced 3D printing technology, this realistic moon light sphere replicates the actual craters and topography of the lunar surface. Sized perfectly to rest on a premium wooden base, it adds an organic touch of aesthetic room decor to any nightstand, study desk, or corner table. Featuring dual-color light modes, you can easily toggle between a cool white glow and warm yellow illumination to suit your mood. Whether you are winding down after a busy day, meditating, or setting a cozy night vibe, this ambient lighting solution delivers the perfect level of brightness. It makes an excellent gift for space lovers and a top choice for bedroom lighting in India. Upgrade your setup's daily atmosphere with this stunning combination of modern design and realistic detail. It functions as both a decorative piece and a comforting night lamp, bringing the beauty of the solar system directly into your personal space.",
@@ -40,7 +42,8 @@ export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
     ]
   },
   "panda-glow-lamp": {
-    title: "Cute Panda Night Lamp – Soft LED Aesthetic Light for Bedroom | Vurlo",
+    displayName: "Panda Night Lamp",
+    seoTitle: "Cute Panda Night Lamp – Soft LED Aesthetic Light for Bedroom | Vurlo",
     metaTitle: "Panda Night Lamp – Aesthetic LED Light for Bedroom | Vurlo",
     metaDescription: "Buy cute panda night lamp with soft LED lighting. Perfect for bedroom decor, aesthetic setups, and ambient lighting in India.",
     description: "Bring a warm, cute, and calming atmosphere to your bedroom or nursery with the Vurlo Cute Panda Night Lamp. Crafted from high-quality, BPA-free soft silicone, this adorable panda night light is gentle to the touch, squeezeable, and completely safe for kids and toddlers. Tap the soft silicone body to cycle through a variety of colors, creating a soothing room light tailored to your evening setup. It's the perfect bedside companion, offering a soft glow that aids relaxation and sleep. Whether you're looking for a charming room decor accent, a sleeping companion, or a creative gift in India, this LED night light brings playfulness and coziness together. Elevate your bedroom lighting and aesthetic room decor with this trending, rechargeable panda glow light. With its RGB lighting modes and tap control, you can customize the mood in seconds. It provides wireless portability with a built-in battery, ensuring a cozy night's sleep without cords.",
@@ -70,7 +73,8 @@ export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
     ]
   },
   "mistflow-ambient-humidifier-lamp": {
-    title: "Vurlo MistFlow Humidifier Lamp – Cool Mist Aesthetic Desk Light & Ambient Glow",
+    displayName: "MistFlow Humidifier Lamp",
+    seoTitle: "Vurlo MistFlow Humidifier Lamp – Cool Mist Aesthetic Desk Light & Ambient Glow",
     metaTitle: "Desk Humidifier Lamp – Cozy Ambient Office Decor | Vurlo",
     metaDescription: "Buy MistFlow ambient humidifier lamp on Vurlo. Enhance your desk setup with a cool mist humidifier and soft room lighting. Perfect for cozy spaces.",
     description: "Transform your workspace or bedroom into a peaceful sanctuary with the Vurlo MistFlow Humidifier Lamp. This 2-in-1 device combines a fine, soothing cool mist with soft ambient lighting to elevate your environment's air quality and aesthetic vibe. Specially designed for modern desk setups, it operates silently under 30dB to ensure your focus, reading, or sleep remains completely uninterrupted. The elegant minimalist styling makes it a premium decor piece even when turned off. Ideal for dry rooms, it adds essential moisture to the air while enveloping your room in a warm, relaxing glow. Perfect for aesthetic setups in India, it helps you relax, breathe better, and upgrade your room's bedroom lighting and desk layout. Add a touch of RGB lighting or warm ambient glow to set the tone for relaxation. It is the perfect fusion of functional wellness and modern aesthetic room decor, bringing comfort and style together.",
@@ -100,7 +104,8 @@ export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
     ]
   },
   "sunset-glow-projection-lamp": {
-    title: "Vurlo Sunset Projection Lamp – RGB Ambient Light for Gaming Setup & Bedroom Decor",
+    displayName: "Sunset Projection Lamp",
+    seoTitle: "Vurlo Sunset Projection Lamp – RGB Ambient Light for Gaming Setup & Bedroom Decor",
     metaTitle: "Sunset Projection Lamp – Aesthetic Room Light for Gaming Setup | Vurlo",
     metaDescription: "Shop the viral sunset projection lamp on Vurlo. Perfect RGB light for gaming setups, aesthetic room decor, photography, and cozy bedroom lighting in India.",
     description: "Bring the warm, golden hues of a beautiful sunset directly into your space with the Vurlo Sunset Projection Lamp. As a viral sensation on TikTok and Instagram, this projection lamp is a must-have for content creators, photographers, and anyone looking to create an aesthetic room decor setup. It projects a realistic sunset circle on your walls or ceiling, casting a warm and calming glow that instantly transforms the vibe. Made with a heavy-duty aluminum base and high-definition crystal lens, it offers 360-degree rotation to adjust the size and shape of the halo. Ideal for cozy gaming setups, bedrooms, and artistic background photography in India, this RGB lighting fixture adds rich warmth and mood lighting to any corner. Upgrade your bedroom lighting with dynamic colors and set a relaxing tone for sleep or focus. It's a premium ambient lighting solution designed to elevate daily life.",
@@ -130,7 +135,8 @@ export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
     ]
   },
   "orbit-galaxy-projector": {
-    title: "Vurlo Orbit Galaxy Projector – Smart Nebula Night Lamp & Gaming Setup Light",
+    displayName: "Galaxy Projector Lamp",
+    seoTitle: "Vurlo Orbit Galaxy Projector – Smart Nebula Night Lamp & Gaming Setup Light",
     metaTitle: "Galaxy Projector – Starry Night Light for Gaming Room Setup | Vurlo",
     metaDescription: "Buy Orbit galaxy projector on Vurlo. Smart nebula projector and starry night light, perfect for gaming setups, home theaters, and bedroom lighting.",
     description: "Escape reality and enter your own cosmic sky with the Vurlo Orbit Galaxy Projector. This smart nebula room light projects high-definition moving nebula clouds and laser stars across your walls and ceiling. With customizable RGB lighting color combinations, speed settings, and brightness controls, you can create a relaxing cosmic sky perfect for unwinding after a long day, sleeping under the stars, or lighting up a party. The sleek futuristic design fits perfectly in modern gaming setups, bedrooms, and home theaters. It serves as a calming night light for children and an immersive ambient lighting setup for adults. Upgrade your room into a cosmic experience with this premium galaxy light in India. Perfect for creating a modern aesthetic room decor look, this projector brings celestial magic right into your home. Experience cozy bedroom lighting that feels out of this world and elevates your setup's mood.",
@@ -160,7 +166,8 @@ export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
     ]
   },
   "aquawave-projector-lamp": {
-    title: "Vurlo AquaWave Projector Lamp – Ocean Ripple Kinetic RGB Ambient Lighting",
+    displayName: "AquaWave Projector Lamp",
+    seoTitle: "Vurlo AquaWave Projector Lamp – Ocean Ripple Kinetic RGB Ambient Lighting",
     metaTitle: "AquaWave Projector Lamp – Ocean Wave Light for Bedroom Decor | Vurlo",
     metaDescription: "Shop AquaWave projector lamp on Vurlo. Dynamic ocean wave ripple effects with RGB colors, ideal for gaming desk setups and relaxing bedroom lighting.",
     description: "Experience the serene tranquility of moving water with the Vurlo AquaWave Projector Lamp. This premium ocean ripple LED light casts organic, fluid water wave effects across your walls, mimicking the calming motion of underwater currents. Crafted with a premium crystal acrylic shade and a wooden base, it looks stunningly elegant as a piece of decor even during the day. It features multiple RGB lighting color modes, letting you shift from warm relaxation tones to vibrant ocean blues or sunset purples. Designed for bedroom lighting, gaming desk backdrops, and sensory relaxation rooms, it helps melt away stress and anxiety. Elevate your room vibe in India with this unique kinetic light. Rest it on a nightstand or shelf to create a beautiful ambient lighting backdrop for sleep or reading. It is the ultimate addition to any modern aesthetic room decor setup, offering motion, color, and comfort.",
@@ -190,7 +197,8 @@ export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
     ]
   },
   "aura-rgb-led-strip-lights": {
-    title: "Vurlo Aura RGB LED Strip Lights – Smart Setup Backlighting & Ambient Glow Kit",
+    displayName: "RGB LED Strip Lights",
+    seoTitle: "Vurlo Aura RGB LED Strip Lights – Smart Setup Backlighting & Ambient Glow Kit",
     metaTitle: "RGB Strip Lights – Ambient LED lighting for Gaming Setup | Vurlo",
     metaDescription: "Buy Aura RGB LED strip lights on Vurlo. Smart room glow kit with sound-sync and music modes, perfect for desk backlighting and gaming setups in India.",
     description: "Upgrade your entire room with vibrant, customizable glow using the Vurlo Aura RGB LED Strip Lights. Spanning 3.5 meters, this smart room glow kit is perfect for outlining desks, TV backs, beds, or ceilings. With millions of colors and dynamic RGB lighting modes, you can set the perfect ambiance for movies, gaming sessions, or late-night reading. The self-adhesive backing allows for quick, tool-free installation on any dry, flat surface. You can trim the strip to fit your exact measurements. Controlled via remote or smart controller, it offers seamless brightness and mode adjustment. It's the ultimate base layer for modern bedroom lighting and gaming setups in India. Create a stunning aesthetic room decor setup that reacts to your music or game audio. Transform ordinary spaces into an immersive experience with high-density, bright LEDs that provide stable, premium ambient lighting for everyday enjoyment.",
@@ -220,7 +228,8 @@ export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
     ]
   },
   "crystal-aura-lamp": {
-    title: "Vurlo 3D Crystal Aura Lamp – Glass Ball Night Light & Aesthetic Room Decor",
+    displayName: "Crystal Aura Lamp",
+    seoTitle: "Vurlo 3D Crystal Aura Lamp – Glass Ball Night Light & Aesthetic Room Decor",
     metaTitle: "Crystal Ball Night Lamp – Aesthetic Bedroom Decor Light | Vurlo",
     metaDescription: "Shop 3D crystal aura lamp on Vurlo. Engraved glass sphere with a wooden base, providing soft ambient lighting for bedrooms and aesthetic desk setups.",
     description: "Elevate your setup with the mystical elegance of the Vurlo Crystal Aura Lamp. Featuring a heavy, solid glass sphere with high-precision 3D laser engraving inside, this lamp projects a beautiful ambient lighting pattern that illuminates the detailed cosmic design within. It rests on a minimalist natural wood base equipped with warm LED light. The light refracts through the crystal sphere to project a stunning pattern on the ceiling. Perfect for bedside tables, aesthetic room decor, study desks, and shelves, it adds a touch of wonder to any room. It is also an exquisite, premium gift for space lovers and decor enthusiasts in India. Upgrade your bedroom lighting with this unique piece that functions as a night light and an ornament. Introduce soft RGB lighting effects to your space and enjoy a relaxing environment. It is a stunning decorative piece built to last and inspire.",
@@ -250,7 +259,8 @@ export const PRODUCT_SEO_DATA: Record<string, SeoProductData> = {
     ]
   },
   "infinity-bloom-lamp": {
-    title: "Vurlo Infinity Bloom Lamp – Handmade Tulip Mirror Night Lamp & Bedroom Decor",
+    displayName: "Infinity Bloom Lamp",
+    seoTitle: "Vurlo Infinity Bloom Lamp – Handmade Tulip Mirror Night Lamp & Bedroom Decor",
     metaTitle: "Tulip Infinity Lamp – Handcrafted Desk Mirror Vibe Light | Vurlo",
     metaDescription: "Buy Infinity Bloom tulip lamp on Vurlo. Clever infinity mirror effect with handcrafted tulips, perfect for cozy bedroom decor and bedside night lights.",
     description: "Discover the magical optical illusion of the Vurlo Infinity Bloom Lamp. Using a clever combination of double-sided mirrors and warm LED lights, this lamp creates the illusion of an endless, glowing field of beautiful tulips stretching inside a clear glass cube. When turned on, it is a glowing field of flowers; when turned off, the outer shell serves as a sleek, modern desktop mirror. The perfect blend of nature-inspired beauty and futuristic optical illusion, it instantly adds cozy warmth and a dreamy aesthetic room decor touch to any room. Handcrafted to perfection, it is the best gift to wow a loved one and elevate room styling in India. Upgrade your bedroom lighting with this beautiful lamp that doubles as a functional vanity mirror. Set the tone with warm ambient lighting or add RGB lighting details to your gaming desk or bedside table, transforming your space into a peaceful oasis.",

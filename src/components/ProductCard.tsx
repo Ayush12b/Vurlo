@@ -10,6 +10,8 @@ export interface ProductCardProps {
   product: {
     id: string;
     name: string;
+    displayName?: string;
+    seoTitle?: string;
     slug: string;
     price: number | string;
     img: string;
@@ -262,7 +264,7 @@ export function ProductCard({
           <div className="pcard__sep mb-4" />
 
           <div className="flex flex-col flex-1">
-            <p className="pcard__name mb-2">{p.name}</p>
+            <p className="pcard__name mb-2">{p.displayName || p.name}</p>
             {p.variants && p.variants.length > 0 && (
               <span className="text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest block mb-2">
                 Multiple Variants Available

@@ -92,6 +92,8 @@ function SearchPage() {
       const queryTokens = q.toLowerCase().split(/\s+/).filter(Boolean);
       if (queryTokens.length > 0) {
         const nameLower = p.name.toLowerCase();
+        const displayNameLower = (p.displayName || "").toLowerCase();
+        const seoTitleLower = (p.seoTitle || "").toLowerCase();
         const descLower = (p.description || "").toLowerCase();
         const catLower = (p.category || "").toLowerCase();
         const tagsLower = (p.tags || []).map((t) => t.toLowerCase());
@@ -99,6 +101,8 @@ function SearchPage() {
         const matchesQuery = queryTokens.some(
           (token: string) =>
             nameLower.includes(token) ||
+            displayNameLower.includes(token) ||
+            seoTitleLower.includes(token) ||
             descLower.includes(token) ||
             catLower.includes(token) ||
             tagsLower.some((tag: string) => tag.includes(token))
@@ -256,6 +260,8 @@ function SearchPage() {
                         product={{
                           id: p.id,
                           name: p.name,
+                          displayName: p.displayName,
+                          seoTitle: p.seoTitle,
                           slug: p.slug,
                           price: p.price,
                           img: getProductImage(p),
@@ -304,6 +310,8 @@ function SearchPage() {
                     product={{
                       id: p.id,
                       name: p.name,
+                      displayName: p.displayName,
+                      seoTitle: p.seoTitle,
                       slug: p.slug,
                       price: p.price,
                       img: getProductImage(p),

@@ -38,6 +38,8 @@ export interface FirestoreProduct {
   tags?: string[];
   variants?: { name: string; images: string[] }[];
   defaultVariant?: string;
+  displayName?: string;
+  seoTitle?: string;
 }
 
 /**
@@ -104,6 +106,8 @@ export function useProducts() {
         items.push({
           id: docSnap.id,
           name: (data.name as string) || "",
+          displayName: (data.displayName as string) || undefined,
+          seoTitle: (data.seoTitle as string) || undefined,
           slug: (data.slug as string) || getProductSlug((data.name as string) || ""),
           price: (data.price as number) ?? 0,
           image: imgUrl,

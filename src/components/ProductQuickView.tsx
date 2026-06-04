@@ -246,7 +246,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
               )}
             </div>
             <h3 className="text-xl font-bold text-white tracking-tight leading-snug">
-              {product.name}
+              {product.displayName || product.name}
             </h3>
             {product.rating !== undefined && (
               <div className="flex items-center gap-1.5 text-xs text-amber-400">

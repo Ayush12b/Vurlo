@@ -356,7 +356,7 @@ function ProductDetailPage() {
 
                 {/* H1 Title */}
                 <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                  {seoData?.title || product.name}
+                  {seoData?.seoTitle || product.seoTitle || product.name}
                 </h1>
 
                 {/* Rating & Reviews */}
@@ -658,7 +658,7 @@ function ProductDetailPage() {
                           />
                         </div>
                         <div className="flex flex-col flex-1 mt-4 space-y-2">
-                          <h3 className="text-xs font-bold text-white truncate">{related.name}</h3>
+                          <h3 className="text-xs font-bold text-white truncate">{related.displayName || related.name}</h3>
                           <p className="text-[10px] text-white/30 truncate uppercase tracking-widest">{related.category}</p>
                           <p className="text-xs font-bold text-violet-400 mt-auto">₹{formatPrice(related.price)}</p>
                         </div>
@@ -674,9 +674,9 @@ function ProductDetailPage() {
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "Product",
-                "name": seoData?.title || product.name,
+                "name": seoData?.seoTitle || product.seoTitle || product.name,
                 "description": seoData?.description || product.description,
-                "image": resolvedImages[0] || resolveProductImage("", seoData?.title || product.name),
+                "image": resolvedImages[0] || resolveProductImage("", seoData?.seoTitle || product.seoTitle || product.name),
                 "brand": {
                   "@type": "Brand",
                   "name": "Vurlo"

@@ -186,6 +186,8 @@ function ShopPage() {
                   product={{
                     id: p.id,
                     name: p.name,
+                    displayName: p.displayName,
+                    seoTitle: p.seoTitle,
                     slug: p.slug,
                     price: p.price,
                     img: getProductImage(p),
