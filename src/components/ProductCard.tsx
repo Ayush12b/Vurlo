@@ -3,11 +3,14 @@ import { ShoppingBag, ArrowUpRight, Loader2, Heart } from "lucide-react";
 import { usePremiumTilt, useMagnetic } from "@/hooks/use-premium-interactions";
 import { useCart } from "@/hooks/use-cart";
 import { resolveProductImage, formatPrice, getAdjustmentStyle } from "@/hooks/use-products";
+import { Link } from "@tanstack/react-router";
+import { getProductSlug } from "@/utils/product";
 
 export interface ProductCardProps {
   product: {
     id: string;
     name: string;
+    slug: string;
     price: number | string;
     img: string;
     images?: string[] | Record<string, string[]>;
@@ -100,25 +103,34 @@ export function ProductCard({
 
   return (
     <div className="flex flex-col h-full">
-      <article
-        id={`product-${p.id}`}
-        ref={tilt.cardRef}
-        className={`pcard group flex flex-col h-full p-4 sm:p-5 ${isSelected ? "selected" : ""}`}
-        onClick={() => {
-          onSelect?.();
+      <Link
+        to="/product/$slug"
+        params={{ slug: p.slug }}
+        className="block h-full no-underline"
+        onClick={(e) => {
+          const isModifiedClick = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+          if (!isModifiedClick) {
+            e.preventDefault();
+            onSelect?.();
+          }
         }}
-        onPointerEnter={tilt.onPointerEnter}
-        onPointerMove={tilt.onPointerMove}
-        onPointerLeave={tilt.onPointerLeave}
-        style={
-          {
-            "--accent": p.accent,
-            "--accent-rgb": p.accentRgb,
-            "--card-index": index,
-          } as React.CSSProperties
-        }
       >
-        <div ref={tilt.lightRef} className="pcard__light" />
+        <article
+          id={`product-${p.id}`}
+          ref={tilt.cardRef}
+          className={`pcard group flex flex-col h-full p-4 sm:p-5 ${isSelected ? "selected" : ""}`}
+          onPointerEnter={tilt.onPointerEnter}
+          onPointerMove={tilt.onPointerMove}
+          onPointerLeave={tilt.onPointerLeave}
+          style={
+            {
+              "--accent": p.accent,
+              "--accent-rgb": p.accentRgb,
+              "--card-index": index,
+            } as React.CSSProperties
+          }
+        >
+          <div ref={tilt.lightRef} className="pcard__light" />
         <div className="pcard__ring" />
 
         {/* Ambient glow orb behind image */}
@@ -314,6 +326,7 @@ export function ProductCard({
           </div>
         </div>
       </article>
+      </Link>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { getProductImage } from "@/utils/product";
+import { getProductImage, getProductSlug } from "@/utils/product";
 
 export {
   resolveProductImage,
@@ -13,6 +13,7 @@ export {
 export interface FirestoreProduct {
   id: string;
   name: string;
+  slug: string;
   price: number;
   image: string;
   images: string[] | Record<string, string[]>; // Always a non-empty normalized array or variant map
@@ -103,6 +104,7 @@ export function useProducts() {
         items.push({
           id: docSnap.id,
           name: (data.name as string) || "",
+          slug: (data.slug as string) || getProductSlug((data.name as string) || ""),
           price: (data.price as number) ?? 0,
           image: imgUrl,
           images: normalizedImages,

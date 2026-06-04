@@ -43,3 +43,12 @@ export function getProductImage(
   // Return empty string — resolveProductImage will apply named fallback
   return "";
 }
+
+export function getProductSlug(name: string): string {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+

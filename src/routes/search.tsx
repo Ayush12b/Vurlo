@@ -257,6 +257,7 @@ function SearchPage() {
                         product={{
                           id: p.id,
                           name: p.name,
+                          slug: p.slug,
                           price: p.price,
                           img: getProductImage(p),
                           images: p.images,
@@ -304,6 +305,7 @@ function SearchPage() {
                     product={{
                       id: p.id,
                       name: p.name,
+                      slug: p.slug,
                       price: p.price,
                       img: getProductImage(p),
                       images: p.images,
