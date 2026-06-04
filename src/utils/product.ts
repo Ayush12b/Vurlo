@@ -46,7 +46,8 @@ export function getProductImage(
 
 export function getProductSlug(name: string): string {
   if (!name) return "";
-  return name
+  const coreName = name.split(/[–—(]|\s+-\s+/)[0].trim();
+  return coreName
     .toLowerCase()
     .replace(/^vurlo\s+/i, "")
     .replace(/[^a-z0-9]+/g, "-")

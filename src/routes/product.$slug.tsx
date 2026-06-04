@@ -48,7 +48,7 @@ function ProductDetailPage() {
   const { toggleWishlist, isWishlisted } = useWishlist();
 
   const product = useMemo(() => {
-    return dbProducts.find((p) => p.slug.toLowerCase() === slug.toLowerCase());
+    return dbProducts.find((p) => p.slug === slug);
   }, [dbProducts, slug]);
 
   // Debug logging for product slugs and error handling
