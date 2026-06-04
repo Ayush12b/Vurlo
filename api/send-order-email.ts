@@ -63,6 +63,7 @@ async function sendOrderEmail(details: {
 <title>Order Confirmed – VURLO</title>
 </head>
 <body style="margin:0;padding:0;background:#050508;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">✦ Your order is confirmed and being prepared — thank you for shopping with VURLO!</div>
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#050508;padding:40px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
