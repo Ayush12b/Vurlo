@@ -108,6 +108,13 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Contact Form Submissions
+    match /contacts/{contactId} {
+      allow create: if false; // only server-side (API) can write
+      allow read, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // Stock Notifications (Notify Me When Back in Stock)
     match /stock_notifications/{docId} {
       allow create: if request.resource.data.email is string

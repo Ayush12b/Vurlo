@@ -1,5 +1,18 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
+import * as admin from "firebase-admin";
+
+// Initialize Firebase Admin (only once)
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  });
+}
+const adminDb = admin.firestore();
 
 async function sendEmailWithRetry(payload: any, retries = 2): Promise<any> {
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -161,6 +174,11 @@ Sent automatically by Vurlo.store Support System.
     html,
     text,
     replyTo: email,
+    headers: {
+      "X-Entity-Ref-ID": cleanEmail + "-notify",
+      "Precedence": "bulk",
+      "List-Unsubscribe": "<mailto:support@vurlo.store>",
+    },
   });
 }
 
@@ -395,6 +413,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       timestamp,
       receiverEmails,
     });
+
+    // Save to Firestore contacts collection
+    try {
+      await adminDb.collection("contacts").add({
+        name: cleanName,
+        email: cleanEmail,
+        message: cleanMessage,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        read: false,
+      });
+    } catch (fsErr: any) {
+      console.warn("Firestore contacts save failed:", fsErr.message);
+      // Non-fatal — email already sent
+    }
 
     // Send auto-reply confirmation email to the user
     try {

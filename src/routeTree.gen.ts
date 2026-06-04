@@ -25,6 +25,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminContactsRouteImport } from './routes/admin/contacts'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -106,6 +107,11 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminContactsRoute = AdminContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/wishlist'
+    | '/admin/contacts'
     | '/admin/dashboard'
     | '/admin/login'
     | '/admin/orders'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/wishlist'
+    | '/admin/contacts'
     | '/admin/dashboard'
     | '/admin/login'
     | '/admin/orders'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/wishlist'
+    | '/admin/contacts'
     | '/admin/dashboard'
     | '/admin/login'
     | '/admin/orders'
@@ -347,10 +359,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/contacts': {
+      id: '/admin/contacts'
+      path: '/contacts'
+      fullPath: '/admin/contacts'
+      preLoaderRoute: typeof AdminContactsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminContactsRoute: typeof AdminContactsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -359,6 +379,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminContactsRoute: AdminContactsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminOrdersRoute: AdminOrdersRoute,
