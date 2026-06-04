@@ -1,5 +1,178 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sendDeliveryEmail } from "./_lib/emails";
+import { Resend } from "resend";
+
+interface DeliveredItem {
+  name: string;
+  quantity: number;
+}
+
+async function sendEmailWithRetry(payload: any, retries = 2): Promise<any> {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  for (let attempt = 1; attempt <= retries + 1; attempt++) {
+    try {
+      const { data, error } = await resend.emails.send({
+        ...payload,
+        headers: {
+          "Auto-Submitted": "auto-generated",
+          "X-Auto-Response-Suppress": "All",
+          ...payload.headers,
+        },
+      });
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (err: any) {
+      if (attempt > retries) throw err;
+      await new Promise(r => setTimeout(r, attempt * 1000));
+    }
+  }
+}
+
+async function sendDeliveryEmail(data: {
+  orderId: string;
+  deliveredItems: DeliveredItem[];
+  customerEmail: string;
+  customerName: string;
+}) {
+  const { orderId, deliveredItems, customerEmail, customerName } = data;
+
+  const itemsHtml = deliveredItems
+    .map(
+      (item) => `
+    <li style="margin-bottom: 8px; color: #ffffff; font-size: 13.5px;">
+      <span style="color: #00e5ff; font-weight: bold; margin-right: 6px;">✓</span>
+      ${item.name} <span style="color: rgba(255,255,255,0.4); font-size: 11px;">(Qty: ${item.quantity})</span>
+    </li>
+  `
+    )
+    .join("");
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Your Order Has Been Delivered</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          background-color: #030308;
+          color: #ededf0;
+          padding: 24px;
+          margin: 0;
+        }
+        .container {
+          max-width: 580px;
+          margin: 0 auto;
+          background-color: #0b0b12;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 16px;
+          padding: 32px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+        .header {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          padding-bottom: 20px;
+          margin-bottom: 28px;
+        }
+        .brand {
+          font-size: 22px;
+          font-weight: 800;
+          color: #ffffff;
+          letter-spacing: -0.02em;
+        }
+        .brand-cyan {
+          color: #00e5ff;
+        }
+        h1 {
+          font-size: 20px;
+          font-weight: 700;
+          color: #ffffff;
+          margin: 0 0 10px 0;
+          letter-spacing: -0.02em;
+        }
+        p {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.6);
+          line-height: 1.6;
+          margin: 0 0 20px 0;
+        }
+        .items-box {
+          background-color: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          padding: 20px;
+          margin: 24px 0;
+        }
+        ul {
+          list-style: none;
+          padding: 0;
+          margin: 12px 0 0 0;
+        }
+        .footer {
+          margin-top: 32px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          padding-top: 20px;
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.25);
+          text-align: center;
+          line-height: 1.5;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="brand">Vurlo<span class="brand-cyan">.store</span></div>
+        </div>
+        
+        <h1>Your package has arrived!</h1>
+        <p>Hi ${customerName},</p>
+        <p>We are pleased to inform you that your order has been successfully delivered. We hope you love your new setup addition!</p>
+ 
+        <div class="items-box">
+          <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255, 255, 255, 0.4);">Delivered Items (Order #${orderId})</div>
+          <ul>
+            ${itemsHtml}
+          </ul>
+        </div>
+ 
+        <p>If you have any feedback or concerns regarding the delivery, please don't hesitate to reach out to our team.</p>
+ 
+        <div class="footer">
+          Need support? Reply to this message or contact <a href="mailto:support@vurlo.store" style="color: #a78bfa; text-decoration: none;">support@vurlo.store</a>.<br>
+          You received this email because your Vurlo order was successfully delivered.<br>
+          &copy; 2026 Vurlo.store. All rights reserved.
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Human-friendly plain text fallback
+  const text = `
+Your Vurlo package has arrived, ${customerName}!
+
+We are pleased to inform you that order #${orderId} has been successfully delivered.
+
+Delivered Items:
+${deliveredItems.map((item) => `- ${item.name} (Qty: ${item.quantity})`).join("\n")}
+
+If you have any questions or feedback, reply directly to this email or reach out to support@vurlo.store.
+You received this email because your Vurlo order was successfully delivered.
+  `.trim();
+
+  return sendEmailWithRetry({
+    from: "onboarding@vurlo.store",
+    to: [customerEmail],
+    subject: "Your order has been delivered",
+    html,
+    text,
+    headers: {
+      "X-Entity-Ref-ID": orderId,
+    },
+  });
+}
 
 const ipCache = new Map<string, number>();
 
@@ -172,4 +345,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: error.message || "Internal server error" });
   }
 }
-

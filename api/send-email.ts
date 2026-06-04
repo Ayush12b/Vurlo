@@ -1,5 +1,300 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sendContactNotificationEmail, sendContactAutoReplyEmail } from "./_lib/emails";
+import { Resend } from "resend";
+
+async function sendEmailWithRetry(payload: any, retries = 2): Promise<any> {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  for (let attempt = 1; attempt <= retries + 1; attempt++) {
+    try {
+      const { data, error } = await resend.emails.send({
+        ...payload,
+        headers: {
+          "Auto-Submitted": "auto-generated",
+          "X-Auto-Response-Suppress": "All",
+          ...payload.headers,
+        },
+      });
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (err: any) {
+      if (attempt > retries) throw err;
+      await new Promise(r => setTimeout(r, attempt * 1000));
+    }
+  }
+}
+
+async function sendContactNotificationEmail(details: {
+  name: string;
+  email: string;
+  message: string;
+  timestamp: string;
+  receiverEmails: string[];
+}) {
+  const { name, email, message, timestamp, receiverEmails } = details;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Contact Form Submission</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background-color: #030308;
+          color: #ededf0;
+          padding: 24px;
+          margin: 0;
+        }
+        .container {
+          max-width: 580px;
+          margin: 0 auto;
+          background-color: #0b0b12;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 16px;
+          padding: 32px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+        .header {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          padding-bottom: 20px;
+          margin-bottom: 28px;
+        }
+        .brand {
+          font-size: 22px;
+          font-weight: 800;
+          color: #ffffff;
+          letter-spacing: -0.02em;
+        }
+        .brand-cyan {
+          color: #00e5ff;
+        }
+        h1 {
+          font-size: 20px;
+          font-weight: 700;
+          color: #ffffff;
+          margin: 0 0 10px 0;
+          letter-spacing: -0.02em;
+        }
+        .field {
+          margin-bottom: 20px;
+        }
+        .label {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          color: rgba(255, 255, 255, 0.4);
+          margin-bottom: 6px;
+        }
+        .value {
+          font-size: 14px;
+          color: #ffffff;
+          background-color: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+          padding: 12px 16px;
+        }
+        .message-box {
+          white-space: pre-wrap;
+          line-height: 1.6;
+          color: #e2e2e9;
+        }
+        .footer {
+          margin-top: 32px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          padding-top: 20px;
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.25);
+          text-align: center;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="brand">Vurlo<span class="brand-cyan">.store</span></div>
+        </div>
+        <h1>New Contact Inquiry</h1>
+        <div class="field">
+          <div class="label">User Name</div>
+          <div class="value">${name}</div>
+        </div>
+        <div class="field">
+          <div class="label">User Email</div>
+          <div class="value">${email}</div>
+        </div>
+        <div class="field">
+          <div class="label">Submitted At</div>
+          <div class="value">${timestamp}</div>
+        </div>
+        <div class="field">
+          <div class="label">Message</div>
+          <div class="value message-box">${message}</div>
+        </div>
+        <div class="footer">
+          Sent automatically by Vurlo.store Support System.<br>
+          &copy; 2026 Vurlo.store. All rights reserved.
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+New Contact Inquiry Received
+
+- User Name: ${name}
+- User Email: ${email}
+- Submitted At: ${timestamp}
+
+Message:
+${message}
+
+Sent automatically by Vurlo.store Support System.
+  `.trim();
+
+  return sendEmailWithRetry({
+    from: "onboarding@vurlo.store",
+    to: receiverEmails,
+    subject: `New Inquiry Received - from ${name}`,
+    html,
+    text,
+    replyTo: email,
+  });
+}
+
+async function sendContactAutoReplyEmail(details: {
+  name: string;
+  email: string;
+  message: string;
+}) {
+  const { name, email, message } = details;
+  const shortMessage = message.length > 120 ? message.slice(0, 120) + "..." : message;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>We received your message</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background-color: #030308;
+          color: #ededf0;
+          padding: 24px;
+          margin: 0;
+        }
+        .container {
+          max-width: 580px;
+          margin: 0 auto;
+          background-color: #0b0b12;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 16px;
+          padding: 32px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+        .header {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          padding-bottom: 20px;
+          margin-bottom: 28px;
+        }
+        .brand {
+          font-size: 22px;
+          font-weight: 800;
+          color: #ffffff;
+          letter-spacing: -0.02em;
+        }
+        .brand-cyan {
+          color: #00e5ff;
+        }
+        h1 {
+          font-size: 20px;
+          font-weight: 700;
+          color: #ffffff;
+          margin: 0 0 12px 0;
+        }
+        p {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.7);
+          line-height: 1.6;
+          margin: 0 0 16px 0;
+        }
+        .summary {
+          background-color: rgba(255, 255, 255, 0.02);
+          border-left: 3px solid #7c3aed;
+          padding: 12px 16px;
+          margin: 20px 0;
+          font-style: italic;
+          font-size: 13.5px;
+          color: rgba(255, 255, 255, 0.6);
+          border-radius: 0 8px 8px 0;
+        }
+        .footer {
+          margin-top: 32px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          padding-top: 20px;
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.25);
+          text-align: center;
+          line-height: 1.5;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="brand">Vurlo<span class="brand-cyan">.store</span></div>
+        </div>
+        <h1>We've received your message</h1>
+        <p>Hi ${name},</p>
+        <p>
+          Thank you for reaching out to Vurlo. We have successfully received your inquiry and our support team is currently reviewing it.
+        </p>
+        <p>
+          We strive to answer all questions as quickly as possible. You can expect a response from us within 24 hours.
+        </p>
+        <div class="summary">
+          <strong>Your message summary:</strong><br>
+          "${shortMessage}"
+        </div>
+        <div class="footer">
+          Need support? Reply to this message or contact <a href="mailto:support@vurlo.store" style="color: #a78bfa; text-decoration: none;">support@vurlo.store</a>.<br>
+          You received this email because you submitted a contact inquiry on Vurlo.store.<br>
+          &copy; 2026 Vurlo.store. All rights reserved.
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Hi ${name},
+
+Thank you for reaching out to Vurlo support. We have successfully received your message and our team is already reviewing it.
+
+We strive to address all requests as quickly as possible. You can expect a response from us within 24 hours.
+
+Your message summary:
+"${message}"
+
+If you have any questions, reply to this email or contact support@vurlo.store.
+You received this email because you submitted a contact inquiry on Vurlo.store.
+  `.trim();
+
+  return sendEmailWithRetry({
+    from: "onboarding@vurlo.store",
+    to: [email],
+    subject: "We received your complaint",
+    html,
+    text,
+    headers: {
+      "X-Entity-Ref-ID": email + "-contact",
+    },
+  });
+}
 
 // Simple in-memory rate limiting map
 const ipCache = new Map<string, number>();
