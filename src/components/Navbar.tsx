@@ -97,7 +97,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const { user, profileName, profilePhoto, authModalOpen, setAuthModalOpen, logout, loading } =
     useAuth();
-  const { cartItems, cartCount, updateQuantity, removeFromCart, placeOrder, addToCart } = useCart();
+  const { cartItems, cartCount, updateQuantity, removeFromCart, addToCart } = useCart();
   const { wishlistCount } = useWishlist();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
@@ -111,16 +111,8 @@ export function Navbar() {
   };
   const [animateCart, setAnimateCart] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const [placingOrder, setPlacingOrder] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-
-  const [shippingOpen, setShippingOpen] = useState(false);
-  const [shippingName, setShippingName] = useState("");
-  const [shippingAddress, setShippingAddress] = useState("");
-  const [shippingCity, setShippingCity] = useState("");
-  const [shippingPinCode, setShippingPinCode] = useState("");
-  const [shippingPhone, setShippingPhone] = useState("");
 
   const { data: allProducts } = useProducts();
   const recommendedProducts = useMemo(
@@ -136,60 +128,13 @@ export function Navbar() {
     checkIsAdmin(user.uid, user.email).then(setIsAdmin);
   }, [user]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!user) {
       setAuthModalOpen(true);
       return;
     }
     setCartOpen(false);
-    setShippingOpen(true);
-  };
-
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const nameVal = shippingName.trim();
-    const addressVal = shippingAddress.trim();
-    const cityVal = shippingCity.trim();
-    const pinCodeVal = shippingPinCode.trim();
-    const phoneVal = shippingPhone.trim();
-
-    if (!nameVal || !addressVal || !cityVal || !pinCodeVal || !phoneVal) {
-      toast.error("Please fill in all shipping details.");
-      return;
-    }
-
-    if (!/^[6-9]\d{9}$/.test(phoneVal)) {
-      toast.error("Enter a valid 10-digit Indian mobile number.");
-      return;
-    }
-
-    if (!/^\d{6}$/.test(pinCodeVal)) {
-      toast.error("Enter a valid 6-digit PIN code.");
-      return;
-    }
-
-    setPlacingOrder(true);
-    try {
-      const shippingDetails = {
-        name: nameVal,
-        address: addressVal,
-        city: cityVal,
-        pinCode: pinCodeVal,
-        phone: phoneVal,
-      };
-      const orderId = await placeOrder(shippingDetails);
-      setShippingOpen(false);
-      setShippingName("");
-      setShippingAddress("");
-      setShippingCity("");
-      setShippingPinCode("");
-      setShippingPhone("");
-      navigate({ to: "/order-success", search: { orderId } });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setPlacingOrder(false);
-    }
+    navigate({ to: "/checkout" });
   };
 
   useEffect(() => {
@@ -755,17 +700,12 @@ export function Navbar() {
                         </div>
                         <button
                           onClick={handleCheckout}
-                          disabled={placingOrder}
                           className="w-full text-xs font-bold uppercase tracking-wider h-11 rounded-xl text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] flex items-center justify-center gap-2"
                           style={{
                             background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
                           }}
                         >
-                          {placingOrder ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-white" />
-                          ) : (
-                            "Secure Checkout"
-                          )}
+                          Secure Checkout
                         </button>
                       </div>
                     )}
@@ -945,110 +885,6 @@ export function Navbar() {
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-
-      <Dialog open={shippingOpen} onOpenChange={setShippingOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-[#0c0c14] border border-white/[0.08] text-white rounded-2xl shadow-[0_24px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-bold uppercase tracking-wider text-white">
-              Shipping Information
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handlePlaceOrder} className="space-y-4 pt-2">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                Full Name
-              </label>
-              <Input
-                type="text"
-                placeholder="Ayush Sharma"
-                value={shippingName}
-                onChange={(e) => setShippingName(e.target.value)}
-                className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
-                required
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                Street Address
-              </label>
-              <Input
-                type="text"
-                placeholder="123 Glow Street, Block 4"
-                value={shippingAddress}
-                onChange={(e) => setShippingAddress(e.target.value)}
-                className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                  City
-                </label>
-                <Input
-                  type="text"
-                  placeholder="New Delhi"
-                  value={shippingCity}
-                  onChange={(e) => setShippingCity(e.target.value)}
-                  className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                  PIN Code
-                </label>
-                <Input
-                  type="text"
-                  placeholder="110001"
-                  value={shippingPinCode}
-                  onChange={(e) => setShippingPinCode(e.target.value)}
-                  className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
-                  required
-                  maxLength={6}
-                />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                Phone Number
-              </label>
-              <Input
-                type="tel"
-                placeholder="9876543210"
-                value={shippingPhone}
-                onChange={(e) => setShippingPhone(e.target.value)}
-                className="bg-white/[0.02] border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-10 px-3 text-xs"
-                required
-                maxLength={10}
-              />
-            </div>
-            <div className="flex justify-end gap-2.5 pt-4 border-t border-white/[0.06] mt-4">
-              <button
-                type="button"
-                onClick={() => setShippingOpen(false)}
-                className="px-5 py-2.5 rounded-xl border border-white/10 hover:bg-white/[0.04] text-xs font-semibold text-white/70 hover:text-white transition duration-200 cursor-pointer focus:outline-none"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={placingOrder}
-                className="inline-flex items-center justify-center rounded-xl bg-white text-black px-6 py-2.5 text-xs font-semibold hover:bg-white/90 transition shadow-[0_4px_20px_rgba(255,255,255,0.1)] cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-              >
-                {placingOrder ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-                    Placing Order...
-                  </>
-                ) : (
-                  "Confirm Order"
-                )}
-              </button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

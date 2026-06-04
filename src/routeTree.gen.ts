@@ -17,6 +17,7 @@ import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminWishlistsRouteImport } from './routes/admin/wishlists'
@@ -65,6 +66,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -104,6 +110,7 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/notifications': typeof NotificationsRoute
   '/order-success': typeof OrderSuccessRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/notifications': typeof NotificationsRoute
   '/order-success': typeof OrderSuccessRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/notifications': typeof NotificationsRoute
   '/order-success': typeof OrderSuccessRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/checkout'
     | '/contact'
     | '/notifications'
     | '/order-success'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/checkout'
     | '/contact'
     | '/notifications'
     | '/order-success'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/checkout'
     | '/contact'
     | '/notifications'
     | '/order-success'
@@ -210,6 +222,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   NotificationsRoute: typeof NotificationsRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
@@ -276,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -351,6 +371,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   NotificationsRoute: NotificationsRoute,
   OrderSuccessRoute: OrderSuccessRoute,
