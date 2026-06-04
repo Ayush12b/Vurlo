@@ -34,6 +34,7 @@ interface CartContextType {
     name: string;
     address: string;
     city: string;
+    state: string;
     pinCode: string;
     phone: string;
   }) => Promise<string | undefined>;
@@ -414,6 +415,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     name: string;
     address: string;
     city: string;
+    state: string;
     pinCode: string;
     phone: string;
   }): Promise<string | undefined> => {
@@ -519,7 +521,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               quantity: item.quantity,
             })),
             totalAmount,
-            deliveryAddress: `${shippingDetails.address}, ${shippingDetails.city} - ${shippingDetails.pinCode}`,
+            deliveryAddress: `${shippingDetails.address}, ${shippingDetails.city}, ${shippingDetails.state} - ${shippingDetails.pinCode}`,
             estimatedDelivery: "3-5 business days",
           }),
         })

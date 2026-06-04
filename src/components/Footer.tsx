@@ -1,10 +1,18 @@
-import { Instagram, Twitter, Youtube, Github, ShieldCheck, Truck, Award } from "lucide-react";
+import { Instagram, Twitter, Youtube, ShieldCheck, Truck, Award } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 const cols = [
-  { title: "Shop", links: ["All Products", "New Arrivals", "Bestsellers", "Sale"] },
-  { title: "Company", links: ["About", "Careers", "Press", "Contact"] },
-  { title: "Support", links: ["Shipping", "Returns", "Warranty", "FAQ"] },
+  { title: "Shop", links: [
+    { label: "All Products", href: "/search" },
+    { label: "New Arrivals", href: "/search?category=new" },
+    { label: "Sale", href: "/?sale=true" },
+  ]},
+  { title: "Company", links: [
+    { label: "Contact", href: "/contact" },
+  ]},
+  { title: "Support", links: [
+    { label: "Contact Us", href: "/contact" },
+  ]},
 ];
 
 export function Footer() {
@@ -48,10 +56,16 @@ export function Footer() {
             Premium ambient lighting & room decor. Elevate your room aesthetics and set the perfect vibe.
           </p>
           <div className="mt-6 flex gap-3">
-            {[Instagram, Twitter, Youtube, Github].map((Icon, i) => (
+            {[
+              { Icon: Instagram, href: "https://instagram.com/vurlo.store" },
+              { Icon: Twitter, href: "https://twitter.com/vurlostore" },
+              { Icon: Youtube, href: "https://youtube.com/@vurlo" },
+            ].map(({ Icon, href }, i) => (
               <a
                 key={i}
-                href="#"
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="h-9 w-9 rounded-lg border border-border grid place-items-center hover:border-primary hover:text-primary transition-colors"
               >
                 <Icon className="h-4 w-4" />
@@ -64,10 +78,10 @@ export function Footer() {
             <h4 className="font-display font-semibold mb-4">{c.title}</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               {c.links.map((l) => (
-                <li key={l}>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    {l}
-                  </a>
+                <li key={l.label}>
+                  <Link to={l.href} className="hover:text-foreground transition-colors">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -78,12 +92,12 @@ export function Footer() {
         <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col sm:flex-row justify-between gap-3 text-xs text-muted-foreground">
           <p>© 2026 VURLO. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-foreground">
+            <Link to="/contact" className="hover:text-foreground">
               Privacy Policy
-            </a>
-            <a href="#" className="hover:text-foreground">
+            </Link>
+            <Link to="/contact" className="hover:text-foreground">
               Terms of Service
-            </a>
+            </Link>
           </div>
         </div>
       </div>

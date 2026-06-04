@@ -19,6 +19,8 @@ function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
   const [checkingRedirect, setCheckingRedirect] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
 
   // If already logged in, verify admin status and redirect to dashboard
   useEffect(() => {
@@ -51,6 +53,15 @@ function AdminLoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Brute-force protection
+    if (lockedUntil && Date.now() < lockedUntil) {
+      const secondsLeft = Math.ceil((lockedUntil - Date.now()) / 1000);
+      toast.error("Too many failed attempts", {
+        description: `Please wait ${secondsLeft} seconds before trying again.`,
+      });
+      return;
+    }
 
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
@@ -124,6 +135,16 @@ function AdminLoginPage() {
       toast.error("Authentication Failed", {
         description: message,
       });
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      if (newAttempts >= 5) {
+        const lockDuration = 60 * 1000; // 60 seconds
+        setLockedUntil(Date.now() + lockDuration);
+        setFailedAttempts(0);
+        toast.error("Account temporarily locked", {
+          description: "Too many failed attempts. Please wait 60 seconds.",
+        });
+      }
     } finally {
       setLoggingIn(false);
     }
@@ -194,7 +215,7 @@ function AdminLoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={loggingIn || authLoading}
+              disabled={loggingIn || authLoading || (lockedUntil !== null && Date.now() < lockedUntil)}
               className="w-full text-xs font-bold uppercase tracking-wider h-11 rounded-xl text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_25px_rgba(124,58,237,0.25)] flex items-center justify-center gap-2 mt-2"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",

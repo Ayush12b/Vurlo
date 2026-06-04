@@ -25,6 +25,7 @@ function CheckoutPage() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
+  const [state, setState] = useState("");
   const [pinCode, setPinCode] = useState("");
   const [phone, setPhone] = useState("");
 
@@ -81,6 +82,7 @@ function CheckoutPage() {
         name: name.trim(),
         address: address.trim(),
         city: city.trim(),
+        state: state.trim(),
         pinCode: pinCode.trim(),
         phone: phone.trim(),
       });
@@ -154,7 +156,7 @@ function CheckoutPage() {
                 /* Collapsed view after confirmed */
                 <div className="space-y-1">
                   <p className="text-xs font-semibold text-white/90">{name}</p>
-                  <p className="text-xs text-white/50">{address}, {city} – {pinCode}</p>
+                  <p className="text-xs text-white/50">{address}, {city}, {state} – {pinCode}</p>
                   <p className="text-xs text-white/40">Phone: {phone}</p>
                   <button
                     type="button"
@@ -209,6 +211,16 @@ function CheckoutPage() {
                       />
                     </Field>
                   </div>
+                  <Field label="State">
+                    <Input
+                      type="text"
+                      placeholder="Delhi"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      required
+                      className={inputCls}
+                    />
+                  </Field>
                   <Field label="Phone Number">
                     <Input
                       type="tel"

@@ -1,26 +1,47 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore";
 
 export function Newsletter() {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanEmail = email.trim();
-    if (!cleanEmail) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) {
       toast.error("Please enter a valid email address.");
       return;
     }
 
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      // Check if already subscribed
+      const q = query(collection(db, "newsletter_subscribers"), where("email", "==", cleanEmail));
+      const existing = await getDocs(q);
+      if (!existing.empty) {
+        toast.info("You're already subscribed!", {
+          description: "We'll keep you posted on new drops and deals.",
+        });
+        setEmail("");
+        return;
+      }
+
+      await addDoc(collection(db, "newsletter_subscribers"), {
+        email: cleanEmail,
+        subscribedAt: serverTimestamp(),
+      });
+
       toast.success("You're on the list!", {
         description: "We'll notify you about new drops and exclusive deals.",
       });
       setEmail("");
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
       setSubmitting(false);
-    }, 500);
+    }
   };
 
   return (
