@@ -29,6 +29,7 @@ function ContactContent() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,46 +37,31 @@ function ContactContent() {
       toast.error("Please fill in all the required fields.");
       return;
     }
-
-    if (name.trim().length > 100) {
-      toast.error("Name is too long (max 100 characters).");
-      return;
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds 10MB limit.`);
+        return;
+      }
     }
-    if (message.trim().length > 5000) {
-      toast.error("Message is too long (max 5000 characters).");
-      return;
-    }
-
     setSending(true);
     try {
-      console.log("[contact] Sending email for:", email);
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("message", message);
+      files.forEach((f) => formData.append("files", f));
+
       const response = await fetch("/api/send-email", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, message }),
+        body: formData,
       });
-
       let data: any = null;
-      try {
-        data = await response.json();
-      } catch {}
-
-      if (!response.ok) {
-        throw new Error(data?.error || "Failed to send message. Please try again.");
-      }
-
-      toast.success("Message sent successfully!", {
-        description: "Thank you for reaching out. We will get back to you shortly.",
-        duration: 3500,
-      });
-      setName("");
-      setEmail("");
-      setMessage("");
+      try { data = await response.json(); } catch {}
+      if (!response.ok) throw new Error(data?.error || "Failed to send message.");
+      toast.success("Message sent successfully!", { description: "We'll get back to you within 24 hours.", duration: 3500 });
+      setName(""); setEmail(""); setMessage(""); setFiles([]);
     } catch (error: any) {
-      console.error("Error sending message:", error);
-      toast.error(error.message || "Failed to send message. Please try again later.");
+      toast.error(error.message || "Failed to send message. Please try again.");
     } finally {
       setSending(false);
     }
@@ -163,6 +149,23 @@ function ContactContent() {
                   className="bg-white/[0.03] border-white/[0.08] focus:border-violet-500/50 focus-visible:ring-0 text-white rounded-xl placeholder:text-white/20 pl-10 pr-4 py-3 text-sm resize-none transition-all"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                Attachments <span className="normal-case text-white/25">(optional · photos/videos · max 3 files · 10MB each)</span>
+              </label>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                disabled={sending}
+                onChange={(e) => setFiles(Array.from(e.target.files || []).slice(0, 3))}
+                className="w-full text-sm text-white/40 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-wider file:bg-white/[0.06] file:text-white/60 hover:file:bg-white/[0.10] cursor-pointer"
+              />
+              {files.length > 0 && (
+                <p className="text-xs text-white/30">{files.length} file(s) selected: {files.map(f => f.name).join(", ")}</p>
+              )}
             </div>
           </div>
 

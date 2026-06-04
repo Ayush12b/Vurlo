@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
 import * as admin from "firebase-admin";
+import { IncomingForm } from "formidable";
+import fs from "fs";
  
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -41,8 +43,9 @@ async function sendContactNotificationEmail(details: {
   message: string;
   timestamp: string;
   receiverEmails: string[];
+  attachments?: { filename: string; content: Buffer }[];
 }) {
-  const { name, email, message, timestamp, receiverEmails } = details;
+  const { name, email, message, timestamp, receiverEmails, attachments } = details;
  
   const html = `
     <!DOCTYPE html>
@@ -179,6 +182,7 @@ Sent automatically by Vurlo.store Support System.
       "Precedence": "bulk",
       "List-Unsubscribe": "<mailto:support@vurlo.store>",
     },
+    ...(attachments?.length ? { attachments } : {}),
   });
 }
  
@@ -373,8 +377,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
  
   try {
-    const body = req.body || {};
-    const { name, email, message } = body;
+    // Parse multipart form data
+    const parseForm = (): Promise<{ fields: any; files: any }> =>
+      new Promise((resolve, reject) => {
+        const form = new IncomingForm({ maxFileSize: 10 * 1024 * 1024, multiples: true });
+        form.parse(req, (err, fields, files) => {
+          if (err) reject(err);
+          else resolve({ fields, files });
+        });
+      });
+
+    const { fields, files: uploadedFiles } = await parseForm();
+    const name = Array.isArray(fields.name) ? fields.name[0] : fields.name;
+    const email = Array.isArray(fields.email) ? fields.email[0] : fields.email;
+    const message = Array.isArray(fields.message) ? fields.message[0] : fields.message;
+
+    const attachments: { filename: string; content: Buffer }[] = [];
+    const rawFiles = uploadedFiles?.files
+      ? Array.isArray(uploadedFiles.files) ? uploadedFiles.files : [uploadedFiles.files]
+      : [];
+    for (const f of rawFiles) {
+      if (f.filepath) {
+        attachments.push({ filename: f.originalFilename || "file", content: fs.readFileSync(f.filepath) });
+      }
+    }
  
     // Validation
     if (!name || !name.trim()) {
@@ -412,6 +438,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: cleanMessage,
       timestamp,
       receiverEmails,
+      attachments,
     });
  
     // Save to Firestore contacts collection
