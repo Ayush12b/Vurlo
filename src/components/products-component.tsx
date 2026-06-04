@@ -234,7 +234,7 @@ export default function AdminProducts() {
   // 5. Toggle Active Mutation
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      await setDoc(doc(db, "products", id), { active }, { merge: true });
+      await updateDoc(doc(db, "products", id), { active });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
@@ -811,11 +811,12 @@ export default function AdminProducts() {
                       <td className="py-4">
                         <button
                           onClick={() => handleToggleActive(p)}
+                          disabled={toggleActiveMutation.isPending}
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border cursor-pointer select-none transition-all duration-300 ${
                             p.active !== false
                               ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.05)]"
                               : "bg-white/[0.03] border-white/[0.08] text-white/30"
-                          }`}
+                          } ${toggleActiveMutation.isPending ? "opacity-50 pointer-events-none" : ""}`}
                         >
                           {p.active !== false ? (
                             <>

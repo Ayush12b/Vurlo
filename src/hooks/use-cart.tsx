@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 import { getProductImage } from "@/utils/product";
+import { resolveProductImage } from "@/lib/utils";
 
 export interface CartItem {
   productId: string;
@@ -52,7 +53,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       try {
         const local = localStorage.getItem("vurlo_local_cart");
         if (local) {
-          setCartItems(JSON.parse(local));
+          const parsed = JSON.parse(local);
+          setCartItems(parsed);
+          // Nudge guest users to log in to save cart
+          const hasNudged = sessionStorage.getItem("vurlo_cart_nudge");
+          if (!hasNudged && parsed.length > 0) {
+            sessionStorage.setItem("vurlo_cart_nudge", "1");
+            setTimeout(() => {
+              toast("Log in to save your cart permanently", {
+                duration: 4000,
+              });
+            }, 2000);
+          }
         } else {
           setCartItems([]);
         }
@@ -143,6 +155,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const addToCart = async (product: Omit<CartItem, "quantity">) => {
+    // Stock check before adding to cart (Optional Suggestion 1)
+    try {
+      const productSnap = await getDoc(doc(db, "products", product.productId));
+      if (productSnap.exists()) {
+        const currentStock = productSnap.data().stock ?? 10;
+        if (currentStock === 0) {
+          toast.error("Sorry, this product is out of stock.");
+          return;
+        }
+      }
+    } catch (e) {
+      // If check fails, allow cart add (don't block on network error)
+    }
+
     const MAX_QTY = 10;
     // 1. Fetch current product stock
     let stock = 10;
@@ -192,7 +218,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             toast.error(`Cannot add. Only ${stock} items available in stock.`);
             return;
           }
-          items.push({ ...product, quantity: 1 });
+          items.push({
+            ...product,
+            image: resolveProductImage(product.image, product.name),
+            quantity: 1
+          });
         }
 
         localStorage.setItem("vurlo_local_cart", JSON.stringify(items));
@@ -247,7 +277,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await setDoc(itemDocRef, {
           name: product.name,
           price: product.price,
-          image: product.image,
+          image: resolveProductImage(product.image, product.name),
           quantity: 1,
         });
       }
