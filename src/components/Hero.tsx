@@ -99,7 +99,7 @@ export function Hero() {
             <a
               ref={secondaryCta.ref}
               href="/#categories"
-              className="hidden md:inline premium-text-link text-sm text-white/50 hover:text-white transition"
+              className="premium-text-link text-xs text-white/50 hover:text-white transition"
               onPointerMove={secondaryCta.onPointerMove}
               onPointerLeave={secondaryCta.onPointerLeave}
             >
@@ -110,7 +110,7 @@ export function Hero() {
           {/* Stats */}
           <div
             ref={statsRef}
-            className="hidden md:flex flex-wrap gap-5 pt-4 border-t border-white/[0.08] md:gap-12 md:pt-6"
+            className="flex flex-wrap gap-5 pt-3 border-t border-white/[0.08] md:gap-12 md:pt-6"
           >
             {[
               ["4.9★", "Avg Rating"],
