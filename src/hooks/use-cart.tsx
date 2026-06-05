@@ -157,20 +157,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const addToCart = async (product: Omit<CartItem, "quantity">) => {
-    // Stock check before adding to cart (Optional Suggestion 1)
-    try {
-      const productSnap = await getDoc(doc(db, "products", product.productId));
-      if (productSnap.exists()) {
-        const currentStock = productSnap.data().stock ?? 10;
-        if (currentStock === 0) {
-          toast.error("Sorry, this product is out of stock.");
-          return;
-        }
-      }
-    } catch (e) {
-      // If check fails, allow cart add (don't block on network error)
-    }
-
     const MAX_QTY = 10;
     // 1. Fetch current product stock
     let stock = 10;

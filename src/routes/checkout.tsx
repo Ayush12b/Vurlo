@@ -58,17 +58,6 @@ function CheckoutPage() {
     }
   }, [savedAddress, usingSavedAddress]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-violet-400" />
-      </div>
-    );
-  }
-
-  if (!user) return <Navigate to="/" />;
-  if (cartItems.length === 0) return <Navigate to="/" />;
-
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   const checkoutFiredRef = useRef(false);
@@ -88,6 +77,17 @@ function CheckoutPage() {
       checkoutFiredRef.current = true;
     }
   }, [cartItems, subtotal]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-violet-400" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/" />;
+  if (cartItems.length === 0) return <Navigate to="/" />;
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
