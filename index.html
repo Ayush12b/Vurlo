@@ -17,6 +17,14 @@
     <link rel="canonical" href="https://vurlo.store" />
     <meta name="robots" content="index, follow" />
 
+    <!-- Hide crawler fallback instantly before React paints – prevents flash -->
+    <style>
+      #root > header,
+      #root > main {
+        display: none !important;
+      }
+    </style>
+
     <!-- Google Analytics (GA4) -->
     <!-- prettier-ignore -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-J6MCZS5VTY"></script>
@@ -46,7 +54,7 @@
   </head>
   <body>
     <div id="root">
-      <!-- Static crawler fallback – React replaces this on load -->
+      <!-- Static crawler fallback – invisible to users, readable by Googlebot -->
       <header>
         <nav>
           <a href="/">Vurlo</a>
