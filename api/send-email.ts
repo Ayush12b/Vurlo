@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
 import { IncomingForm } from "formidable";
 import fs from "fs";
 
