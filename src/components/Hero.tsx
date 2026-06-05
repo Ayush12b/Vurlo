@@ -39,13 +39,13 @@ export function Hero() {
       />
 
       {/* ── Main grid ── */}
-      <div className="relative z-10 mx-auto max-w-7xl px-0 md:px-20 pt-0 pb-10 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-20 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-20 items-center">
 
         {/* ── Left: Text content ── */}
-        <div className="space-y-5 md:space-y-10 px-5 md:px-0 pt-6 md:pt-0">
+        <div className="space-y-3 md:space-y-10">
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
+          <div className="hidden md:inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
             New Collection &middot; 2026
           </div>
@@ -54,7 +54,7 @@ export function Hero() {
           <h1
             ref={headingRef}
             className="font-display leading-[1.05] tracking-tight hero-heading"
-            style={{ fontSize: "clamp(2.6rem, 10vw, 6rem)", fontWeight: 800 }}
+            style={{ fontSize: "clamp(1.1rem, 4.5vw, 6rem)", fontWeight: 800 }}
           >
             <span className="sr-only">Vurlo - Premium Lighting & Decor</span>
             <span className="block text-white/90">Upgrade Your Room.</span>
@@ -73,7 +73,7 @@ export function Hero() {
           {/* Subtext */}
           <p
             ref={subtextRef}
-            className="text-base leading-relaxed text-white/60 max-w-sm font-light tracking-wide md:text-lg md:max-w-md"
+            className="hidden md:block text-sm leading-relaxed text-white/60 max-w-sm font-light tracking-wide md:text-lg md:max-w-md"
           >
             Lights and decor that actually make your room look good. Built for setups, bedrooms, and anyone tired of boring spaces.
           </p>
@@ -83,7 +83,7 @@ export function Hero() {
             <a
               ref={primaryCta.ref}
               href="/shop"
-              className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-6 py-3 sm:px-9 sm:py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
+              className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-3 py-2 sm:px-9 sm:py-4 text-[11px] md:text-sm font-semibold text-white overflow-hidden transition-all duration-500"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
                 boxShadow: "0 0 0 1px rgba(139,92,246,0.3), 0 10px 40px rgba(109,40,217,0.5)",
@@ -99,7 +99,7 @@ export function Hero() {
             <a
               ref={secondaryCta.ref}
               href="/#categories"
-              className="premium-text-link text-sm text-white/50 hover:text-white transition"
+              className="hidden md:inline premium-text-link text-sm text-white/50 hover:text-white transition"
               onPointerMove={secondaryCta.onPointerMove}
               onPointerLeave={secondaryCta.onPointerLeave}
             >
@@ -110,7 +110,7 @@ export function Hero() {
           {/* Stats */}
           <div
             ref={statsRef}
-            className="flex flex-wrap gap-5 pt-4 border-t border-white/[0.08] md:gap-12 md:pt-6"
+            className="hidden md:flex flex-wrap gap-5 pt-4 border-t border-white/[0.08] md:gap-12 md:pt-6"
           >
             {[
               ["4.9★", "Avg Rating"],
@@ -118,15 +118,15 @@ export function Hero() {
               ["Free", "Shipping"],
             ].map(([n, l]) => (
               <div key={l}>
-                <div className="text-2xl font-semibold text-white/90 md:text-2xl">{n}</div>
-                <div className="text-xs text-white/50 uppercase tracking-widest">{l}</div>
+                <div className="text-xl font-semibold text-white/90 md:text-2xl">{n}</div>
+                <div className="text-[10px] text-white/50 uppercase tracking-widest md:text-xs">{l}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* ── Right: Hero image – desktop only ── */}
-        <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden order-first md:order-last">
+        <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden">
           <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
           <img
             src="/aura-rgb-1.png"
@@ -171,9 +171,9 @@ export function Hero() {
           position: relative;
           overflow: hidden;
           width: 100%;
-          height: clamp(260px, 80vw, 550px);
+          height: clamp(160px, 45vw, 550px);
           display: flex;
-          align-items: center;
+          align-items: flex-end;
           justify-content: center;
           margin-bottom: 0;
           padding-bottom: 0;
@@ -202,19 +202,6 @@ export function Hero() {
           margin-bottom: 0;
         }
 
-        @media (max-width: 767px) {
-          .hero-img-wrapper {
-            height: 72vw;
-            max-height: 320px;
-          }
-          .hero-product-premium {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-            transform: none !important;
-            animation: none !important;
-          }
-        }
         @media (min-width: 768px) {
           .hero-product-premium {
             height: 100% !important;
@@ -271,6 +258,16 @@ export function Hero() {
           .hero-product-premium {
             animation: none;
             transform: scale(1.18);
+          }
+        }
+        @media (max-width: 767px) {
+          .hero-product-premium {
+            animation: none !important;
+            transform: none !important;
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 12px !important;
           }
         }
       `}</style>
