@@ -148,6 +148,16 @@ export function Hero() {
           {/* Glow behind image */}
           <div className="hero-product-glow absolute w-[75%] h-[75%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-60 blur-[100px] rounded-full z-0" />
 
+          {/* Antigravity dust particles */}
+          <div className="antigrav-particle antigrav-1 absolute z-30 w-1 h-1 rounded-full bg-violet-300/90" />
+          <div className="antigrav-particle antigrav-2 absolute z-30 w-[3px] h-[3px] rounded-full bg-cyan-300/80" />
+          <div className="antigrav-particle antigrav-3 absolute z-30 w-[2px] h-[2px] rounded-full bg-white/60" />
+          <div className="antigrav-particle antigrav-4 absolute z-30 w-1 h-1 rounded-full bg-indigo-300/70" />
+          <div className="antigrav-particle antigrav-5 absolute z-30 w-[3px] h-[3px] rounded-full bg-violet-200/60" />
+          <div className="antigrav-particle antigrav-6 absolute z-30 w-[2px] h-[2px] rounded-full bg-cyan-200/70" />
+          <div className="antigrav-particle antigrav-7 absolute z-30 w-1 h-1 rounded-full bg-purple-300/50" />
+          <div className="antigrav-particle antigrav-8 absolute z-30 w-[2px] h-[2px] rounded-full bg-white/40" />
+
           {/* Image frame */}
           <div className="hero-img-frame relative z-10 w-full rounded-2xl overflow-hidden">
             {/* Scanline sweep */}
@@ -368,6 +378,42 @@ export function Hero() {
             0 0 30px rgba(34,211,238,0.18) !important;
         }
 
+        .antigrav-particle {
+          pointer-events: none;
+          will-change: transform, opacity;
+          box-shadow: 0 0 4px 1px currentColor;
+        }
+        .antigrav-1  { bottom: 25%; left: 8%;  animation: antigravDust1 5.5s ease-in-out infinite; }
+        .antigrav-2  { bottom: 35%; right: 10%; animation: antigravDust2 7s ease-in-out infinite; animation-delay: -1.5s; }
+        .antigrav-3  { bottom: 20%; left: 22%; animation: antigravDust3 6.2s ease-in-out infinite; animation-delay: -0.8s; }
+        .antigrav-4  { bottom: 40%; right: 20%; animation: antigravDust1 8s ease-in-out infinite; animation-delay: -3s; }
+        .antigrav-5  { bottom: 15%; left: 50%; animation: antigravDust2 5s ease-in-out infinite; animation-delay: -2s; }
+        .antigrav-6  { bottom: 30%; right: 5%;  animation: antigravDust3 9s ease-in-out infinite; animation-delay: -4s; }
+        .antigrav-7  { bottom: 10%; left: 35%; animation: antigravDust1 6.8s ease-in-out infinite; animation-delay: -1s; }
+        .antigrav-8  { bottom: 45%; left: 15%; animation: antigravDust2 7.5s ease-in-out infinite; animation-delay: -5s; }
+
+        @keyframes antigravDust1 {
+          0%   { transform: translate(0px, 0px); opacity: 0; }
+          10%  { opacity: 0.9; }
+          50%  { transform: translate(8px, -40px); opacity: 0.7; }
+          90%  { opacity: 0; }
+          100% { transform: translate(-4px, -80px); opacity: 0; }
+        }
+        @keyframes antigravDust2 {
+          0%   { transform: translate(0px, 0px); opacity: 0; }
+          10%  { opacity: 0.8; }
+          50%  { transform: translate(-10px, -35px); opacity: 0.6; }
+          90%  { opacity: 0; }
+          100% { transform: translate(6px, -70px); opacity: 0; }
+        }
+        @keyframes antigravDust3 {
+          0%   { transform: translate(0px, 0px); opacity: 0; }
+          10%  { opacity: 1; }
+          50%  { transform: translate(5px, -50px); opacity: 0.5; }
+          90%  { opacity: 0; }
+          100% { transform: translate(-8px, -90px); opacity: 0; }
+        }
+
         /* ── Mobile ── */
         @media (max-width: 767px) {
           .hero-product-premium {
@@ -390,6 +436,9 @@ export function Hero() {
           .hero-particle {
             display: block !important;
           }
+          .antigrav-particle {
+            display: block !important;
+          }
         }
 
         /* ── Reduced motion ── */
@@ -399,6 +448,7 @@ export function Hero() {
           .hero-spark { animation: none; }
           .hero-scanline { display: none; }
           .hero-particle { display: none; }
+          .antigrav-particle { display: none; }
         }
       `}</style>
     </section>
