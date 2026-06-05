@@ -19,7 +19,7 @@
   --secondary-foreground: oklch(0.05 0 0);
   --muted: oklch(0.16 0.012 270);
   --muted-foreground: oklch(0.65 0.02 270);
-  --accent: oklch(0.78 0.18 220);
+  --accent: #22d3ee;
   --accent-foreground: oklch(0.05 0 0);
   --destructive: oklch(0.6 0.24 25);
   --destructive-foreground: oklch(0.98 0 0);
@@ -36,6 +36,12 @@
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
+}
+
+@supports (color: oklch(0 0 0)) {
+  :root {
+    --accent: oklch(0.78 0.18 220);
+  }
 }
 
 @layer base {
