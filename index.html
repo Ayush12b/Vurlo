@@ -19,8 +19,8 @@
 
     <!-- Hide crawler fallback instantly before React paints – prevents flash -->
     <style>
-      #root > header,
-      #root > main {
+      #root:not([data-loaded]) > header,
+      #root:not([data-loaded]) > main {
         display: none !important;
       }
     </style>
