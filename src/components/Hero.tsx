@@ -39,7 +39,7 @@ export function Hero() {
         }}
       />
 
-      {/* Floating particles — visible on all screen sizes */}
+      {/* Floating particles */}
       <div className="hero-particle hero-particle-1 absolute w-1.5 h-1.5 rounded-full bg-violet-400/80 blur-[1px] z-10" style={{ top: "22%", left: "12%" }} />
       <div className="hero-particle hero-particle-2 absolute w-1 h-1 rounded-full bg-cyan-400/70 blur-[1px] z-10" style={{ top: "58%", left: "42%" }} />
       <div className="hero-particle hero-particle-3 absolute w-2 h-2 rounded-full bg-indigo-400/60 blur-[1px] z-10" style={{ top: "30%", right: "8%" }} />
@@ -52,13 +52,11 @@ export function Hero() {
         {/* ── Left: Text content ── */}
         <div className="space-y-6 md:space-y-10">
 
-          {/* Badge */}
           <div className="hidden md:inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
             New Collection &middot; 2026
           </div>
 
-          {/* H1 */}
           <h1
             ref={headingRef}
             className="font-display leading-[1.05] tracking-tight hero-heading"
@@ -78,7 +76,6 @@ export function Hero() {
             </span>
           </h1>
 
-          {/* Subtext */}
           <p
             ref={subtextRef}
             className="text-xs leading-relaxed text-white/60 max-w-sm font-light tracking-wide md:text-sm md:text-lg md:max-w-md"
@@ -86,7 +83,6 @@ export function Hero() {
             Lights and decor that actually make your room look good. Built for setups, bedrooms, and anyone tired of boring spaces.
           </p>
 
-          {/* CTAs */}
           <div ref={ctasRef} className="flex flex-wrap items-center gap-3 md:gap-4">
             <a
               ref={primaryCta.ref}
@@ -115,7 +111,6 @@ export function Hero() {
             </a>
           </div>
 
-          {/* Stats */}
           <div
             ref={statsRef}
             className="flex gap-4 pt-3 border-t border-white/[0.08] md:gap-12 md:pt-6"
@@ -137,7 +132,7 @@ export function Hero() {
         <div className="hero-img-wrapper relative flex justify-center items-center">
 
           {/* Rotating border ring */}
-          <div className="hero-orbit-ring absolute w-[105%] h-[105%] rounded-2xl z-0" />
+          <div className="hero-orbit-ring absolute inset-0 rounded-2xl z-0" />
 
           {/* Corner accent sparks */}
           <div className="hero-spark hero-spark-tl absolute top-[-6px] left-[-6px] w-3 h-3 rounded-full bg-violet-400 z-20" />
@@ -146,7 +141,7 @@ export function Hero() {
           <div className="hero-spark hero-spark-bl absolute bottom-[-6px] left-[-6px] w-2 h-2 rounded-full bg-violet-300 z-20" />
 
           {/* Glow behind image */}
-          <div className="hero-product-glow absolute w-[75%] h-[75%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-60 blur-[100px] rounded-full z-0" />
+          <div className="hero-product-glow absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-40 blur-[60px] rounded-2xl z-0" />
 
           {/* Antigravity dust particles */}
           <div className="antigrav-particle antigrav-1 absolute z-30 w-1 h-1 rounded-full bg-violet-300/90" />
@@ -158,7 +153,7 @@ export function Hero() {
           <div className="antigrav-particle antigrav-7 absolute z-30 w-1 h-1 rounded-full bg-purple-300/50" />
           <div className="antigrav-particle antigrav-8 absolute z-30 w-[2px] h-[2px] rounded-full bg-white/40" />
 
-          {/* Image frame */}
+          {/* Image — perspective set directly, no extra wrapper needed */}
           <div className="hero-img-frame relative z-10 w-full rounded-2xl overflow-hidden">
             {/* Scanline sweep */}
             <div className="hero-scanline-wrap absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-2xl">
@@ -166,17 +161,21 @@ export function Hero() {
             </div>
 
             {/* Colour tint vignette */}
-            <div className="absolute inset-0 z-10 rounded-2xl pointer-events-none"
-              style={{ background: "radial-gradient(ellipse at 60% 40%, rgba(109,40,217,0.18) 0%, transparent 70%)" }}
+            <div
+              className="absolute inset-0 z-10 rounded-2xl pointer-events-none"
+              style={{ background: "radial-gradient(ellipse at 60% 40%, rgba(109,40,217,0.22) 0%, transparent 70%)" }}
+            />
+
+            {/* RGB bottom fade */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-24 z-10 pointer-events-none rounded-b-2xl"
+              style={{ background: "linear-gradient(to top, #050507 0%, transparent 100%)" }}
             />
 
             <img
-              src="/aura-rgb-1.png"
+              src="/aura-rgb-2.jpg"
               alt="Vurlo RGB Ambience Setup"
-              className="hero-product-premium relative w-full max-w-[460px] md:max-w-[650px] object-cover rounded-2xl select-none block"
-              style={{
-                filter: "drop-shadow(0 40px 80px rgba(109,40,217,0.55)) drop-shadow(0 20px 40px rgba(0,0,0,0.8))",
-              }}
+              className="hero-product-premium"
             />
           </div>
         </div>
@@ -221,9 +220,7 @@ export function Hero() {
           initial-value: 0deg;
           inherits: false;
         }
-        @keyframes ringRotate {
-          to { --ring-angle: 360deg; }
-        }
+        @keyframes ringRotate { to { --ring-angle: 360deg; } }
 
         /* ── Corner sparks ── */
         .hero-spark {
@@ -242,17 +239,15 @@ export function Hero() {
         /* ── Scanline ── */
         .hero-scanline {
           position: absolute;
-          left: 0;
-          width: 100%;
-          height: 3px;
+          left: 0; width: 100%; height: 3px;
           background: linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.7) 30%, rgba(34,211,238,0.5) 70%, transparent 100%);
           animation: scanlineMove 4s ease-in-out infinite;
           top: 0;
         }
         @keyframes scanlineMove {
-          0% { top: -4px; opacity: 0; }
-          5% { opacity: 1; }
-          95% { opacity: 0.6; }
+          0%   { top: -4px; opacity: 0; }
+          5%   { opacity: 1; }
+          95%  { opacity: 0.6; }
           100% { top: 105%; opacity: 0; }
         }
 
@@ -260,185 +255,149 @@ export function Hero() {
         .hero-img-wrapper {
           position: relative;
           width: 100%;
-          height: clamp(160px, 45vw, 550px);
-          align-items: flex-end;
-          justify-content: center;
-          margin-bottom: 0;
-          padding-bottom: 0;
-        }
-        .hero-img-wrapper::after {
-          content: "";
-          position: absolute;
-          left: 0; right: 0; bottom: 0;
-          height: 100px;
-          background: linear-gradient(to top, #050507 0%, transparent 100%);
-          pointer-events: none;
-          z-index: 30;
+          aspect-ratio: 1 / 1;
         }
 
         /* ── Image frame ── */
         .hero-img-frame {
-          height: 100%;
+          position: absolute;
+          inset: 0;
           display: flex;
-          align-items: flex-end;
+          align-items: center;
+          justify-content: center;
         }
 
-        /* ── Floating image ── */
+        /* ── Hero image — fills the box perfectly ── */
         .hero-product-premium {
-          animation: premiumFloat 10s ease-in-out infinite;
-          will-change: transform;
           display: block;
-          width: 100% !important;
-          height: auto !important;
-          max-height: 100% !important;
-          object-fit: contain !important;
-          margin-bottom: 0;
-          transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center center;
+          border-radius: 16px;
+          select: none;
+          animation: antigravFloat3D 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          will-change: transform;
+          filter: drop-shadow(0 30px 60px rgba(109,40,217,0.5)) drop-shadow(0 10px 30px rgba(0,0,0,0.7));
+          transition: filter 0.4s ease;
         }
-        @media (min-width: 768px) {
-          .hero-product-premium {
-            height: 100% !important;
-            object-fit: cover !important;
-            transform: perspective(900px) rotateY(-5deg) rotateX(2deg);
-            animation: premiumFloat3D 10s ease-in-out infinite;
-          }
-          .hero-product-premium:hover {
-            transform: perspective(900px) rotateY(-1deg) rotateX(0deg) scale(1.03) !important;
-            animation: none !important;
-          }
+        .hero-product-premium:hover {
+          animation: none !important;
+          transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateY(-10px) scale(1.025) !important;
+          filter: drop-shadow(0 50px 80px rgba(109,40,217,0.7)) drop-shadow(0 20px 40px rgba(0,0,0,0.8)) !important;
         }
 
-        /* ── Glow parallax ── */
+        /* ── Glow ── */
         .hero-product-glow {
           transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0);
           transition: transform 0.18s ease-out;
           will-change: transform;
         }
 
-        /* ── Floating particles ── */
-        .hero-particle-1 { animation: particleDrift1 7s ease-in-out infinite; }
-        .hero-particle-2 { animation: particleDrift2 9s ease-in-out infinite; }
-        .hero-particle-3 { animation: particleDrift3 6s ease-in-out infinite; }
-        .hero-particle-4 { animation: particleDrift1 11s ease-in-out infinite reverse; }
-        .hero-particle-5 { animation: particleDrift2 8s ease-in-out infinite reverse; }
-        @keyframes particleDrift1 {
-          0%, 100% { transform: translate(0, 0); opacity: 0.7; }
-          50% { transform: translate(10px, -16px); opacity: 1; }
-        }
-        @keyframes particleDrift2 {
-          0%, 100% { transform: translate(0, 0); opacity: 0.5; }
-          50% { transform: translate(-12px, 12px); opacity: 0.9; }
-        }
-        @keyframes particleDrift3 {
-          0%, 100% { transform: translate(0, 0); opacity: 0.6; }
-          50% { transform: translate(8px, -10px); opacity: 1; }
+        /* ── Antigravity float 3D ── */
+        @keyframes antigravFloat3D {
+          0%   { transform: perspective(1200px) rotateY(-5deg) rotateX(2deg)   translateY(0px)   scale(1);     }
+          15%  { transform: perspective(1200px) rotateY(-6.5deg) rotateX(1deg) translateY(-5px)  scale(1.005); }
+          35%  { transform: perspective(1200px) rotateY(-4deg) rotateX(3deg)   translateY(-12px) scale(1.012); }
+          50%  { transform: perspective(1200px) rotateY(-3deg) rotateX(1.5deg) translateY(-18px) scale(1.015); }
+          65%  { transform: perspective(1200px) rotateY(-5.5deg) rotateX(3deg) translateY(-12px) scale(1.01);  }
+          80%  { transform: perspective(1200px) rotateY(-6deg) rotateX(2.5deg) translateY(-5px)  scale(1.005); }
+          100% { transform: perspective(1200px) rotateY(-5deg) rotateX(2deg)   translateY(0px)   scale(1);     }
         }
 
-        /* ── Keyframes ── */
-        @keyframes heroGlow1 {
-          0%, 100% {
-            transform: translate3d(calc(-50% + var(--hero-glow-x, 0px)), calc(-50% + var(--hero-glow-y, 0px)), 0) scale(1);
-            opacity: 0.15;
-          }
-          50% {
-            transform: translate3d(calc(-50% + var(--hero-glow-x, 0px) + 12px), calc(-50% + var(--hero-glow-y, 0px) - 9px), 0) scale(1.03);
-            opacity: 0.20;
-          }
-        }
-        @keyframes heroGlow2 {
-          0%, 100% {
-            transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0) scale(1);
-            opacity: 0.08;
-          }
-          50% {
-            transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45 - 9px), calc(var(--hero-glow-y, 0px) * -0.35 + 12px), 0) scale(0.96);
-            opacity: 0.12;
-          }
-        }
-        @keyframes premiumFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes premiumFloat3D {
-          0%, 100% { transform: perspective(900px) rotateY(-5deg) rotateX(2deg) translateY(0px); }
-          50% { transform: perspective(900px) rotateY(-5deg) rotateX(2deg) translateY(-10px); }
-        }
-
-        /* ── CTA ── */
-        .premium-hero-cta,
-        .premium-text-link {
-          will-change: transform;
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .premium-hero-cta:hover {
-          transform: translateY(-2px) !important;
-          box-shadow:
-            0 0 0 1px rgba(139,92,246,0.34),
-            0 10px 36px rgba(109,40,217,0.48),
-            0 0 30px rgba(34,211,238,0.18) !important;
-        }
-
+        /* ── Antigravity dust particles ── */
         .antigrav-particle {
           pointer-events: none;
           will-change: transform, opacity;
           box-shadow: 0 0 4px 1px currentColor;
         }
-        .antigrav-1  { bottom: 25%; left: 8%;  animation: antigravDust1 5.5s ease-in-out infinite; }
-        .antigrav-2  { bottom: 35%; right: 10%; animation: antigravDust2 7s ease-in-out infinite; animation-delay: -1.5s; }
-        .antigrav-3  { bottom: 20%; left: 22%; animation: antigravDust3 6.2s ease-in-out infinite; animation-delay: -0.8s; }
-        .antigrav-4  { bottom: 40%; right: 20%; animation: antigravDust1 8s ease-in-out infinite; animation-delay: -3s; }
-        .antigrav-5  { bottom: 15%; left: 50%; animation: antigravDust2 5s ease-in-out infinite; animation-delay: -2s; }
-        .antigrav-6  { bottom: 30%; right: 5%;  animation: antigravDust3 9s ease-in-out infinite; animation-delay: -4s; }
-        .antigrav-7  { bottom: 10%; left: 35%; animation: antigravDust1 6.8s ease-in-out infinite; animation-delay: -1s; }
-        .antigrav-8  { bottom: 45%; left: 15%; animation: antigravDust2 7.5s ease-in-out infinite; animation-delay: -5s; }
+        .antigrav-1 { bottom: 25%; left: 8%;   animation: antigravDust1 5.5s ease-in-out infinite; }
+        .antigrav-2 { bottom: 35%; right: 10%;  animation: antigravDust2 7s   ease-in-out infinite; animation-delay: -1.5s; }
+        .antigrav-3 { bottom: 20%; left: 22%;   animation: antigravDust3 6.2s ease-in-out infinite; animation-delay: -0.8s; }
+        .antigrav-4 { bottom: 40%; right: 20%;  animation: antigravDust1 8s   ease-in-out infinite; animation-delay: -3s;   }
+        .antigrav-5 { bottom: 15%; left: 50%;   animation: antigravDust2 5s   ease-in-out infinite; animation-delay: -2s;   }
+        .antigrav-6 { bottom: 30%; right: 5%;   animation: antigravDust3 9s   ease-in-out infinite; animation-delay: -4s;   }
+        .antigrav-7 { bottom: 10%; left: 35%;   animation: antigravDust1 6.8s ease-in-out infinite; animation-delay: -1s;   }
+        .antigrav-8 { bottom: 45%; left: 15%;   animation: antigravDust2 7.5s ease-in-out infinite; animation-delay: -5s;   }
 
         @keyframes antigravDust1 {
-          0%   { transform: translate(0px, 0px); opacity: 0; }
+          0%   { transform: translate(0px, 0px);   opacity: 0;   }
           10%  { opacity: 0.9; }
-          50%  { transform: translate(8px, -40px); opacity: 0.7; }
+          50%  { transform: translate(8px, -40px);  opacity: 0.7; }
           90%  { opacity: 0; }
-          100% { transform: translate(-4px, -80px); opacity: 0; }
+          100% { transform: translate(-4px, -80px); opacity: 0;   }
         }
         @keyframes antigravDust2 {
-          0%   { transform: translate(0px, 0px); opacity: 0; }
+          0%   { transform: translate(0px, 0px);   opacity: 0;   }
           10%  { opacity: 0.8; }
           50%  { transform: translate(-10px, -35px); opacity: 0.6; }
           90%  { opacity: 0; }
-          100% { transform: translate(6px, -70px); opacity: 0; }
+          100% { transform: translate(6px, -70px);  opacity: 0;   }
         }
         @keyframes antigravDust3 {
-          0%   { transform: translate(0px, 0px); opacity: 0; }
-          10%  { opacity: 1; }
-          50%  { transform: translate(5px, -50px); opacity: 0.5; }
+          0%   { transform: translate(0px, 0px);   opacity: 0;   }
+          10%  { opacity: 1;   }
+          50%  { transform: translate(5px, -50px);  opacity: 0.5; }
           90%  { opacity: 0; }
-          100% { transform: translate(-8px, -90px); opacity: 0; }
+          100% { transform: translate(-8px, -90px); opacity: 0;   }
+        }
+
+        /* ── Floating particles ── */
+        .hero-particle-1 { animation: particleDrift1 7s  ease-in-out infinite; }
+        .hero-particle-2 { animation: particleDrift2 9s  ease-in-out infinite; }
+        .hero-particle-3 { animation: particleDrift3 6s  ease-in-out infinite; }
+        .hero-particle-4 { animation: particleDrift1 11s ease-in-out infinite reverse; }
+        .hero-particle-5 { animation: particleDrift2 8s  ease-in-out infinite reverse; }
+        @keyframes particleDrift1 {
+          0%, 100% { transform: translate(0, 0);       opacity: 0.7; }
+          50%       { transform: translate(10px, -16px); opacity: 1;   }
+        }
+        @keyframes particleDrift2 {
+          0%, 100% { transform: translate(0, 0);        opacity: 0.5; }
+          50%       { transform: translate(-12px, 12px); opacity: 0.9; }
+        }
+        @keyframes particleDrift3 {
+          0%, 100% { transform: translate(0, 0);      opacity: 0.6; }
+          50%       { transform: translate(8px, -10px); opacity: 1;   }
+        }
+
+        /* ── Glow keyframes ── */
+        @keyframes heroGlow1 {
+          0%, 100% { transform: translate3d(calc(-50% + var(--hero-glow-x, 0px)), calc(-50% + var(--hero-glow-y, 0px)), 0) scale(1); opacity: 0.15; }
+          50%       { transform: translate3d(calc(-50% + var(--hero-glow-x, 0px) + 12px), calc(-50% + var(--hero-glow-y, 0px) - 9px), 0) scale(1.03); opacity: 0.20; }
+        }
+        @keyframes heroGlow2 {
+          0%, 100% { transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0) scale(1); opacity: 0.08; }
+          50%       { transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45 - 9px), calc(var(--hero-glow-y, 0px) * -0.35 + 12px), 0) scale(0.96); opacity: 0.12; }
+        }
+
+        /* ── CTA ── */
+        .premium-hero-cta, .premium-text-link {
+          will-change: transform;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .premium-hero-cta:hover {
+          box-shadow: 0 0 0 1px rgba(139,92,246,0.34), 0 10px 36px rgba(109,40,217,0.48), 0 0 30px rgba(34,211,238,0.18) !important;
         }
 
         /* ── Mobile ── */
         @media (max-width: 767px) {
+          .hero-img-wrapper {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+          }
           .hero-product-premium {
-            animation: premiumFloat 10s ease-in-out infinite !important;
-            transform: none !important;
-            object-fit: cover !important;
-            width: 100% !important;
-            height: 100% !important;
+            animation: antigravFloatMobile 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
             border-radius: 12px !important;
           }
-          .hero-orbit-ring {
-            display: block !important;
-          }
-          .hero-spark {
-            display: block !important;
-          }
-          .hero-scanline {
-            display: block !important;
-          }
-          .hero-particle {
-            display: block !important;
-          }
-          .antigrav-particle {
-            display: block !important;
-          }
+          .hero-product-premium:hover { animation: none !important; }
+          .antigrav-particle { display: block !important; }
+        }
+
+        @keyframes antigravFloatMobile {
+          0%   { transform: translateY(0px)   scale(1);     }
+          50%  { transform: translateY(-10px) scale(1.012); }
+          100% { transform: translateY(0px)   scale(1);     }
         }
 
         /* ── Reduced motion ── */
