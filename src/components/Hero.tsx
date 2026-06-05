@@ -27,6 +27,12 @@ export function Hero() {
       {/* Ambient glows */}
       <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] max-w-full h-[800px] bg-purple-600 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
       <div className="hero-ambient-secondary absolute top-1/3 left-2/3 w-[500px] max-w-full h-[500px] bg-cyan-500 blur-[120px] rounded-full" />
+      <div className="hero-ambient-tertiary absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-400 blur-[120px] rounded-full opacity-[0.07]" />
+
+      {/* Floating particles */}
+      <div className="hero-particle hero-particle-1 absolute w-1.5 h-1.5 rounded-full bg-violet-400/70 blur-[1px]" style={{top:'20%',left:'15%'}} />
+      <div className="hero-particle hero-particle-2 absolute w-1 h-1 rounded-full bg-cyan-400/60 blur-[1px]" style={{top:'60%',left:'55%'}} />
+      <div className="hero-particle hero-particle-3 absolute w-2 h-2 rounded-full bg-indigo-400/50 blur-[1px]" style={{top:'35%',right:'10%'}} />
 
       {/* Grid */}
       <div
@@ -127,16 +133,27 @@ export function Hero() {
 
         {/* ── Right: Hero image – desktop only ── */}
         <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden">
-          <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
-          <img
-            src="/aura-rgb-1.png"
-            alt="Vurlo RGB Ambience Setup"
-            className="hero-product-premium relative w-full max-w-[460px] md:max-w-[650px] object-cover rounded-2xl select-none"
-            style={{
-              filter:
-                "drop-shadow(0 40px 80px rgba(109,40,217,0.5)) drop-shadow(0 20px 40px rgba(0,0,0,0.8))",
-            }}
-          />
+          <div style={{ transformStyle: "preserve-3d", perspective: "1000px" }} className="relative w-full h-full flex justify-center items-center">
+            <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
+            
+            <div className="hero-ring-glow absolute border-2 border-violet-500/30 rounded-full w-[110%] h-[110%] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ animation: "heroRingPulse 4s ease-in-out infinite" }} />
+            
+            <div className="hero-scanline absolute inset-0 z-[3] pointer-events-none overflow-hidden rounded-2xl">
+              <div style={{ position: "absolute", width: "100%", height: "2px", background: "linear-gradient(90deg, transparent, rgba(167,139,250,0.6), rgba(34,211,238,0.4), transparent)", animation: "heroScanline 3.5s ease-in-out infinite" }} />
+            </div>
+
+            <img
+              src="/aura-rgb-1.png"
+              alt="Vurlo RGB Ambience Setup"
+              className="hero-product-premium relative w-full max-w-[460px] md:max-w-[650px] object-cover rounded-2xl select-none"
+              style={{
+                filter:
+                  "drop-shadow(0 40px 80px rgba(109,40,217,0.5)) drop-shadow(0 20px 40px rgba(0,0,0,0.8))",
+                transform: "perspective(900px) rotateY(-6deg) rotateX(2deg) scale(1.04)",
+                transition: "transform 0.6s cubic-bezier(0.16,1,0.3,1)",
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -269,6 +286,43 @@ export function Hero() {
             height: 100% !important;
             border-radius: 12px !important;
           }
+        }
+
+        @keyframes heroScanline {
+          0% { top: -4px; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 0.8; }
+          100% { top: 105%; opacity: 0; }
+        }
+        @keyframes heroRingPulse {
+          0%, 100% { opacity: 0.15; transform: scale(1); }
+          50% { opacity: 0.35; transform: scale(1.04); }
+        }
+        @keyframes particleDrift1 {
+          0%, 100% { transform: translate(0,0); opacity:0.7; }
+          50% { transform: translate(8px,-14px); opacity:1; }
+        }
+        @keyframes particleDrift2 {
+          0%, 100% { transform: translate(0,0); opacity:0.5; }
+          50% { transform: translate(-10px,10px); opacity:0.9; }
+        }
+        @keyframes particleDrift3 {
+          0%, 100% { transform: translate(0,0); opacity:0.6; }
+          50% { transform: translate(6px,-8px); opacity:1; }
+        }
+        .hero-particle-1 { animation: particleDrift1 7s ease-in-out infinite; }
+        .hero-particle-2 { animation: particleDrift2 9s ease-in-out infinite; }
+        .hero-particle-3 { animation: particleDrift3 6s ease-in-out infinite; }
+        .hero-product-premium:hover {
+          transform: perspective(900px) rotateY(-2deg) rotateX(0deg) scale(1.06) !important;
+        }
+        @media (max-width: 767px) {
+          .hero-scanline { display: none !important; }
+          .hero-ring-glow { display: none !important; }
+          .hero-particle { display: none !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hero-scanline, .hero-ring-glow, .hero-particle { display: none !important; }
         }
       `}</style>
     </section>

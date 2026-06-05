@@ -1327,6 +1327,7 @@ button[class*="bg-primary"]:active,
   /* Prevent text overflow in card name */
   .pcard__name {
     font-size: 13px !important;
+    color: #ffffff !important;
     word-break: break-word !important;
     overflow-wrap: break-word !important;
   }
