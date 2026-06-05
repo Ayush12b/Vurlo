@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Navigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { Navbar } from "@/components/Navbar";
+import { trackEvent } from "@/lib/analytics";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
@@ -74,19 +75,17 @@ function CheckoutPage() {
 
   useEffect(() => {
     if (cartItems.length > 0 && !checkoutFiredRef.current) {
-      if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
-        (window as any).gtag("event", "begin_checkout", {
-          currency: "INR",
-          value: subtotal,
-          items: cartItems.map((item) => ({
-            item_id: item.productId,
-            item_name: item.name,
-            price: Number(item.price),
-            quantity: item.quantity,
-          })),
-        });
-        checkoutFiredRef.current = true;
-      }
+      trackEvent("begin_checkout", {
+        currency: "INR",
+        value: subtotal,
+        items: cartItems.map((item) => ({
+          item_id: item.productId,
+          item_name: item.name,
+          price: Number(item.price),
+          quantity: item.quantity,
+        })),
+      });
+      checkoutFiredRef.current = true;
     }
   }, [cartItems, subtotal]);
 

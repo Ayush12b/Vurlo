@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { Navbar } from "@/components/Navbar";
+import { trackEvent } from "@/lib/analytics";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -104,12 +105,8 @@ function OrderSuccessContent({ orderId }: { orderId?: string }) {
       const trackingKey = `vurlo_tracked_purchase_${latestOrder.id}`;
       const alreadyTracked = sessionStorage.getItem(trackingKey);
 
-      if (
-        !alreadyTracked &&
-        typeof window !== "undefined" &&
-        typeof (window as any).gtag === "function"
-      ) {
-        (window as any).gtag("event", "purchase", {
+      if (!alreadyTracked) {
+        trackEvent("purchase", {
           transaction_id: latestOrder.id,
           value: Number(latestOrder.totalAmount),
           currency: "INR",

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import {
   doc,
   onSnapshot,
@@ -228,20 +229,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
         localStorage.setItem("vurlo_local_cart", JSON.stringify(items));
         setCartItems(items);
-        if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
-          (window as any).gtag("event", "add_to_cart", {
-            currency: "INR",
-            value: Number(product.price),
-            items: [
-              {
-                item_id: product.productId,
-                item_name: product.name,
-                price: Number(product.price),
-                quantity: 1,
-              },
-            ],
-          });
-        }
+        trackEvent("add_to_cart", {
+          currency: "INR",
+          value: Number(product.price),
+          items: [
+            {
+              item_id: product.productId,
+              item_name: product.name,
+              price: Number(product.price),
+              quantity: 1,
+            },
+          ],
+        });
         toast.success(`${product.name} added to bag`, {
           description: "Review details in your shopping bag.",
           duration: 2500,
@@ -296,20 +295,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           quantity: 1,
         });
       }
-      if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
-        (window as any).gtag("event", "add_to_cart", {
-          currency: "INR",
-          value: Number(product.price),
-          items: [
-            {
-              item_id: product.productId,
-              item_name: product.name,
-              price: Number(product.price),
-              quantity: 1,
-            },
-          ],
-        });
-      }
+      trackEvent("add_to_cart", {
+        currency: "INR",
+        value: Number(product.price),
+        items: [
+          {
+            item_id: product.productId,
+            item_name: product.name,
+            price: Number(product.price),
+            quantity: 1,
+          },
+        ],
+      });
       toast.success(`${product.name} added to bag`, {
         description: "Review details in your shopping bag.",
         duration: 2500,
