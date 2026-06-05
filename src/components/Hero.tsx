@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { useHeroParallax, useMagnetic, useScrollReveal } from "@/hooks/use-premium-interactions";
-import heroProduct from "@/assets/hero-product.jpg";
 
 export function Hero() {
   const hero = useHeroParallax<HTMLElement>();
@@ -25,10 +24,11 @@ export function Hero() {
       onPointerMove={hero.onPointerMove}
       onPointerLeave={hero.onPointerLeave}
     >
+      {/* Ambient glows */}
       <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] max-w-full h-[800px] bg-purple-600 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
-
       <div className="hero-ambient-secondary absolute top-1/3 left-2/3 w-[500px] max-w-full h-[500px] bg-cyan-500 blur-[120px] rounded-full" />
 
+      {/* Grid */}
       <div
         className="hero-grid-parallax absolute inset-0 opacity-[0.03]"
         style={{
@@ -38,17 +38,23 @@ export function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-20 pt-10 pb-16 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
-        <div className="space-y-10">
+      {/* ── Main grid ── */}
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 md:px-20 pt-8 pb-10 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-20 items-center">
+
+        {/* ── Left: Text content ── */}
+        <div className="space-y-5 md:space-y-10">
+
+          {/* Badge */}
           <div className="inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
             New Collection &middot; 2026
           </div>
 
+          {/* H1 */}
           <h1
             ref={headingRef}
-            className="font-display leading-[1.02] tracking-tight hero-heading"
-            style={{ fontSize: "clamp(2.2rem, 7vw, 6rem)", fontWeight: 800 }}
+            className="font-display leading-[1.05] tracking-tight hero-heading"
+            style={{ fontSize: "clamp(2rem, 8vw, 6rem)", fontWeight: 800 }}
           >
             <span className="sr-only">Vurlo - Premium Lighting & Decor</span>
             <span className="block text-white/90">Upgrade Your Room.</span>
@@ -64,21 +70,20 @@ export function Hero() {
             </span>
           </h1>
 
+          {/* Subtext */}
           <p
             ref={subtextRef}
-            className="text-base leading-relaxed text-white/60 max-w-md font-light tracking-wide md:text-lg"
+            className="text-sm leading-relaxed text-white/60 max-w-sm font-light tracking-wide md:text-lg md:max-w-md"
           >
             Lights and decor that actually make your room look good. Built for setups, bedrooms, and anyone tired of boring spaces.
           </p>
 
-          <div
-            ref={ctasRef}
-            className="flex flex-wrap items-center gap-4 pt-2 sm:pt-4"
-          >
+          {/* CTAs */}
+          <div ref={ctasRef} className="flex flex-wrap items-center gap-3 md:gap-4">
             <a
               ref={primaryCta.ref}
               href="/shop"
-              className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 sm:px-9 sm:py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
+              className="premium-hero-cta group relative inline-flex items-center gap-2.5 rounded-full px-6 py-3 sm:px-9 sm:py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-500"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
                 boxShadow: "0 0 0 1px rgba(139,92,246,0.3), 0 10px 40px rgba(109,40,217,0.5)",
@@ -102,9 +107,10 @@ export function Hero() {
             </a>
           </div>
 
+          {/* Stats */}
           <div
             ref={statsRef}
-            className="flex flex-wrap gap-6 pt-4 border-t border-white/[0.08] sm:pt-6 md:gap-12"
+            className="flex flex-wrap gap-5 pt-4 border-t border-white/[0.08] md:gap-12 md:pt-6"
           >
             {[
               ["4.9★", "Avg Rating"],
@@ -112,16 +118,16 @@ export function Hero() {
               ["Free", "Shipping"],
             ].map(([n, l]) => (
               <div key={l}>
-                <div className="text-2xl font-semibold text-white/90">{n}</div>
-                <div className="text-xs text-white/50 uppercase tracking-widest">{l}</div>
+                <div className="text-xl font-semibold text-white/90 md:text-2xl">{n}</div>
+                <div className="text-[10px] text-white/50 uppercase tracking-widest md:text-xs">{l}</div>
               </div>
             ))}
           </div>
         </div>
 
+        {/* ── Right: Hero image – desktop only ── */}
         <div className="hero-img-wrapper relative hidden md:flex justify-center items-center overflow-hidden">
           <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
-
           <img
             src="/aura-rgb-1.png"
             alt="Vurlo RGB Ambience Setup"
