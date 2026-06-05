@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
@@ -30,7 +30,9 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [fpAttempts, setFpAttempts] = useState(0);
   const [fpCooldown, setFpCooldown] = useState(0);
+  const [fpLockedUntil, setFpLockedUntil] = useState(0);
 
   useEffect(() => {
     if (fpCooldown <= 0) return;
@@ -82,15 +84,44 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         onOpenChange(false);
         resetForm();
       } else if (mode === "forgot") {
-        if (fpCooldown > 0) return;
+        const now = Date.now();
+        if (fpLockedUntil > now) {
+          const minsLeft = Math.ceil((fpLockedUntil - now) / 60000);
+          setError(
+            `Too many attempts. Try again in ${minsLeft} minute${minsLeft !== 1 ? "s" : ""}.`,
+          );
+          return;
+        }
+        if (fpCooldown > 0) {
+          setError(`Please wait ${fpCooldown} seconds before requesting another reset email.`);
+          return;
+        }
         await forgotPassword(email);
-        toast.success("Reset email sent!", {
-          description: "Please check your inbox.",
-          duration: 3000,
-        });
-        setSuccess("Password reset email sent! Check your inbox.");
+        const newAttempts = fpAttempts + 1;
+        setFpAttempts(newAttempts);
+        if (newAttempts >= 3) {
+          const lockUntil = Date.now() + 6 * 60 * 60 * 1000;
+          setFpLockedUntil(lockUntil);
+          setFpAttempts(0);
+          setFpCooldown(0);
+          toast.success("Reset email sent!", {
+            description: "Please check your inbox.",
+            duration: 3000,
+          });
+          setSuccess(
+            "Password reset email sent! You've reached the limit — please wait 6 hours before requesting again.",
+          );
+        } else {
+          setFpCooldown(60);
+          toast.success("Reset email sent!", {
+            description: `Please check your inbox. ${3 - newAttempts} attempt${3 - newAttempts !== 1 ? "s" : ""} remaining.`,
+            duration: 3000,
+          });
+          setSuccess(
+            `Password reset email sent! Check your inbox. (${newAttempts}/3 attempts used)`,
+          );
+        }
         setEmail("");
-        setFpCooldown(60);
       }
     } catch (err: unknown) {
       console.error("[AuthModal Submit Error]:", err);
@@ -131,6 +162,9 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setMode("login");
     setShowPassword(false);
     setShowConfirmPassword(false);
+    setFpAttempts(0);
+    setFpCooldown(0);
+    setFpLockedUntil(0);
   };
 
   const getHeaderDetails = () => {
@@ -311,7 +345,9 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
           <Button
             type="submit"
-            disabled={loading || (mode === "forgot" && fpCooldown > 0)}
+            disabled={
+              loading || (mode === "forgot" && (fpCooldown > 0 || fpLockedUntil > Date.now()))
+            }
             className="w-full text-xs font-bold uppercase tracking-wider h-11 mt-6 rounded-lg text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] scale-100 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
             style={{
               background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
@@ -325,9 +361,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   ? "Login"
                   : mode === "signup"
                     ? "Sign Up"
-                    : fpCooldown > 0
-                      ? `Resend in ${fpCooldown}s`
-                      : "Send Reset Link"}
+                    : fpLockedUntil > Date.now()
+                      ? `Locked (6h limit reached)`
+                      : fpCooldown > 0
+                        ? `Resend in ${fpCooldown}s`
+                        : "Send Reset Link"}
               </span>
             )}
           </Button>

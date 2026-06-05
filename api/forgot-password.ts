@@ -28,18 +28,48 @@ function checkFpRateLimit(ip: string): boolean {
   return false;
 }
 
-const fpEmailCache = new Map<string, number>();
-function checkFpEmailRateLimit(email: string): boolean {
+// Per-email rate limiting: max 3 emails per 6 hours
+const fpEmailCache = new Map<string, { count: number; firstAt: number; lockedUntil: number }>();
+
+function checkFpEmailRateLimit(email: string): { blocked: boolean; error?: string } {
   const now = Date.now();
-  const last = fpEmailCache.get(email);
-  if (last && now - last < 60000) return true;
-  fpEmailCache.set(email, now);
-  if (fpEmailCache.size > 500) {
-    for (const [k, v] of fpEmailCache.entries()) {
-      if (now - v > 60000) fpEmailCache.delete(k);
-    }
+  const SIX_HOURS = 6 * 60 * 60 * 1000;
+  const SIXTY_SEC = 60 * 1000;
+  const entry = fpEmailCache.get(email);
+
+  if (!entry) {
+    fpEmailCache.set(email, { count: 1, firstAt: now, lockedUntil: 0 });
+    return { blocked: false };
   }
-  return false;
+
+  // 6-hour hard lock
+  if (entry.lockedUntil > now) {
+    const minsLeft = Math.ceil((entry.lockedUntil - now) / 60000);
+    return { blocked: true, error: `Too many reset attempts. Try again in ${minsLeft} minute(s).` };
+  }
+
+  // Reset window expired — start fresh
+  if (now - entry.firstAt > SIX_HOURS) {
+    fpEmailCache.set(email, { count: 1, firstAt: now, lockedUntil: 0 });
+    return { blocked: false };
+  }
+
+  // 60s between each attempt
+  if (now - entry.firstAt < SIXTY_SEC * entry.count) {
+    return {
+      blocked: true,
+      error: "Please wait 60 seconds before requesting another reset email.",
+    };
+  }
+
+  // 3rd attempt — lock for 6 hours
+  if (entry.count >= 3) {
+    entry.lockedUntil = now + SIX_HOURS;
+    return { blocked: true, error: "Too many reset attempts. Account locked for 6 hours." };
+  }
+
+  entry.count += 1;
+  return { blocked: false };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -64,10 +94,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Invalid email address." });
   }
 
-  if (checkFpEmailRateLimit(email)) {
-    return res.status(429).json({
-      error: "A reset email was already sent to this address. Please wait 60 seconds.",
-    });
+  const emailLimit = checkFpEmailRateLimit(email);
+  if (emailLimit.blocked) {
+    return res.status(429).json({ error: emailLimit.error });
   }
 
   try {
