@@ -73,7 +73,7 @@ export function Hero() {
           {/* Subtext */}
           <p
             ref={subtextRef}
-            className="hidden md:block text-sm leading-relaxed text-white/60 max-w-sm font-light tracking-wide md:text-lg md:max-w-md"
+            className="text-xs leading-relaxed text-white/60 max-w-sm font-light tracking-wide md:text-sm md:text-lg md:max-w-md"
           >
             Lights and decor that actually make your room look good. Built for setups, bedrooms, and anyone tired of boring spaces.
           </p>
@@ -110,7 +110,7 @@ export function Hero() {
           {/* Stats */}
           <div
             ref={statsRef}
-            className="flex flex-wrap gap-5 pt-3 border-t border-white/[0.08] md:gap-12 md:pt-6"
+            className="flex gap-4 pt-3 border-t border-white/[0.08] md:gap-12 md:pt-6"
           >
             {[
               ["4.9★", "Avg Rating"],
