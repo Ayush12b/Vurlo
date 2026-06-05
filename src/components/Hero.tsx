@@ -39,10 +39,10 @@ export function Hero() {
       />
 
       {/* ── Main grid ── */}
-      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 md:px-20 pt-10 pb-10 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-0 md:px-20 pt-0 pb-10 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-20 items-center">
 
         {/* ── Left: Text content ── */}
-        <div className="space-y-5 md:space-y-10">
+        <div className="space-y-5 md:space-y-10 px-5 md:px-0 pt-6 md:pt-0">
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
@@ -126,7 +126,7 @@ export function Hero() {
         </div>
 
         {/* ── Right: Hero image – desktop only ── */}
-        <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden">
+        <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden order-first md:order-last">
           <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
           <img
             src="/aura-rgb-1.png"
@@ -171,9 +171,9 @@ export function Hero() {
           position: relative;
           overflow: hidden;
           width: 100%;
-          height: clamp(240px, 70vw, 550px);
+          height: clamp(260px, 80vw, 550px);
           display: flex;
-          align-items: flex-end;
+          align-items: center;
           justify-content: center;
           margin-bottom: 0;
           padding-bottom: 0;
@@ -202,6 +202,19 @@ export function Hero() {
           margin-bottom: 0;
         }
 
+        @media (max-width: 767px) {
+          .hero-img-wrapper {
+            height: 72vw;
+            max-height: 320px;
+          }
+          .hero-product-premium {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            transform: none !important;
+            animation: none !important;
+          }
+        }
         @media (min-width: 768px) {
           .hero-product-premium {
             height: 100% !important;
