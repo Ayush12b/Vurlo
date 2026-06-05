@@ -27,6 +27,7 @@ service cloud.firestore {
           && request.resource.data.image is string
           && request.resource.data.quantity is number
           && request.resource.data.quantity > 0
+          && request.resource.data.quantity <= 10
           && exists(/databases/$(database)/documents/products/$(productId));
       }
 
@@ -75,12 +76,7 @@ service cloud.firestore {
     // Public Product Catalog
     match /products/{productId} {
       allow read: if true;
-      allow update: if isAdmin() || (
-        request.auth != null &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock']) &&
-        request.resource.data.stock is number &&
-        request.resource.data.stock >= 0
-      );
+      allow update: if isAdmin();
       allow create, delete: if isAdmin();
     }
 
