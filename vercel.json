@@ -1,5 +1,11 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "functions": {
+    "api/*.ts": {
+      "maxDuration": 10
+    },
+    "api/send-email.ts": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
