@@ -27,12 +27,7 @@ export function Hero() {
       {/* Ambient glows */}
       <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] max-w-full h-[800px] bg-purple-600 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
       <div className="hero-ambient-secondary absolute top-1/3 left-2/3 w-[500px] max-w-full h-[500px] bg-cyan-500 blur-[120px] rounded-full" />
-      <div className="hero-ambient-tertiary absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-400 blur-[120px] rounded-full opacity-[0.07]" />
-
-      {/* Floating particles */}
-      <div className="hero-particle hero-particle-1 absolute w-1.5 h-1.5 rounded-full bg-violet-400/70 blur-[1px]" style={{top:'20%',left:'15%'}} />
-      <div className="hero-particle hero-particle-2 absolute w-1 h-1 rounded-full bg-cyan-400/60 blur-[1px]" style={{top:'60%',left:'55%'}} />
-      <div className="hero-particle hero-particle-3 absolute w-2 h-2 rounded-full bg-indigo-400/50 blur-[1px]" style={{top:'35%',right:'10%'}} />
+      <div className="hero-ambient-tertiary absolute bottom-0 left-[-10%] w-[400px] h-[400px] bg-cyan-400 blur-[120px] rounded-full" />
 
       {/* Grid */}
       <div
@@ -43,6 +38,13 @@ export function Hero() {
           backgroundSize: "80px 80px",
         }}
       />
+
+      {/* Floating particles — visible on all screen sizes */}
+      <div className="hero-particle hero-particle-1 absolute w-1.5 h-1.5 rounded-full bg-violet-400/80 blur-[1px] z-10" style={{ top: "22%", left: "12%" }} />
+      <div className="hero-particle hero-particle-2 absolute w-1 h-1 rounded-full bg-cyan-400/70 blur-[1px] z-10" style={{ top: "58%", left: "42%" }} />
+      <div className="hero-particle hero-particle-3 absolute w-2 h-2 rounded-full bg-indigo-400/60 blur-[1px] z-10" style={{ top: "30%", right: "8%" }} />
+      <div className="hero-particle hero-particle-4 absolute w-1 h-1 rounded-full bg-violet-300/60 blur-[1px] z-10" style={{ top: "75%", left: "25%" }} />
+      <div className="hero-particle hero-particle-5 absolute w-1.5 h-1.5 rounded-full bg-cyan-300/50 blur-[1px] z-10" style={{ top: "15%", right: "30%" }} />
 
       {/* ── Main grid ── */}
       <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-20 items-center">
@@ -65,7 +67,7 @@ export function Hero() {
             <span className="sr-only">Vurlo - Premium Lighting & Decor</span>
             <span className="block text-white/90">Upgrade Your Room.</span>
             <span
-              className="block"
+              className="block hero-gradient-text"
               style={{
                 background: "linear-gradient(110deg, #a78bfa 0%, #6366f1 50%, #22d3ee 100%)",
                 WebkitBackgroundClip: "text",
@@ -131,26 +133,39 @@ export function Hero() {
           </div>
         </div>
 
-        {/* ── Right: Hero image – desktop only ── */}
-        <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden">
-          <div style={{ transformStyle: "preserve-3d", perspective: "1000px" }} className="relative w-full h-full flex justify-center items-center">
-            <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
-            
-            <div className="hero-ring-glow absolute border-2 border-violet-500/30 rounded-full w-[110%] h-[110%] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ animation: "heroRingPulse 4s ease-in-out infinite" }} />
-            
-            <div className="hero-scanline absolute inset-0 z-[3] pointer-events-none overflow-hidden rounded-2xl">
-              <div style={{ position: "absolute", width: "100%", height: "2px", background: "linear-gradient(90deg, transparent, rgba(167,139,250,0.6), rgba(34,211,238,0.4), transparent)", animation: "heroScanline 3.5s ease-in-out infinite" }} />
+        {/* ── Right: Hero image ── */}
+        <div className="hero-img-wrapper relative flex justify-center items-center">
+
+          {/* Rotating border ring */}
+          <div className="hero-orbit-ring absolute w-[105%] h-[105%] rounded-2xl z-0" />
+
+          {/* Corner accent sparks */}
+          <div className="hero-spark hero-spark-tl absolute top-[-6px] left-[-6px] w-3 h-3 rounded-full bg-violet-400 z-20" />
+          <div className="hero-spark hero-spark-tr absolute top-[-6px] right-[-6px] w-2 h-2 rounded-full bg-cyan-400 z-20" />
+          <div className="hero-spark hero-spark-br absolute bottom-[-6px] right-[-6px] w-3 h-3 rounded-full bg-indigo-400 z-20" />
+          <div className="hero-spark hero-spark-bl absolute bottom-[-6px] left-[-6px] w-2 h-2 rounded-full bg-violet-300 z-20" />
+
+          {/* Glow behind image */}
+          <div className="hero-product-glow absolute w-[75%] h-[75%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-60 blur-[100px] rounded-full z-0" />
+
+          {/* Image frame */}
+          <div className="hero-img-frame relative z-10 w-full rounded-2xl overflow-hidden">
+            {/* Scanline sweep */}
+            <div className="hero-scanline-wrap absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-2xl">
+              <div className="hero-scanline" />
             </div>
+
+            {/* Colour tint vignette */}
+            <div className="absolute inset-0 z-10 rounded-2xl pointer-events-none"
+              style={{ background: "radial-gradient(ellipse at 60% 40%, rgba(109,40,217,0.18) 0%, transparent 70%)" }}
+            />
 
             <img
               src="/aura-rgb-1.png"
               alt="Vurlo RGB Ambience Setup"
-              className="hero-product-premium relative w-full max-w-[460px] md:max-w-[650px] object-cover rounded-2xl select-none"
+              className="hero-product-premium relative w-full max-w-[460px] md:max-w-[650px] object-cover rounded-2xl select-none block"
               style={{
-                filter:
-                  "drop-shadow(0 40px 80px rgba(109,40,217,0.5)) drop-shadow(0 20px 40px rgba(0,0,0,0.8))",
-                transform: "perspective(900px) rotateY(-6deg) rotateX(2deg) scale(1.04)",
-                transition: "transform 0.6s cubic-bezier(0.16,1,0.3,1)",
+                filter: "drop-shadow(0 40px 80px rgba(109,40,217,0.55)) drop-shadow(0 20px 40px rgba(0,0,0,0.8))",
               }}
             />
           </div>
@@ -158,58 +173,109 @@ export function Hero() {
       </div>
 
       <style>{`
+        /* ── Grid parallax ── */
         .hero-grid-parallax {
           transform: translate3d(var(--hero-grid-x, 0px), var(--hero-grid-y, 0px), 0);
           transition: transform 0.16s ease-out;
           will-change: transform;
         }
 
+        /* ── Ambient glows ── */
         .hero-ambient-primary {
           transform: translate3d(calc(-50% + var(--hero-glow-x, 0px)), calc(-50% + var(--hero-glow-y, 0px)), 0);
           opacity: 0.18;
           animation: heroGlow1 22s ease-in-out infinite;
           will-change: transform, opacity;
         }
-
         .hero-ambient-secondary {
           transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0);
           opacity: 0.10;
           animation: heroGlow2 30s ease-in-out infinite;
           will-change: transform, opacity;
         }
-
-        .hero-product-glow {
-          transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0);
-          transition: transform 0.18s ease-out;
-          will-change: transform;
+        .hero-ambient-tertiary {
+          opacity: 0.07;
+          animation: heroGlow2 25s ease-in-out infinite reverse;
         }
 
+        /* ── Orbiting border ring ── */
+        .hero-orbit-ring {
+          border: 1px solid transparent;
+          background: linear-gradient(#050507, #050507) padding-box,
+            conic-gradient(from var(--ring-angle, 0deg), #a78bfa, #22d3ee, #6366f1, #a78bfa) border-box;
+          animation: ringRotate 6s linear infinite;
+          pointer-events: none;
+        }
+        @property --ring-angle {
+          syntax: "<angle>";
+          initial-value: 0deg;
+          inherits: false;
+        }
+        @keyframes ringRotate {
+          to { --ring-angle: 360deg; }
+        }
+
+        /* ── Corner sparks ── */
+        .hero-spark {
+          animation: sparkPulse 2.5s ease-in-out infinite;
+          box-shadow: 0 0 8px 2px currentColor;
+        }
+        .hero-spark-tl { animation-delay: 0s; }
+        .hero-spark-tr { animation-delay: 0.6s; }
+        .hero-spark-br { animation-delay: 1.2s; }
+        .hero-spark-bl { animation-delay: 1.8s; }
+        @keyframes sparkPulse {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.6); }
+        }
+
+        /* ── Scanline ── */
+        .hero-scanline {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          height: 3px;
+          background: linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.7) 30%, rgba(34,211,238,0.5) 70%, transparent 100%);
+          animation: scanlineMove 4s ease-in-out infinite;
+          top: 0;
+        }
+        @keyframes scanlineMove {
+          0% { top: -4px; opacity: 0; }
+          5% { opacity: 1; }
+          95% { opacity: 0.6; }
+          100% { top: 105%; opacity: 0; }
+        }
+
+        /* ── Image wrapper ── */
         .hero-img-wrapper {
           position: relative;
-          overflow: hidden;
           width: 100%;
           height: clamp(160px, 45vw, 550px);
-          display: flex;
           align-items: flex-end;
           justify-content: center;
           margin-bottom: 0;
           padding-bottom: 0;
         }
-
         .hero-img-wrapper::after {
           content: "";
           position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 120px;
+          left: 0; right: 0; bottom: 0;
+          height: 100px;
           background: linear-gradient(to top, #050507 0%, transparent 100%);
           pointer-events: none;
-          z-index: 2;
+          z-index: 30;
         }
 
+        /* ── Image frame ── */
+        .hero-img-frame {
+          height: 100%;
+          display: flex;
+          align-items: flex-end;
+        }
+
+        /* ── Floating image ── */
         .hero-product-premium {
-          animation: premiumFloat 14s ease-in-out infinite;
+          animation: premiumFloat 10s ease-in-out infinite;
           will-change: transform;
           display: block;
           width: 100% !important;
@@ -217,15 +283,48 @@ export function Hero() {
           max-height: 100% !important;
           object-fit: contain !important;
           margin-bottom: 0;
+          transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
         }
-
         @media (min-width: 768px) {
           .hero-product-premium {
             height: 100% !important;
             object-fit: cover !important;
+            transform: perspective(900px) rotateY(-5deg) rotateX(2deg);
+            animation: premiumFloat3D 10s ease-in-out infinite;
+          }
+          .hero-product-premium:hover {
+            transform: perspective(900px) rotateY(-1deg) rotateX(0deg) scale(1.03) !important;
+            animation: none !important;
           }
         }
 
+        /* ── Glow parallax ── */
+        .hero-product-glow {
+          transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0);
+          transition: transform 0.18s ease-out;
+          will-change: transform;
+        }
+
+        /* ── Floating particles ── */
+        .hero-particle-1 { animation: particleDrift1 7s ease-in-out infinite; }
+        .hero-particle-2 { animation: particleDrift2 9s ease-in-out infinite; }
+        .hero-particle-3 { animation: particleDrift3 6s ease-in-out infinite; }
+        .hero-particle-4 { animation: particleDrift1 11s ease-in-out infinite reverse; }
+        .hero-particle-5 { animation: particleDrift2 8s ease-in-out infinite reverse; }
+        @keyframes particleDrift1 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.7; }
+          50% { transform: translate(10px, -16px); opacity: 1; }
+        }
+        @keyframes particleDrift2 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.5; }
+          50% { transform: translate(-12px, 12px); opacity: 0.9; }
+        }
+        @keyframes particleDrift3 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.6; }
+          50% { transform: translate(8px, -10px); opacity: 1; }
+        }
+
+        /* ── Keyframes ── */
         @keyframes heroGlow1 {
           0%, 100% {
             transform: translate3d(calc(-50% + var(--hero-glow-x, 0px)), calc(-50% + var(--hero-glow-y, 0px)), 0) scale(1);
@@ -236,7 +335,6 @@ export function Hero() {
             opacity: 0.20;
           }
         }
-
         @keyframes heroGlow2 {
           0%, 100% {
             transform: translate3d(calc(var(--hero-glow-x, 0px) * -0.45), calc(var(--hero-glow-y, 0px) * -0.35), 0) scale(1);
@@ -247,13 +345,21 @@ export function Hero() {
             opacity: 0.12;
           }
         }
+        @keyframes premiumFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes premiumFloat3D {
+          0%, 100% { transform: perspective(900px) rotateY(-5deg) rotateX(2deg) translateY(0px); }
+          50% { transform: perspective(900px) rotateY(-5deg) rotateX(2deg) translateY(-10px); }
+        }
 
+        /* ── CTA ── */
         .premium-hero-cta,
         .premium-text-link {
           will-change: transform;
           transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         .premium-hero-cta:hover {
           transform: translateY(-2px) !important;
           box-shadow:
@@ -262,67 +368,37 @@ export function Hero() {
             0 0 30px rgba(34,211,238,0.18) !important;
         }
 
-        @keyframes premiumFloat {
-          0%, 100% {
-            transform: translate3d(var(--hero-product-x, 0px), var(--hero-product-y, 0px), 0) scale(1.18);
-          }
-          50% {
-            transform: translate3d(var(--hero-product-x, 0px), calc(var(--hero-product-y, 0px) - 8px), 0) scale(1.18);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .hero-product-premium {
-            animation: none;
-            transform: scale(1.18);
-          }
-        }
+        /* ── Mobile ── */
         @media (max-width: 767px) {
           .hero-product-premium {
-            animation: none !important;
+            animation: premiumFloat 10s ease-in-out infinite !important;
             transform: none !important;
             object-fit: cover !important;
             width: 100% !important;
             height: 100% !important;
             border-radius: 12px !important;
           }
+          .hero-orbit-ring {
+            display: block !important;
+          }
+          .hero-spark {
+            display: block !important;
+          }
+          .hero-scanline {
+            display: block !important;
+          }
+          .hero-particle {
+            display: block !important;
+          }
         }
 
-        @keyframes heroScanline {
-          0% { top: -4px; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 0.8; }
-          100% { top: 105%; opacity: 0; }
-        }
-        @keyframes heroRingPulse {
-          0%, 100% { opacity: 0.15; transform: scale(1); }
-          50% { opacity: 0.35; transform: scale(1.04); }
-        }
-        @keyframes particleDrift1 {
-          0%, 100% { transform: translate(0,0); opacity:0.7; }
-          50% { transform: translate(8px,-14px); opacity:1; }
-        }
-        @keyframes particleDrift2 {
-          0%, 100% { transform: translate(0,0); opacity:0.5; }
-          50% { transform: translate(-10px,10px); opacity:0.9; }
-        }
-        @keyframes particleDrift3 {
-          0%, 100% { transform: translate(0,0); opacity:0.6; }
-          50% { transform: translate(6px,-8px); opacity:1; }
-        }
-        .hero-particle-1 { animation: particleDrift1 7s ease-in-out infinite; }
-        .hero-particle-2 { animation: particleDrift2 9s ease-in-out infinite; }
-        .hero-particle-3 { animation: particleDrift3 6s ease-in-out infinite; }
-        .hero-product-premium:hover {
-          transform: perspective(900px) rotateY(-2deg) rotateX(0deg) scale(1.06) !important;
-        }
-        @media (max-width: 767px) {
-          .hero-scanline { display: none !important; }
-          .hero-ring-glow { display: none !important; }
-          .hero-particle { display: none !important; }
-        }
+        /* ── Reduced motion ── */
         @media (prefers-reduced-motion: reduce) {
-          .hero-scanline, .hero-ring-glow, .hero-particle { display: none !important; }
+          .hero-product-premium { animation: none; transform: none; }
+          .hero-orbit-ring { animation: none; }
+          .hero-spark { animation: none; }
+          .hero-scanline { display: none; }
+          .hero-particle { display: none; }
         }
       `}</style>
     </section>
