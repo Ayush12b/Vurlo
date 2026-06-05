@@ -6,7 +6,16 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useProducts, resolveProductImage, formatPrice } from "@/hooks/use-products";
 import { getProductSlug } from "@/utils/product";
 import { PRODUCT_SEO_DATA } from "@/utils/seo-data";
-import { ShoppingBag, Loader2, Heart, ArrowLeft, ShieldCheck, Truck, Users, Sparkles } from "lucide-react";
+import {
+  ShoppingBag,
+  Loader2,
+  Heart,
+  ArrowLeft,
+  ShieldCheck,
+  Truck,
+  Users,
+  Sparkles,
+} from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore";
@@ -16,8 +25,20 @@ export const Route = createFileRoute("/product/$slug")({
   head: ({ params }) => {
     const slug = params.slug;
     const seo = PRODUCT_SEO_DATA[slug];
-    const metaTitle = seo?.metaTitle || `${slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")} - Vurlo | Premium Lighting & Decor`;
-    const metaDesc = seo?.metaDescription || `Shop the premium ${slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")} on Vurlo. High-quality aesthetic lighting, crystal lamps, galaxy projectors, and ambient room decor. Free shipping available.`;
+    const metaTitle =
+      seo?.metaTitle ||
+      `${slug
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ")} - Vurlo | Premium Lighting & Decor`;
+    const metaDesc =
+      seo?.metaDescription ||
+      `Shop the premium ${slug
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(
+          " ",
+        )} on Vurlo. High-quality aesthetic lighting, crystal lamps, galaxy projectors, and ambient room decor. Free shipping available.`;
     return {
       meta: [
         { title: metaTitle },
@@ -67,7 +88,10 @@ function ProductDetailPage() {
   // Debug logging for product slugs and error handling
   useEffect(() => {
     if (!isLoading && dbProducts.length > 0) {
-      console.log("All product slugs:", dbProducts.map((p) => p.slug));
+      console.log(
+        "All product slugs:",
+        dbProducts.map((p) => p.slug),
+      );
       if (!product) {
         console.error(`Product slug not found: "${slug}". Showing fallback UI.`);
       }
@@ -89,9 +113,7 @@ function ProductDetailPage() {
     if (hasVariants && product) {
       const keys = Object.keys(product.images);
       if (product.defaultVariant) {
-        const found = keys.find(
-          (k) => k.toLowerCase() === product.defaultVariant!.toLowerCase()
-        );
+        const found = keys.find((k) => k.toLowerCase() === product.defaultVariant!.toLowerCase());
         if (found) return found;
       }
       return keys[0] || "";
@@ -152,9 +174,7 @@ function ProductDetailPage() {
     try {
       await addToCart({
         productId: product.id,
-        name: hasVariants
-          ? `${product.name} (${selectedVariant})`
-          : product.name,
+        name: hasVariants ? `${product.name} (${selectedVariant})` : product.name,
         price: product.price,
         image: resolvedImages[0] || resolveProductImage("", product.name),
       });
@@ -181,7 +201,7 @@ function ProductDetailPage() {
       const q = query(
         collection(db, "stock_notifications"),
         where("productId", "==", product.id),
-        where("email", "==", cleanEmail)
+        where("email", "==", cleanEmail),
       );
       const existing = await getDocs(q);
       if (!existing.empty) {
@@ -225,7 +245,9 @@ function ProductDetailPage() {
         <div>
           <Navbar />
           <div className="mx-auto max-w-md text-center py-32 px-6">
-            <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-300">404</h1>
+            <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-300">
+              404
+            </h1>
             <h2 className="mt-4 text-xl font-bold text-white">Product Not Found</h2>
             <p className="mt-2 text-sm text-gray-400">
               The product you're looking for doesn't exist or has been removed.
@@ -287,10 +309,13 @@ function ProductDetailPage() {
                   }}
                 />
                 <img
-                  src={imgError || !currentImage ? resolveProductImage("", product.name) : currentImage}
+                  src={
+                    imgError || !currentImage ? resolveProductImage("", product.name) : currentImage
+                  }
                   alt={product.name}
                   onError={() => setImgError(true)}
                   className="max-w-full max-h-full object-contain relative z-10 rounded-2xl drop-shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
+                  loading="eager"
                 />
               </div>
 
@@ -314,6 +339,7 @@ function ProductDetailPage() {
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).src = resolveProductImage("", "");
                         }}
+                        loading="lazy"
                       />
                     </button>
                   ))}
@@ -366,7 +392,10 @@ function ProductDetailPage() {
                       {Array.from({ length: 5 }).map((_, idx) => {
                         const isFilled = idx < Math.floor(product.rating || 0);
                         return (
-                          <span key={idx} className={isFilled ? "text-amber-400 font-bold" : "text-white/20"}>
+                          <span
+                            key={idx}
+                            className={isFilled ? "text-amber-400 font-bold" : "text-white/20"}
+                          >
                             ★
                           </span>
                         );
@@ -429,7 +458,8 @@ function ProductDetailPage() {
               {/* Description & Variant Specific text */}
               <div className="space-y-4">
                 <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
-                  {seoData?.description || product.description ||
+                  {seoData?.description ||
+                    product.description ||
                     "Premium aesthetic setup upgrade designed to elevate your room and workspace ambiance with stylish lighting and high quality build."}
                 </p>
 
@@ -439,13 +469,18 @@ function ProductDetailPage() {
                     className="p-4 rounded-xl border border-violet-500/10 bg-violet-500/[0.02] text-xs text-violet-300 leading-relaxed whitespace-pre-line animate-in fade-in duration-300"
                   >
                     <p className="font-bold text-[10px] text-white/50 uppercase tracking-wider block mb-1">
-                      {selectedVariant.charAt(0).toUpperCase() + selectedVariant.slice(1)} Edition Details
+                      {selectedVariant.charAt(0).toUpperCase() + selectedVariant.slice(1)} Edition
+                      Details
                     </p>
                     <p className="text-gray-400 leading-relaxed text-xs">
-                      {selectedVariant.toLowerCase() === "galaxy" && "Vibrant nebula lighting with rotating stars, best for gaming setups and active visual effects."}
-                      {selectedVariant.toLowerCase() === "moon" && "Warm, peaceful moonlight glow with cozy lunar details, perfect for relaxation and ambient bedroom decor."}
-                      {selectedVariant.toLowerCase() === "saturn" && "Elegant Saturn design etched inside a crystal sphere, glowing with a warm ambient light. Perfect for aesthetic setups and cozy room decor."}
-                      {selectedVariant.toLowerCase() === "astronaut" && "A glowing astronaut crystal ball lamp with a dreamy moon and stars design. Perfect for cozy lighting, aesthetic setups, and unique gifting."}
+                      {selectedVariant.toLowerCase() === "galaxy" &&
+                        "Vibrant nebula lighting with rotating stars, best for gaming setups and active visual effects."}
+                      {selectedVariant.toLowerCase() === "moon" &&
+                        "Warm, peaceful moonlight glow with cozy lunar details, perfect for relaxation and ambient bedroom decor."}
+                      {selectedVariant.toLowerCase() === "saturn" &&
+                        "Elegant Saturn design etched inside a crystal sphere, glowing with a warm ambient light. Perfect for aesthetic setups and cozy room decor."}
+                      {selectedVariant.toLowerCase() === "astronaut" &&
+                        "A glowing astronaut crystal ball lamp with a dreamy moon and stars design. Perfect for cozy lighting, aesthetic setups, and unique gifting."}
                     </p>
                   </div>
                 )}
@@ -492,9 +527,15 @@ function ProductDetailPage() {
                           onClick={handleNotifyMe}
                           disabled={notifySubmitting}
                           className="h-12 px-6 rounded-xl text-xs font-bold text-white cursor-pointer disabled:opacity-50 transition-all shrink-0"
-                          style={{ background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }}
+                          style={{
+                            background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
+                          }}
                         >
-                          {notifySubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Notify Me"}
+                          {notifySubmitting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Notify Me"
+                          )}
                         </button>
                       </div>
                     )}
@@ -508,9 +549,15 @@ function ProductDetailPage() {
                       style={{ background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }}
                     >
                       {addingToCart ? (
-                        <><Loader2 className="h-4.5 w-4.5 animate-spin" /><span>Adding...</span></>
+                        <>
+                          <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                          <span>Adding...</span>
+                        </>
                       ) : (
-                        <><ShoppingBag className="h-4.5 w-4.5" /><span>Add to Bag</span></>
+                        <>
+                          <ShoppingBag className="h-4.5 w-4.5" />
+                          <span>Add to Bag</span>
+                        </>
                       )}
                     </button>
 
@@ -530,7 +577,10 @@ function ProductDetailPage() {
                       }`}
                       aria-label="Toggle wishlist"
                     >
-                      <Heart size={16} className={isWishlisted(product.id) ? "fill-rose-400" : ""} />
+                      <Heart
+                        size={16}
+                        className={isWishlisted(product.id) ? "fill-rose-400" : ""}
+                      />
                     </button>
                   </div>
                 )}
@@ -569,9 +619,7 @@ function ProductDetailPage() {
               <h2 className="font-display text-2xl font-extrabold text-white sm:text-3xl">
                 About {product.name}
               </h2>
-              <p className="text-sm text-white/60 leading-relaxed">
-                {seoData.description}
-              </p>
+              <p className="text-sm text-white/60 leading-relaxed">{seoData.description}</p>
             </section>
 
             {/* 2. Structured Sections: Use Cases & Why Buy */}
@@ -583,7 +631,10 @@ function ProductDetailPage() {
                 </h2>
                 <ul className="space-y-3">
                   {seoData.useCases.map((useCase, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-xs text-white/50 leading-relaxed">
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2.5 text-xs text-white/50 leading-relaxed"
+                    >
                       <span className="text-violet-400 font-bold select-none">•</span>
                       <span>{useCase}</span>
                     </li>
@@ -597,7 +648,10 @@ function ProductDetailPage() {
                 </h2>
                 <ul className="space-y-3">
                   {seoData.whyBuy.map((point, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-xs text-white/50 leading-relaxed">
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2.5 text-xs text-white/50 leading-relaxed"
+                    >
                       <span className="text-cyan-400 font-bold select-none">✓</span>
                       <span>{point}</span>
                     </li>
@@ -614,8 +668,13 @@ function ProductDetailPage() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {seoData.faqs.map((faq, idx) => (
-                    <div key={idx} className="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.01] space-y-2">
-                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">{faq.question}</h3>
+                    <div
+                      key={idx}
+                      className="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.01] space-y-2"
+                    >
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                        {faq.question}
+                      </h3>
                       <p className="text-xs text-white/50 leading-relaxed">{faq.answer}</p>
                     </div>
                   ))}
@@ -637,7 +696,10 @@ function ProductDetailPage() {
                       }
                       if (related.images && typeof related.images === "object") {
                         const defVar = (related.defaultVariant || "Galaxy").toLowerCase();
-                        const varImages = (related.images as Record<string, string[]>)[defVar] || Object.values(related.images)[0] || [];
+                        const varImages =
+                          (related.images as Record<string, string[]>)[defVar] ||
+                          Object.values(related.images)[0] ||
+                          [];
                         return varImages[0] || related.image || "";
                       }
                       return related.image || "";
@@ -655,12 +717,19 @@ function ProductDetailPage() {
                             src={resolveProductImage(relatedImage, related.name)}
                             alt={related.name}
                             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
+                            loading="lazy"
                           />
                         </div>
                         <div className="flex flex-col flex-1 mt-4 space-y-2">
-                          <h3 className="text-xs font-bold text-white truncate">{related.displayName || related.name}</h3>
-                          <p className="text-[10px] text-white/30 truncate uppercase tracking-widest">{related.category}</p>
-                          <p className="text-xs font-bold text-violet-400 mt-auto">₹{formatPrice(related.price)}</p>
+                          <h3 className="text-xs font-bold text-white truncate">
+                            {related.displayName || related.name}
+                          </h3>
+                          <p className="text-[10px] text-white/30 truncate uppercase tracking-widest">
+                            {related.category}
+                          </p>
+                          <p className="text-xs font-bold text-violet-400 mt-auto">
+                            ₹{formatPrice(related.price)}
+                          </p>
                         </div>
                       </Link>
                     );
@@ -674,25 +743,30 @@ function ProductDetailPage() {
               {JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "Product",
-                "name": seoData?.seoTitle || product.seoTitle || product.name,
-                "description": seoData?.description || product.description,
-                "image": resolvedImages[0] || resolveProductImage("", seoData?.seoTitle || product.seoTitle || product.name),
-                "brand": {
+                name: seoData?.seoTitle || product.seoTitle || product.name,
+                description: seoData?.description || product.description,
+                image:
+                  resolvedImages[0] ||
+                  resolveProductImage("", seoData?.seoTitle || product.seoTitle || product.name),
+                brand: {
                   "@type": "Brand",
-                  "name": "Vurlo"
+                  name: "Vurlo",
                 },
-                "offers": {
+                offers: {
                   "@type": "Offer",
-                  "price": product.price,
-                  "priceCurrency": "INR",
-                  "availability": (product.stock ?? 10) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-                  "url": `https://vurlo.store/product/${product.slug}`
+                  price: product.price,
+                  priceCurrency: "INR",
+                  availability:
+                    (product.stock ?? 10) > 0
+                      ? "https://schema.org/InStock"
+                      : "https://schema.org/OutOfStock",
+                  url: `https://vurlo.store/product/${product.slug}`,
                 },
-                "aggregateRating": {
+                aggregateRating: {
                   "@type": "AggregateRating",
-                  "ratingValue": product.rating || 4.7,
-                  "reviewCount": product.reviewsCount || 38
-                }
+                  ratingValue: product.rating || 4.7,
+                  reviewCount: product.reviewsCount || 38,
+                },
               })}
             </script>
           </div>

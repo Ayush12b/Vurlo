@@ -175,6 +175,7 @@ function CheckoutPage() {
                           item.name,
                         );
                       }}
+                      loading="lazy"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-white/90 truncate">{item.name}</p>

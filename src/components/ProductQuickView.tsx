@@ -30,9 +30,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
     if (hasVariants) {
       const keys = Object.keys(product.images);
       if (product.defaultVariant) {
-        const found = keys.find(
-          (k) => k.toLowerCase() === product.defaultVariant.toLowerCase()
-        );
+        const found = keys.find((k) => k.toLowerCase() === product.defaultVariant.toLowerCase());
         if (found) return found;
       }
       return keys[0] || "";
@@ -95,9 +93,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
     try {
       await addToCart({
         productId: product.id,
-        name: hasVariants
-          ? `${product.name} (${selectedVariant})`
-          : product.name,
+        name: hasVariants ? `${product.name} (${selectedVariant})` : product.name,
         price: product.price,
         image: resolvedImages[0] || resolveProductImage("", product.name),
       });
@@ -120,7 +116,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
       const q = query(
         collection(db, "stock_notifications"),
         where("productId", "==", product.id),
-        where("email", "==", cleanEmail)
+        where("email", "==", cleanEmail),
       );
       const existing = await getDocs(q);
       if (!existing.empty) {
@@ -184,6 +180,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
               alt={product.name}
               onError={handleImgError}
               className="max-w-full max-h-full object-contain relative z-10 rounded-xl"
+              loading="eager"
             />
           </div>
 
@@ -204,7 +201,10 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
                     src={img || resolveProductImage("", "")}
                     alt=""
                     className="w-full h-full object-cover"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = resolveProductImage("", ""); }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = resolveProductImage("", "");
+                    }}
+                    loading="lazy"
                   />
                 </div>
               ))}
@@ -254,7 +254,10 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
                   {Array.from({ length: 5 }).map((_, idx) => {
                     const isFilled = idx < Math.floor(product.rating || 0);
                     return (
-                      <span key={idx} className={isFilled ? "text-amber-400 font-bold" : "text-white/20"}>
+                      <span
+                        key={idx}
+                        className={isFilled ? "text-amber-400 font-bold" : "text-white/20"}
+                      >
                         ★
                       </span>
                     );
@@ -295,7 +298,11 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
                         key={variant}
                         type="button"
                         onClick={() => handleVariantChange(variant)}
-                        className={selectedVariant === variant ? "active-variant-class" : "inactive-variant-class"}
+                        className={
+                          selectedVariant === variant
+                            ? "active-variant-class"
+                            : "inactive-variant-class"
+                        }
                       >
                         {variant.charAt(0).toUpperCase() + variant.slice(1)}
                       </button>
@@ -314,15 +321,22 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
 
               {/* 9. VARIANT LABEL & DESCRIPTION */}
               {hasVariants && (
-                <div key={selectedVariant} className="p-3 rounded-xl border border-violet-500/10 bg-violet-500/[0.02] text-xs text-violet-300 leading-relaxed whitespace-pre-line animate-in fade-in duration-300">
+                <div
+                  key={selectedVariant}
+                  className="p-3 rounded-xl border border-violet-500/10 bg-violet-500/[0.02] text-xs text-violet-300 leading-relaxed whitespace-pre-line animate-in fade-in duration-300"
+                >
                   <p className="font-bold text-[9px] text-white/50 uppercase tracking-wider block mb-1">
                     {selectedVariant.charAt(0).toUpperCase() + selectedVariant.slice(1)} Edition
                   </p>
                   <p className="text-xs text-gray-400 leading-relaxed">
-                    {selectedVariant.toLowerCase() === "galaxy" && "Vibrant nebula lighting, best for gaming & aesthetic setups"}
-                    {selectedVariant.toLowerCase() === "moon" && "Warm cozy glow, perfect for bedroom & relaxation"}
-                    {selectedVariant.toLowerCase() === "saturn" && "Elegant Saturn design etched inside a crystal sphere, glowing with a warm ambient light. Perfect for aesthetic setups and cozy room decor."}
-                    {selectedVariant.toLowerCase() === "astronaut" && "A glowing astronaut crystal ball lamp with a dreamy moon and stars design. Perfect for cozy lighting, aesthetic setups, and unique gifting."}
+                    {selectedVariant.toLowerCase() === "galaxy" &&
+                      "Vibrant nebula lighting, best for gaming & aesthetic setups"}
+                    {selectedVariant.toLowerCase() === "moon" &&
+                      "Warm cozy glow, perfect for bedroom & relaxation"}
+                    {selectedVariant.toLowerCase() === "saturn" &&
+                      "Elegant Saturn design etched inside a crystal sphere, glowing with a warm ambient light. Perfect for aesthetic setups and cozy room decor."}
+                    {selectedVariant.toLowerCase() === "astronaut" &&
+                      "A glowing astronaut crystal ball lamp with a dreamy moon and stars design. Perfect for cozy lighting, aesthetic setups, and unique gifting."}
                   </p>
                 </div>
               )}
@@ -370,7 +384,11 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
                       className="h-11 px-4 rounded-xl text-xs font-bold text-white cursor-pointer disabled:opacity-50 transition-all"
                       style={{ background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }}
                     >
-                      {notifySubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Notify Me"}
+                      {notifySubmitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Notify Me"
+                      )}
                     </button>
                   </div>
                 )}
@@ -383,9 +401,15 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
                 style={{ background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }}
               >
                 {addingToCart ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /><span>Adding to Cart...</span></>
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Adding to Cart...</span>
+                  </>
                 ) : (
-                  <><ShoppingBag className="h-4 w-4" /><span>Add to Cart</span></>
+                  <>
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>Add to Cart</span>
+                  </>
                 )}
               </button>
             )}

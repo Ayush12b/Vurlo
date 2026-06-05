@@ -229,6 +229,7 @@ function OrderSuccessContent({ orderId }: { orderId?: string }) {
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = resolveProductImage("", item.name);
                 }}
+                loading="lazy"
               />
               <div className="flex-1 min-w-0">
                 <h4 className="text-xs font-semibold text-white/90 truncate leading-snug">

@@ -117,7 +117,7 @@ export function Navbar() {
   const { data: allProducts } = useProducts();
   const recommendedProducts = useMemo(
     () => (allProducts ? allProducts.slice(0, 3) : undefined),
-    [allProducts]
+    [allProducts],
   );
 
   useEffect(() => {
@@ -368,7 +368,10 @@ export function Navbar() {
                       className="vurlo-icon-btn relative cursor-pointer focus:outline-none flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95"
                       aria-label="Notifications"
                     >
-                      <Bell size={16} className="transition-transform duration-300 hover:rotate-12" />
+                      <Bell
+                        size={16}
+                        className="transition-transform duration-300 hover:rotate-12"
+                      />
                       {unreadCount > 0 && (
                         <span className="absolute top-[3px] right-[3px] min-w-[8px] h-2 bg-rose-500 rounded-full border border-[#0f0f18] shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse" />
                       )}
@@ -460,7 +463,7 @@ export function Navbar() {
                                 {/* Icon container */}
                                 <div
                                   className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${getNotificationIconStyles(
-                                    n.type
+                                    n.type,
                                   )}`}
                                 >
                                   <IconComponent size={14} />
@@ -642,6 +645,7 @@ export function Navbar() {
                                   item.name,
                                 );
                               }}
+                              loading="lazy"
                             />
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-semibold text-white/90 truncate leading-snug">
@@ -777,8 +781,8 @@ export function Navbar() {
 
                 {/* Auth Button Mobile — visible only on mobile */}
                 <div className="flex md:hidden items-center">
-                  {!loading && (
-                    user ? (
+                  {!loading &&
+                    (user ? (
                       <button
                         onClick={() => setOpen(!open)}
                         className="flex items-center justify-center rounded-full p-0.5 border border-white/10 hover:border-violet-500/30 transition-all duration-300 cursor-pointer focus:outline-none"
@@ -796,8 +800,7 @@ export function Navbar() {
                       >
                         Login
                       </button>
-                    )
-                  )}
+                    ))}
                 </div>
 
                 <button

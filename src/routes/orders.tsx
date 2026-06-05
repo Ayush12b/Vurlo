@@ -707,6 +707,7 @@ function OrdersContent() {
                                 item.name,
                               );
                             }}
+                            loading="lazy"
                           />
                           <div className="flex-1 min-w-0">
                             <h4 className="text-xs font-semibold text-white/95 truncate leading-snug">
