@@ -226,7 +226,7 @@ export function ProductCard({
                       {p.badge}
                     </span>
                   )}
-                  {onSale && (
+                  {onSale && (discount > 0 || Number(p.originalPrice) !== Number(p.price)) && (
                     <span className="pcard__sale-tag">
                       {discount > 0 ? `${discount}% OFF` : "SALE"}
                     </span>
@@ -295,7 +295,7 @@ export function ProductCard({
               )}
               <div className="mt-auto flex items-center justify-between">
                 <div className="flex flex-col">
-                  {onSale && hasOriginalPrice ? (
+                  {onSale && hasOriginalPrice && Number(p.originalPrice) !== Number(p.price) ? (
                     <div className="flex items-baseline gap-1.5">
                       <p className="pcard__price">₹{formatPrice(p.price)}</p>
                       <p className="text-[11px] text-white/30 line-through font-semibold">

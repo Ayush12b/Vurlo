@@ -315,8 +315,21 @@ export function Navbar() {
             <nav className="flex items-center justify-between px-6 h-[60px]">
               {/* Logo */}
               <Link to="/" className="vurlo-logo-text">
-                VURLO
-                <span className="vurlo-logo-dot" />
+                <svg width="110" height="28" viewBox="0 0 110 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="navTg" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#a78bfa"/>
+                      <stop offset="50%" stopColor="#6366f1"/>
+                      <stop offset="100%" stopColor="#22d3ee"/>
+                    </linearGradient>
+                    <linearGradient id="navVg" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#a78bfa"/>
+                      <stop offset="100%" stopColor="#22d3ee"/>
+                    </linearGradient>
+                  </defs>
+                  <polygon points="4,4 11,20 18,4" fill="none" stroke="url(#navVg)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"/>
+                  <text x="24" y="19" fontFamily="'Arial Black', Impact, sans-serif" fontWeight="900" fontSize="17" letterSpacing="3" fill="url(#navTg)">VURLO</text>
+                </svg>
               </Link>
 
               {/* Links */}
