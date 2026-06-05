@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
@@ -98,7 +99,31 @@ function OrderSuccessContent({ orderId }: { orderId?: string }) {
     },
   });
 
+  useEffect(() => {
+    if (latestOrder) {
+      const trackingKey = `vurlo_tracked_purchase_${latestOrder.id}`;
+      const alreadyTracked = sessionStorage.getItem(trackingKey);
 
+      if (
+        !alreadyTracked &&
+        typeof window !== "undefined" &&
+        typeof (window as any).gtag === "function"
+      ) {
+        (window as any).gtag("event", "purchase", {
+          transaction_id: latestOrder.id,
+          value: Number(latestOrder.totalAmount),
+          currency: "INR",
+          items: latestOrder.items.map((item) => ({
+            item_id: item.productId,
+            item_name: item.name,
+            price: Number(item.price),
+            quantity: item.quantity,
+          })),
+        });
+        sessionStorage.setItem(trackingKey, "true");
+      }
+    }
+  }, [latestOrder]);
 
   if (isLoading) {
     return (
@@ -168,8 +193,8 @@ function OrderSuccessContent({ orderId }: { orderId?: string }) {
           Order Confirmed!
         </h1>
         <p className="text-sm text-white/45 max-w-md mx-auto">
-          Thank you for your order. We've received your order, and your premium lighting & decor upgrades are being
-          prepared for shipment.
+          Thank you for your order. We've received your order, and your premium lighting & decor
+          upgrades are being prepared for shipment.
         </p>
       </div>
 

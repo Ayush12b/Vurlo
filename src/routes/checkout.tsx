@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Navigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
@@ -70,6 +70,26 @@ function CheckoutPage() {
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
+  const checkoutFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (cartItems.length > 0 && !checkoutFiredRef.current) {
+      if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+        (window as any).gtag("event", "begin_checkout", {
+          currency: "INR",
+          value: subtotal,
+          items: cartItems.map((item) => ({
+            item_id: item.productId,
+            item_name: item.name,
+            price: Number(item.price),
+            quantity: item.quantity,
+          })),
+        });
+        checkoutFiredRef.current = true;
+      }
+    }
+  }, [cartItems, subtotal]);
+
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (phone.length !== 10 || !/^\d+$/.test(phone)) {
@@ -135,23 +155,14 @@ function CheckoutPage() {
           <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white/90">
             Checkout
           </h1>
-          <p className="text-xs text-white/40 mt-1">
-            Complete your order in a few steps.
-          </p>
+          <p className="text-xs text-white/40 mt-1">Complete your order in a few steps.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
-
           {/* LEFT COLUMN — Steps */}
           <div className="space-y-6">
-
             {/* ── STEP 1: ORDER SUMMARY ── */}
-            <Section
-              step={1}
-              title="Order Summary"
-              icon={<ShoppingBag size={14} />}
-              done={true}
-            >
+            <Section step={1} title="Order Summary" icon={<ShoppingBag size={14} />} done={true}>
               <div className="space-y-3">
                 {cartItems.map((item) => (
                   <div key={item.productId} className="flex items-center gap-3.5">
@@ -160,7 +171,10 @@ function CheckoutPage() {
                       alt={item.name}
                       className="w-11 h-11 rounded-xl object-cover bg-white/[0.03] border border-white/[0.06] shrink-0"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = resolveProductImage("", item.name);
+                        (e.currentTarget as HTMLImageElement).src = resolveProductImage(
+                          "",
+                          item.name,
+                        );
                       }}
                     />
                     <div className="flex-1 min-w-0">
@@ -186,7 +200,9 @@ function CheckoutPage() {
                 /* Collapsed view after confirmed */
                 <div className="space-y-1">
                   <p className="text-xs font-semibold text-white/90">{name}</p>
-                  <p className="text-xs text-white/50">{address}, {city}, {state} – {pinCode}</p>
+                  <p className="text-xs text-white/50">
+                    {address}, {city}, {state} – {pinCode}
+                  </p>
                   <p className="text-xs text-white/40">Phone: {phone}</p>
                   <button
                     type="button"
@@ -309,7 +325,6 @@ function CheckoutPage() {
               locked={!shippingDone}
             >
               <div id="payment-section" className="space-y-3">
-
                 {/* COD Option */}
                 <PaymentOption
                   selected={paymentMethod === "cod"}
@@ -362,9 +377,7 @@ function CheckoutPage() {
                       Placing Order...
                     </>
                   ) : (
-                    <>
-                      {paymentMethod === "cod" ? "Place Order — COD" : "Pay with UPI"}
-                    </>
+                    <>{paymentMethod === "cod" ? "Place Order — COD" : "Pay with UPI"}</>
                   )}
                 </button>
 
@@ -373,7 +386,6 @@ function CheckoutPage() {
                 </p>
               </div>
             </Section>
-
           </div>
 
           {/* RIGHT COLUMN — Sticky Order Total */}
@@ -417,7 +429,6 @@ function CheckoutPage() {
               )}
             </div>
           </div>
-
         </div>
       </div>
 
@@ -464,8 +475,8 @@ function Section({
         locked
           ? "border-white/[0.04] bg-white/[0.01] opacity-40 pointer-events-none select-none"
           : done
-          ? "border-emerald-500/20 bg-emerald-500/[0.03]"
-          : "border-white/[0.08] bg-gradient-to-b from-[#0f0f18]/80 to-[#090910]/80"
+            ? "border-emerald-500/20 bg-emerald-500/[0.03]"
+            : "border-white/[0.08] bg-gradient-to-b from-[#0f0f18]/80 to-[#090910]/80"
       }`}
     >
       <div className="flex items-center gap-3 mb-4">
@@ -519,9 +530,7 @@ function PaymentOption({
           selected ? "border-violet-400" : "border-white/20"
         }`}
       >
-        {selected && (
-          <div className="w-2 h-2 rounded-full bg-violet-400" />
-        )}
+        {selected && <div className="w-2 h-2 rounded-full bg-violet-400" />}
       </div>
 
       {/* Icon */}

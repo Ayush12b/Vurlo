@@ -222,12 +222,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           items.push({
             ...product,
             image: resolveProductImage(product.image, product.name),
-            quantity: 1
+            quantity: 1,
           });
         }
 
         localStorage.setItem("vurlo_local_cart", JSON.stringify(items));
         setCartItems(items);
+        if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+          (window as any).gtag("event", "add_to_cart", {
+            currency: "INR",
+            value: Number(product.price),
+            items: [
+              {
+                item_id: product.productId,
+                item_name: product.name,
+                price: Number(product.price),
+                quantity: 1,
+              },
+            ],
+          });
+        }
         toast.success(`${product.name} added to bag`, {
           description: "Review details in your shopping bag.",
           duration: 2500,
@@ -280,6 +294,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           price: product.price,
           image: resolveProductImage(product.image, product.name),
           quantity: 1,
+        });
+      }
+      if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+        (window as any).gtag("event", "add_to_cart", {
+          currency: "INR",
+          value: Number(product.price),
+          items: [
+            {
+              item_id: product.productId,
+              item_name: product.name,
+              price: Number(product.price),
+              quantity: 1,
+            },
+          ],
         });
       }
       toast.success(`${product.name} added to bag`, {
@@ -528,7 +556,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           .then(async (res) => {
             if (!res.ok) throw new Error("API failed");
             let data: any = null;
-            try { data = await res.json(); } catch {}
+            try {
+              data = await res.json();
+            } catch {}
             if (!data?.success) throw new Error("API failed");
           })
           .catch((err) => console.error("Order confirmation dispatch failed:", err));
@@ -619,7 +649,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             image: item.image,
             quantity: newQty,
           },
-          { merge: true }
+          { merge: true },
         );
       }
       await batch.commit();
