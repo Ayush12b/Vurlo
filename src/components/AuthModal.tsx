@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
@@ -29,6 +29,14 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [fpCooldown, setFpCooldown] = useState(0);
+
+  useEffect(() => {
+    if (fpCooldown <= 0) return;
+    const t = setTimeout(() => setFpCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [fpCooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +82,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         onOpenChange(false);
         resetForm();
       } else if (mode === "forgot") {
+        if (fpCooldown > 0) return;
         await forgotPassword(email);
         toast.success("Reset email sent!", {
           description: "Please check your inbox.",
@@ -81,6 +90,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         });
         setSuccess("Password reset email sent! Check your inbox.");
         setEmail("");
+        setFpCooldown(60);
       }
     } catch (err: unknown) {
       console.error("[AuthModal Submit Error]:", err);
@@ -288,7 +298,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors cursor-pointer focus:outline-none"
                     tabIndex={-1}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -297,7 +311,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || (mode === "forgot" && fpCooldown > 0)}
             className="w-full text-xs font-bold uppercase tracking-wider h-11 mt-6 rounded-lg text-white transition-all duration-300 relative overflow-hidden cursor-pointer shadow-[0_4px_20px_rgba(124,58,237,0.25)] hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] scale-100 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
             style={{
               background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
@@ -307,7 +321,13 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               <Loader2 className="h-4 w-4 animate-spin text-white" />
             ) : (
               <span>
-                {mode === "login" ? "Login" : mode === "signup" ? "Sign Up" : "Send Reset Link"}
+                {mode === "login"
+                  ? "Login"
+                  : mode === "signup"
+                    ? "Sign Up"
+                    : fpCooldown > 0
+                      ? `Resend in ${fpCooldown}s`
+                      : "Send Reset Link"}
               </span>
             )}
           </Button>

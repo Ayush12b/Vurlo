@@ -86,14 +86,18 @@ function getLogisticsLogs(order: any) {
   const baseTime = order.createdAt ? order.createdAt.seconds * 1000 : Date.now();
 
   const formatLogTime = (ms: number) => {
-    return new Date(ms).toLocaleDateString("en-IN", {
-      month: "short",
-      day: "numeric",
-    }) + ", " + new Date(ms).toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return (
+      new Date(ms).toLocaleDateString("en-IN", {
+        month: "short",
+        day: "numeric",
+      }) +
+      ", " +
+      new Date(ms).toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+    );
   };
 
   // Step 1: Placed
@@ -238,9 +242,11 @@ function OrderStatusTimeline({ status }: { status: string }) {
               if (status === "delivered") {
                 nodeDot = "bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.3)]";
               } else if (status === "shipped") {
-                nodeDot = "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-white/20 animate-pulse";
+                nodeDot =
+                  "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-white/20 animate-pulse";
               } else {
-                nodeDot = "bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.3)] border border-white/10 animate-pulse";
+                nodeDot =
+                  "bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.3)] border border-white/10 animate-pulse";
               }
               labelClass = "text-white font-extrabold";
             } else {
@@ -249,7 +255,10 @@ function OrderStatusTimeline({ status }: { status: string }) {
             }
 
             return (
-              <div key={step.key} className="flex flex-col items-center gap-2.5 w-[30%] relative z-10">
+              <div
+                key={step.key}
+                className="flex flex-col items-center gap-2.5 w-[30%] relative z-10"
+              >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 text-xs ${nodeDot}`}
                 >
@@ -263,7 +272,9 @@ function OrderStatusTimeline({ status }: { status: string }) {
                     <Clock className="h-3.5 w-3.5" />
                   )}
                 </div>
-                <span className={`text-[10px] uppercase tracking-wider block text-center leading-tight ${labelClass}`}>
+                <span
+                  className={`text-[10px] uppercase tracking-wider block text-center leading-tight ${labelClass}`}
+                >
                   {step.label}
                 </span>
               </div>
@@ -367,7 +378,9 @@ function OrdersContent() {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    const confirmed = window.confirm("Are you sure you want to cancel this order? This cannot be undone.");
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this order? This cannot be undone.",
+    );
     if (!confirmed) return;
     setCancellingId(orderId);
     try {
@@ -494,8 +507,12 @@ function OrdersContent() {
               <p className="text-sm font-extrabold text-white mt-0.5">{totalOrders}</p>
             </div>
             <div className="text-center border-x border-white/[0.06] px-2">
-              <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Total Spent</p>
-              <p className="text-sm font-extrabold text-violet-400 mt-0.5">₹{formatPrice(totalSpent)}</p>
+              <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">
+                Total Spent
+              </p>
+              <p className="text-sm font-extrabold text-violet-400 mt-0.5">
+                ₹{formatPrice(totalSpent)}
+              </p>
             </div>
             <div className="text-center">
               <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Active</p>
@@ -607,8 +624,12 @@ function OrdersContent() {
                         <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-30 w-64 p-3 bg-[#0f0f18]/95 border border-white/[0.08] rounded-xl shadow-2xl text-[11px] text-white/70 backdrop-blur-md">
                           <p className="font-bold text-white mb-1">{order.shippingDetails.name}</p>
                           <p className="leading-relaxed">{order.shippingDetails.address}</p>
-                          <p>{order.shippingDetails.city} - {order.shippingDetails.pinCode}</p>
-                          <p className="text-[10px] text-white/40 mt-1.5 font-medium">Phone: {order.shippingDetails.phone}</p>
+                          <p>
+                            {order.shippingDetails.city} - {order.shippingDetails.pinCode}
+                          </p>
+                          <p className="text-[10px] text-white/40 mt-1.5 font-medium">
+                            Phone: {order.shippingDetails.phone}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -672,7 +693,10 @@ function OrdersContent() {
                     {/* Left Column: Products List */}
                     <div className="flex-1 divide-y divide-white/[0.04]">
                       {order.items?.map((item) => (
-                        <div key={item.productId} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+                        <div
+                          key={item.productId}
+                          className="flex items-center gap-4 py-3 first:pt-0 last:pb-0"
+                        >
                           <img
                             src={resolveProductImage(getProductImage(item), item.name)}
                             alt={item.name}
@@ -710,7 +734,9 @@ function OrdersContent() {
                         }`}
                       >
                         {isExpanded ? "Hide Tracking" : "Track Order"}
-                        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+                        />
                       </button>
 
                       <button
@@ -726,19 +752,35 @@ function OrdersContent() {
                         Buy It Again
                       </button>
 
-                      {order.status === "pending" && (
-                        <button
-                          onClick={() => handleCancelOrder(order.id)}
-                          disabled={cancellingId === order.id}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/20 hover:bg-red-500/10 text-red-400 hover:text-red-300 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                        >
-                          {cancellingId === order.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            "Cancel Order"
-                          )}
-                        </button>
-                      )}
+                      {order.status === "pending" &&
+                        (() => {
+                          const TWO_HOURS = 2 * 60 * 60 * 1000;
+                          const canCancel = order.createdAt
+                            ? Date.now() - order.createdAt.seconds * 1000 < TWO_HOURS
+                            : true;
+
+                          if (canCancel) {
+                            return (
+                              <button
+                                onClick={() => handleCancelOrder(order.id)}
+                                disabled={cancellingId === order.id}
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/20 hover:bg-red-500/10 text-red-400 hover:text-red-300 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                {cancellingId === order.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  "Cancel Order"
+                                )}
+                              </button>
+                            );
+                          }
+
+                          return (
+                            <p className="w-full text-center text-[10px] text-white/25 py-1">
+                              Cancellation window closed (2h limit)
+                            </p>
+                          );
+                        })()}
 
                       <Link
                         to="/contact"
@@ -765,13 +807,22 @@ function OrdersContent() {
                         <div className="absolute left-[7px] top-2 bottom-2 w-[1.5px] bg-white/[0.06]" />
 
                         {getLogisticsLogs(order).map((log, logIdx) => (
-                          <div key={logIdx} className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                          <div
+                            key={logIdx}
+                            className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-1"
+                          >
                             {/* Timeline Node dot */}
-                            <div className={`absolute -left-[23px] w-2.5 h-2.5 rounded-full border-2 border-[#090910] ${
-                              log.done ? "bg-violet-500 shadow-[0_0_8px_rgba(124,58,237,0.5)]" : "bg-white/10"
-                            }`} />
-                            
-                            <p className={`text-xs font-medium ${log.done ? "text-white/80" : "text-white/30"}`}>
+                            <div
+                              className={`absolute -left-[23px] w-2.5 h-2.5 rounded-full border-2 border-[#090910] ${
+                                log.done
+                                  ? "bg-violet-500 shadow-[0_0_8px_rgba(124,58,237,0.5)]"
+                                  : "bg-white/10"
+                              }`}
+                            />
+
+                            <p
+                              className={`text-xs font-medium ${log.done ? "text-white/80" : "text-white/30"}`}
+                            >
                               {log.event}
                             </p>
                             <span className="text-[10px] text-white/35 font-mono shrink-0">

@@ -28,6 +28,20 @@ function checkFpRateLimit(ip: string): boolean {
   return false;
 }
 
+const fpEmailCache = new Map<string, number>();
+function checkFpEmailRateLimit(email: string): boolean {
+  const now = Date.now();
+  const last = fpEmailCache.get(email);
+  if (last && now - last < 60000) return true;
+  fpEmailCache.set(email, now);
+  if (fpEmailCache.size > 500) {
+    for (const [k, v] of fpEmailCache.entries()) {
+      if (now - v > 60000) fpEmailCache.delete(k);
+    }
+  }
+  return false;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN || "https://vurlo.store");
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
@@ -36,7 +50,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0].trim() || req.socket.remoteAddress || "anon";
+  const ip =
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0].trim() ||
+    req.socket.remoteAddress ||
+    "anon";
   if (checkFpRateLimit(ip)) {
     return res.status(429).json({ error: "Too many requests. Please wait before trying again." });
   }
@@ -45,6 +62,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!email) return res.status(400).json({ error: "Email is required" });
   if (!/^\S+@\S+\.\S+$/.test(email)) {
     return res.status(400).json({ error: "Invalid email address." });
+  }
+
+  if (checkFpEmailRateLimit(email)) {
+    return res.status(429).json({
+      error: "A reset email was already sent to this address. Please wait 60 seconds.",
+    });
   }
 
   try {
