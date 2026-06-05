@@ -39,7 +39,7 @@ export function Hero() {
       />
 
       {/* ── Main grid ── */}
-      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 md:px-20 pt-8 pb-10 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-20 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 md:px-20 pt-10 pb-10 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20 items-center">
 
         {/* ── Left: Text content ── */}
         <div className="space-y-5 md:space-y-10">
@@ -54,7 +54,7 @@ export function Hero() {
           <h1
             ref={headingRef}
             className="font-display leading-[1.05] tracking-tight hero-heading"
-            style={{ fontSize: "clamp(2rem, 8vw, 6rem)", fontWeight: 800 }}
+            style={{ fontSize: "clamp(2.6rem, 10vw, 6rem)", fontWeight: 800 }}
           >
             <span className="sr-only">Vurlo - Premium Lighting & Decor</span>
             <span className="block text-white/90">Upgrade Your Room.</span>
@@ -73,7 +73,7 @@ export function Hero() {
           {/* Subtext */}
           <p
             ref={subtextRef}
-            className="text-sm leading-relaxed text-white/60 max-w-sm font-light tracking-wide md:text-lg md:max-w-md"
+            className="text-base leading-relaxed text-white/60 max-w-sm font-light tracking-wide md:text-lg md:max-w-md"
           >
             Lights and decor that actually make your room look good. Built for setups, bedrooms, and anyone tired of boring spaces.
           </p>
@@ -118,15 +118,15 @@ export function Hero() {
               ["Free", "Shipping"],
             ].map(([n, l]) => (
               <div key={l}>
-                <div className="text-xl font-semibold text-white/90 md:text-2xl">{n}</div>
-                <div className="text-[10px] text-white/50 uppercase tracking-widest md:text-xs">{l}</div>
+                <div className="text-2xl font-semibold text-white/90 md:text-2xl">{n}</div>
+                <div className="text-xs text-white/50 uppercase tracking-widest">{l}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* ── Right: Hero image – desktop only ── */}
-        <div className="hero-img-wrapper relative hidden md:flex justify-center items-center overflow-hidden">
+        <div className="hero-img-wrapper relative flex justify-center items-center overflow-hidden">
           <div className="hero-product-glow absolute w-[70%] h-[70%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-50 blur-[120px] rounded-full" />
           <img
             src="/aura-rgb-1.png"
@@ -171,7 +171,7 @@ export function Hero() {
           position: relative;
           overflow: hidden;
           width: 100%;
-          height: clamp(320px, 45vw, 550px);
+          height: clamp(240px, 70vw, 550px);
           display: flex;
           align-items: flex-end;
           justify-content: center;
