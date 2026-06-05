@@ -42,7 +42,7 @@ export function Hero() {
       <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-20 items-center">
 
         {/* ── Left: Text content ── */}
-        <div className="space-y-3 md:space-y-10">
+        <div className="space-y-6 md:space-y-10">
 
           {/* Badge */}
           <div className="hidden md:inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-xs tracking-widest text-white/70 uppercase backdrop-blur-sm">
