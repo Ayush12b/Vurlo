@@ -4,7 +4,6 @@ import { Footer } from "@/components/Footer";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useProducts, resolveProductImage, formatPrice } from "@/hooks/use-products";
-import { getProductSlug } from "@/utils/product";
 import { PRODUCT_SEO_DATA } from "@/utils/seo-data";
 import {
   ShoppingBag,
@@ -21,106 +20,114 @@ import { db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore";
 import { toast } from "sonner";
 
+// ─── Route + Head (Meta / OG / Twitter) ─────────────────────────────────────
 export const Route = createFileRoute("/product/$slug")({
   head: ({ params }) => {
     const slug = params.slug;
     const seo = PRODUCT_SEO_DATA[slug];
+
     const metaTitle =
       seo?.metaTitle ||
       `${slug
         .split("-")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ")} - Vurlo | Premium Lighting & Decor`;
+        .join(" ")} – Vurlo | Premium Ambient Lighting & Bedroom Decor`;
+
     const metaDesc =
       seo?.metaDescription ||
-      `Shop the premium ${slug
+      `Shop ${slug
         .split("-")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(
-          " ",
-        )} on Vurlo. High-quality aesthetic lighting, crystal lamps, galaxy projectors, and ambient room decor. Free shipping available.`;
+        .join(" ")} on Vurlo – premium ambient lighting, RGB lights, sunset lamps & aesthetic room decor. Free shipping across India.`;
+
+    const ogImage = seo?.ogImage || "https://vurlo.store/preview.jpg";
+    const canonical = `https://vurlo.store/product/${slug}`;
+
     return {
       meta: [
         { title: metaTitle },
-        {
-          name: "description",
-          content: metaDesc,
-        },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: `https://vurlo.store/product/${slug}` },
+        { name: "description", content: metaDesc },
+        { name: "robots", content: "index, follow" },
+        { rel: "canonical", href: canonical },
+
+        // Open Graph
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: canonical },
         { property: "og:title", content: metaTitle },
         { property: "og:description", content: metaDesc },
-        { property: "og:image", content: "https://vurlo.store/preview.jpg" },
+        { property: "og:image", content: ogImage },
+        { property: "og:site_name", content: "Vurlo" },
+        { property: "og:locale", content: "en_IN" },
+
+        // Twitter
         { property: "twitter:card", content: "summary_large_image" },
-        { property: "twitter:url", content: `https://vurlo.store/product/${slug}` },
+        { property: "twitter:url", content: canonical },
         { property: "twitter:title", content: metaTitle },
         { property: "twitter:description", content: metaDesc },
-        { property: "twitter:image", content: "https://vurlo.store/preview.jpg" },
+        { property: "twitter:image", content: ogImage },
       ],
     };
   },
   component: ProductDetailPage,
 });
 
+// ─── Guarantee items (static – defined outside component to avoid re-creation) ──
+const GUARANTEES = [
+  [Truck, "Free Shipping", "On all orders"],
+  [ShieldCheck, "Secure Checkout", "SSL Encrypted"],
+  [Users, "1000+ Happy Customers", "Satisfied buyers"],
+] as const;
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 function ProductDetailPage() {
   const { slug } = Route.useParams();
   const { data: dbProducts = [], isLoading } = useProducts();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
 
-  const product = useMemo(() => {
-    return dbProducts.find((p) => p.slug === slug);
-  }, [dbProducts, slug]);
+  // ── Derived data (memoised) ──────────────────────────────────────────────
+  const product = useMemo(
+    () => dbProducts.find((p) => p.slug === slug),
+    [dbProducts, slug],
+  );
 
-  const seoData = useMemo(() => {
-    if (!product) return null;
-    return PRODUCT_SEO_DATA[product.slug] || null;
-  }, [product]);
+  const seoData = useMemo(
+    () => (product ? (PRODUCT_SEO_DATA[product.slug] ?? null) : null),
+    [product],
+  );
 
   const relatedProducts = useMemo(() => {
     if (!product) return [];
     const filtered = dbProducts.filter((p) => p.id !== product.id && p.active !== false);
     const sameCategory = filtered.filter((p) => p.category === product.category);
-    const pool = sameCategory.length >= 3 ? sameCategory : filtered;
-    return pool.slice(0, 3);
+    return (sameCategory.length >= 3 ? sameCategory : filtered).slice(0, 3);
   }, [dbProducts, product]);
 
-  // Debug logging for product slugs and error handling
-  useEffect(() => {
-    if (!isLoading && dbProducts.length > 0) {
-      console.log(
-        "All product slugs:",
-        dbProducts.map((p) => p.slug),
-      );
-      if (!product) {
-        console.error(`Product slug not found: "${slug}". Showing fallback UI.`);
-      }
-    }
-  }, [dbProducts, isLoading, product, slug]);
-
-  // Variant Detection
-  const hasVariants = useMemo(() => {
-    return (
+  // ── Variant logic ────────────────────────────────────────────────────────
+  const hasVariants = useMemo(
+    () =>
       product?.images != null &&
       typeof product.images === "object" &&
       !Array.isArray(product.images) &&
-      Object.keys(product.images).length > 0
-    );
-  }, [product?.images]);
+      Object.keys(product.images).length > 0,
+    [product?.images],
+  );
 
-  // Initial Variant Selection
   const getInitialVariant = useCallback(() => {
     if (hasVariants && product) {
       const keys = Object.keys(product.images);
       if (product.defaultVariant) {
-        const found = keys.find((k) => k.toLowerCase() === product.defaultVariant!.toLowerCase());
+        const found = keys.find(
+          (k) => k.toLowerCase() === product.defaultVariant!.toLowerCase(),
+        );
         if (found) return found;
       }
-      return keys[0] || "";
+      return keys[0] ?? "";
     }
     return "";
   }, [hasVariants, product]);
 
+  // ── Local state ──────────────────────────────────────────────────────────
   const [selectedVariant, setSelectedVariant] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
@@ -129,7 +136,7 @@ function ProductDetailPage() {
   const [notifySubmitting, setNotifySubmitting] = useState(false);
   const [notifyDone, setNotifyDone] = useState(false);
 
-  // Set default variant on product load
+  // Reset on product load
   useEffect(() => {
     if (product) {
       setSelectedVariant(getInitialVariant());
@@ -139,36 +146,40 @@ function ProductDetailPage() {
     }
   }, [product, getInitialVariant]);
 
-  // Resolved Images array
+  // ── Image resolution ─────────────────────────────────────────────────────
   const resolvedImages = useMemo(() => {
     if (!product) return [];
     let imgs: string[] = [];
     if (hasVariants) {
-      imgs = (product.images as Record<string, string[]>)[selectedVariant] || [];
+      imgs = (product.images as Record<string, string[]>)[selectedVariant] ?? [];
     } else if (Array.isArray(product.images)) {
       imgs = product.images;
     } else if (typeof product.image === "string") {
       imgs = [product.image];
     }
-    return Array.from(new Set(imgs)).filter((img) => typeof img === "string" && img.trim() !== "");
+    return Array.from(new Set(imgs)).filter(
+      (img) => typeof img === "string" && img.trim() !== "",
+    );
   }, [hasVariants, product, selectedVariant]);
 
-  const currentImage = useMemo(() => {
-    return resolvedImages[currentImageIndex] ?? resolvedImages[0] ?? "";
-  }, [resolvedImages, currentImageIndex]);
+  const currentImage = useMemo(
+    () => resolvedImages[currentImageIndex] ?? resolvedImages[0] ?? "",
+    [resolvedImages, currentImageIndex],
+  );
 
   // Reset img error on image change
   useEffect(() => {
     setImgError(false);
   }, [currentImage]);
 
-  const handleVariantChange = (variant: string) => {
+  // ── Handlers ─────────────────────────────────────────────────────────────
+  const handleVariantChange = useCallback((variant: string) => {
     setSelectedVariant(variant);
     setCurrentImageIndex(0);
     setImgError(false);
-  };
+  }, []);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = useCallback(async () => {
     if (addingToCart || !product || product.stock === 0) return;
     setAddingToCart(true);
     try {
@@ -182,14 +193,14 @@ function ProductDetailPage() {
         description: `${product.name} added to your bag successfully.`,
         duration: 2500,
       });
-    } catch (err) {
+    } catch {
       toast.error("Failed to add to cart");
     } finally {
       setAddingToCart(false);
     }
-  };
+  }, [addingToCart, product, hasVariants, selectedVariant, resolvedImages, addToCart]);
 
-  const handleNotifyMe = async () => {
+  const handleNotifyMe = useCallback(async () => {
     if (!product) return;
     const cleanEmail = notifyEmail.trim().toLowerCase();
     if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) {
@@ -222,8 +233,9 @@ function ProductDetailPage() {
     } finally {
       setNotifySubmitting(false);
     }
-  };
+  }, [product, notifyEmail]);
 
+  // ── Loading state ─────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <main className="min-h-screen bg-background text-foreground flex flex-col justify-between">
@@ -239,6 +251,7 @@ function ProductDetailPage() {
     );
   }
 
+  // ── Not found state ───────────────────────────────────────────────────────
   if (!product) {
     return (
       <main className="min-h-screen bg-background text-foreground flex flex-col justify-between">
@@ -267,16 +280,63 @@ function ProductDetailPage() {
     );
   }
 
+  // ── Derived display values ────────────────────────────────────────────────
   const onSale = product.isOnSale || product.onSale || false;
   const discount = product.discountPercentage || product.discountPercent || 0;
+  const displayTitle = seoData?.seoTitle || product.seoTitle || product.name;
+  const displayDescription =
+    seoData?.description ||
+    product.description ||
+    "Premium aesthetic setup upgrade designed to elevate your room and workspace ambiance with stylish lighting and high quality build.";
+  const productImage =
+    resolvedImages[0] || resolveProductImage("", displayTitle);
 
+  // ── JSON-LD structured data ───────────────────────────────────────────────
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: displayTitle,
+    description: displayDescription,
+    image: productImage,
+    url: `https://vurlo.store/product/${product.slug}`,
+    sku: product.id,
+    brand: { "@type": "Brand", name: "Vurlo" },
+    offers: {
+      "@type": "Offer",
+      price: product.price,
+      priceCurrency: "INR",
+      availability:
+        (product.stock ?? 10) > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      url: `https://vurlo.store/product/${product.slug}`,
+      seller: { "@type": "Organization", name: "Vurlo" },
+    },
+    ...(product.rating !== undefined && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: product.rating,
+        reviewCount: product.reviewsCount ?? 38,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    }),
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col justify-between page-transition">
+      {/* JSON-LD — injected once, outside render loop */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <div>
         <Navbar />
 
         <div className="relative mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:py-16">
-          {/* Ambient ambient background glows */}
+          {/* Ambient background glows */}
           <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
             <div
               className="absolute top-10 left-1/4 w-[600px] h-[600px] rounded-full opacity-35 blur-[130px]"
@@ -287,8 +347,8 @@ function ProductDetailPage() {
             <div className="absolute bottom-10 right-1/4 w-[400px] h-[400px] rounded-full bg-cyan-500/[0.02] blur-[100px]" />
           </div>
 
-          {/* Breadcrumb / Back button */}
-          <div className="mb-8">
+          {/* Breadcrumb */}
+          <nav aria-label="Breadcrumb" className="mb-8">
             <Link
               to="/shop"
               className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40 hover:text-white/80 transition-colors"
@@ -296,10 +356,15 @@ function ProductDetailPage() {
               <ArrowLeft className="h-3.5 w-3.5" />
               Back to Catalog
             </Link>
-          </div>
+          </nav>
+
+          {/* SEO Intro Paragraph — visible to Googlebot, above the fold on desktop */}
+          <p className="sr-only">
+            {`Shop ${displayTitle} on Vurlo – India's premium ambient lighting store. ${displayDescription.slice(0, 160)}`}
+          </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            {/* Gallery Section */}
+            {/* ── Gallery Section ──────────────────────────────────────────── */}
             <div className="lg:col-span-6 flex flex-col gap-4">
               <div className="relative aspect-square w-full rounded-2xl border border-white/[0.06] bg-white/[0.01] flex items-center justify-center p-6 overflow-hidden">
                 <div
@@ -309,13 +374,13 @@ function ProductDetailPage() {
                   }}
                 />
                 <img
-                  src={
-                    imgError || !currentImage ? resolveProductImage("", product.name) : currentImage
-                  }
-                  alt={product.name}
+                  src={imgError || !currentImage ? resolveProductImage("", product.name) : currentImage}
+                  alt={`${displayTitle} – ambient lighting by Vurlo`}
                   onError={() => setImgError(true)}
                   className="max-w-full max-h-full object-contain relative z-10 rounded-2xl drop-shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
                   loading="eager"
+                  width={600}
+                  height={600}
                 />
               </div>
 
@@ -324,8 +389,9 @@ function ProductDetailPage() {
                 <div className="flex gap-2 overflow-x-auto py-1 min-h-[64px]">
                   {resolvedImages.map((img: string, idx: number) => (
                     <button
-                      key={idx}
+                      key={img}
                       onClick={() => setCurrentImageIndex(idx)}
+                      aria-label={`View image ${idx + 1}`}
                       className={`w-14 h-14 rounded-xl border shrink-0 bg-white/[0.01] overflow-hidden transition-all duration-200 cursor-pointer ${
                         idx === currentImageIndex
                           ? "border-violet-500 scale-105 opacity-100"
@@ -335,11 +401,14 @@ function ProductDetailPage() {
                       <img
                         src={img || resolveProductImage("", "")}
                         alt=""
+                        aria-hidden="true"
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).src = resolveProductImage("", "");
                         }}
                         loading="lazy"
+                        width={56}
+                        height={56}
                       />
                     </button>
                   ))}
@@ -347,7 +416,7 @@ function ProductDetailPage() {
               )}
             </div>
 
-            {/* Info Section */}
+            {/* ── Info Section ─────────────────────────────────────────────── */}
             <div className="lg:col-span-6 space-y-6">
               <div className="space-y-4">
                 {/* Badges */}
@@ -380,26 +449,26 @@ function ProductDetailPage() {
                   )}
                 </div>
 
-                {/* H1 Title */}
+                {/* H1 – SEO title */}
                 <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                  {seoData?.seoTitle || product.seoTitle || product.name}
+                  {displayTitle}
                 </h1>
 
                 {/* Rating & Reviews */}
                 {product.rating !== undefined && (
-                  <div className="flex items-center gap-2 text-xs text-amber-400">
-                    <div className="flex items-center">
-                      {Array.from({ length: 5 }).map((_, idx) => {
-                        const isFilled = idx < Math.floor(product.rating || 0);
-                        return (
-                          <span
-                            key={idx}
-                            className={isFilled ? "text-amber-400 font-bold" : "text-white/20"}
-                          >
-                            ★
-                          </span>
-                        );
-                      })}
+                  <div
+                    className="flex items-center gap-2 text-xs text-amber-400"
+                    aria-label={`Rating: ${product.rating} out of 5`}
+                  >
+                    <div className="flex items-center" aria-hidden="true">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <span
+                          key={idx}
+                          className={idx < Math.floor(product.rating || 0) ? "text-amber-400 font-bold" : "text-white/20"}
+                        >
+                          ★
+                        </span>
+                      ))}
                     </div>
                     <span className="font-bold">{product.rating}</span>
                     {product.reviewsCount !== undefined && (
@@ -410,13 +479,10 @@ function ProductDetailPage() {
                   </div>
                 )}
 
-                {/* Pricing & Variants */}
+                {/* Pricing */}
                 <div className="space-y-4">
                   <div className="flex items-baseline gap-3">
-                    <p
-                      className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-300"
-                      style={{ textShadow: `0 0 30px rgba(var(--accent-rgb), 0.25)` }}
-                    >
+                    <p className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-300">
                       ₹{formatPrice(product.price)}
                     </p>
                     {onSale && product.originalPrice && (
@@ -455,15 +521,13 @@ function ProductDetailPage() {
 
               <div className="h-[1px] bg-white/[0.06] my-6" />
 
-              {/* Description & Variant Specific text */}
+              {/* Description */}
               <div className="space-y-4">
                 <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
-                  {seoData?.description ||
-                    product.description ||
-                    "Premium aesthetic setup upgrade designed to elevate your room and workspace ambiance with stylish lighting and high quality build."}
+                  {displayDescription}
                 </p>
 
-                {hasVariants && (
+                {hasVariants && selectedVariant && (
                   <div
                     key={selectedVariant}
                     className="p-4 rounded-xl border border-violet-500/10 bg-violet-500/[0.02] text-xs text-violet-300 leading-relaxed whitespace-pre-line animate-in fade-in duration-300"
@@ -489,13 +553,13 @@ function ProductDetailPage() {
               {/* Features List */}
               {product.features && product.features.length > 0 && (
                 <div className="space-y-3 pt-2">
-                  <h3 className="text-[10px] font-bold text-white uppercase tracking-widest block">
+                  <h2 className="text-[10px] font-bold text-white uppercase tracking-widest block">
                     Product Features
-                  </h3>
+                  </h2>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {(product.features as string[]).map((feature: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2 text-xs text-gray-400">
-                        <span className="text-violet-400 font-bold select-none">•</span>
+                    {(product.features as string[]).map((feature: string) => (
+                      <li key={feature} className="flex items-start gap-2 text-xs text-gray-400">
+                        <span className="text-violet-400 font-bold select-none" aria-hidden="true">•</span>
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -503,7 +567,7 @@ function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Add to Cart or Notify Me */}
+              {/* Add to Cart / Notify Me */}
               <div className="pt-6 border-t border-white/[0.06] flex items-center gap-4">
                 {product.stock === 0 ? (
                   <div className="w-full space-y-3">
@@ -527,9 +591,7 @@ function ProductDetailPage() {
                           onClick={handleNotifyMe}
                           disabled={notifySubmitting}
                           className="h-12 px-6 rounded-xl text-xs font-bold text-white cursor-pointer disabled:opacity-50 transition-all shrink-0"
-                          style={{
-                            background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)",
-                          }}
+                          style={{ background: "linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%)" }}
                         >
                           {notifySubmitting ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -550,12 +612,12 @@ function ProductDetailPage() {
                     >
                       {addingToCart ? (
                         <>
-                          <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                           <span>Adding...</span>
                         </>
                       ) : (
                         <>
-                          <ShoppingBag className="h-4.5 w-4.5" />
+                          <ShoppingBag className="h-4 w-4" />
                           <span>Add to Bag</span>
                         </>
                       )}
@@ -575,12 +637,9 @@ function ProductDetailPage() {
                           ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
                           : "border-white/[0.08] bg-white/[0.02] text-white/50 hover:text-white"
                       }`}
-                      aria-label="Toggle wishlist"
+                      aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                     >
-                      <Heart
-                        size={16}
-                        className={isWishlisted(product.id) ? "fill-rose-400" : ""}
-                      />
+                      <Heart size={16} className={isWishlisted(product.id) ? "fill-rose-400" : ""} />
                     </button>
                   </div>
                 )}
@@ -588,13 +647,9 @@ function ProductDetailPage() {
 
               {/* Guarantees */}
               <div className="grid grid-cols-3 gap-3 pt-6 border-t border-white/[0.04]">
-                {[
-                  [Truck, "Free Shipping", "On all orders"],
-                  [ShieldCheck, "Secure Checkout", "SSL Encrypted"],
-                  [Users, "Trusted by 1000+ Customers", "Satisfied buyers"],
-                ].map(([Icon, label, sub]: any, idx) => (
+                {GUARANTEES.map(([Icon, label, sub]) => (
                   <div
-                    key={idx}
+                    key={label}
                     className="flex flex-col items-center text-center p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]"
                   >
                     <Icon className="h-5 w-5 text-violet-400 mb-1.5" />
@@ -611,48 +666,60 @@ function ProductDetailPage() {
           </div>
         </div>
 
-        {/* SEO Content Sections, FAQs, and Related Products */}
+        {/* ── SEO Content + FAQs + Related Products ──────────────────────── */}
         {seoData && (
           <div className="mt-20 border-t border-white/[0.06] pt-16 space-y-16 animate-in fade-in duration-500">
-            {/* 1. Unique SEO-optimized Description */}
-            <section className="space-y-4 max-w-4xl text-left">
-              <h2 className="font-display text-2xl font-extrabold text-white sm:text-3xl">
-                About {product.name}
+            {/* About section */}
+            <section
+              aria-labelledby="about-heading"
+              className="space-y-4 max-w-4xl text-left mx-auto px-6 sm:px-8"
+            >
+              <h2
+                id="about-heading"
+                className="font-display text-2xl font-extrabold text-white sm:text-3xl"
+              >
+                About {seoData.displayName || product.name}
               </h2>
               <p className="text-sm text-white/60 leading-relaxed">{seoData.description}</p>
             </section>
 
-            {/* 2. Structured Sections: Use Cases & Why Buy */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 text-left">
-              <section className="space-y-4">
-                <h2 className="font-display text-xl font-bold text-white flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-violet-400" />
+            {/* Use Cases & Why Buy */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 text-left max-w-7xl mx-auto px-6 sm:px-8">
+              <section aria-labelledby="usecases-heading" className="space-y-4">
+                <h2
+                  id="usecases-heading"
+                  className="font-display text-xl font-bold text-white flex items-center gap-2"
+                >
+                  <Sparkles className="h-5 w-5 text-violet-400" aria-hidden="true" />
                   <span>Typical Use Cases</span>
                 </h2>
                 <ul className="space-y-3">
-                  {seoData.useCases.map((useCase, idx) => (
+                  {seoData.useCases.map((useCase) => (
                     <li
-                      key={idx}
+                      key={useCase}
                       className="flex items-start gap-2.5 text-xs text-white/50 leading-relaxed"
                     >
-                      <span className="text-violet-400 font-bold select-none">•</span>
+                      <span className="text-violet-400 font-bold select-none" aria-hidden="true">•</span>
                       <span>{useCase}</span>
                     </li>
                   ))}
                 </ul>
               </section>
 
-              <section className="space-y-4">
-                <h2 className="font-display text-xl font-bold text-white">
+              <section aria-labelledby="whybuy-heading" className="space-y-4">
+                <h2
+                  id="whybuy-heading"
+                  className="font-display text-xl font-bold text-white"
+                >
                   Why Choose Vurlo Lighting
                 </h2>
                 <ul className="space-y-3">
-                  {seoData.whyBuy.map((point, idx) => (
+                  {seoData.whyBuy.map((point) => (
                     <li
-                      key={idx}
+                      key={point}
                       className="flex items-start gap-2.5 text-xs text-white/50 leading-relaxed"
                     >
-                      <span className="text-cyan-400 font-bold select-none">✓</span>
+                      <span className="text-cyan-400 font-bold select-none" aria-hidden="true">✓</span>
                       <span>{point}</span>
                     </li>
                   ))}
@@ -660,16 +727,22 @@ function ProductDetailPage() {
               </section>
             </div>
 
-            {/* 3. FAQ Section */}
+            {/* FAQ Section */}
             {seoData.faqs.length > 0 && (
-              <section className="space-y-6 text-left">
-                <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
+              <section
+                aria-labelledby="faq-heading"
+                className="space-y-6 text-left max-w-7xl mx-auto px-6 sm:px-8"
+              >
+                <h2
+                  id="faq-heading"
+                  className="font-display text-2xl font-bold text-white sm:text-3xl"
+                >
                   Frequently Asked Questions
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {seoData.faqs.map((faq, idx) => (
+                  {seoData.faqs.map((faq) => (
                     <div
-                      key={idx}
+                      key={faq.question}
                       className="p-6 rounded-2xl border border-white/[0.06] bg-white/[0.01] space-y-2"
                     >
                       <h3 className="text-xs font-bold text-white uppercase tracking-wider">
@@ -682,18 +755,22 @@ function ProductDetailPage() {
               </section>
             )}
 
-            {/* 4. Related Products Section */}
+            {/* Related Products */}
             {relatedProducts.length > 0 && (
-              <section className="space-y-6 text-left">
-                <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
+              <section
+                aria-labelledby="related-heading"
+                className="space-y-6 text-left max-w-7xl mx-auto px-6 sm:px-8"
+              >
+                <h2
+                  id="related-heading"
+                  className="font-display text-2xl font-bold text-white sm:text-3xl"
+                >
                   Related Products
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   {relatedProducts.map((related) => {
                     const relatedImage = (() => {
-                      if (Array.isArray(related.images)) {
-                        return related.images[0] || related.image || "";
-                      }
+                      if (Array.isArray(related.images)) return related.images[0] || related.image || "";
                       if (related.images && typeof related.images === "object") {
                         const defVar = (related.defaultVariant || "Galaxy").toLowerCase();
                         const varImages =
@@ -715,9 +792,11 @@ function ProductDetailPage() {
                         <div className="aspect-square w-full rounded-xl bg-white/[0.02] flex items-center justify-center p-4 overflow-hidden relative">
                           <img
                             src={resolveProductImage(relatedImage, related.name)}
-                            alt={related.name}
+                            alt={related.displayName || related.name}
                             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
                             loading="lazy"
+                            width={200}
+                            height={200}
                           />
                         </div>
                         <div className="flex flex-col flex-1 mt-4 space-y-2">
@@ -737,38 +816,6 @@ function ProductDetailPage() {
                 </div>
               </section>
             )}
-
-            {/* JSON-LD Structured Data */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "Product",
-                name: seoData?.seoTitle || product.seoTitle || product.name,
-                description: seoData?.description || product.description,
-                image:
-                  resolvedImages[0] ||
-                  resolveProductImage("", seoData?.seoTitle || product.seoTitle || product.name),
-                brand: {
-                  "@type": "Brand",
-                  name: "Vurlo",
-                },
-                offers: {
-                  "@type": "Offer",
-                  price: product.price,
-                  priceCurrency: "INR",
-                  availability:
-                    (product.stock ?? 10) > 0
-                      ? "https://schema.org/InStock"
-                      : "https://schema.org/OutOfStock",
-                  url: `https://vurlo.store/product/${product.slug}`,
-                },
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: product.rating || 4.7,
-                  reviewCount: product.reviewsCount || 38,
-                },
-              })}
-            </script>
           </div>
         )}
       </div>
