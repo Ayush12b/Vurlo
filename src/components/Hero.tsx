@@ -47,7 +47,7 @@ export function Hero() {
       <div className="hero-particle hero-particle-5 absolute w-1.5 h-1.5 rounded-full bg-cyan-300/50 blur-[1px] z-10" style={{ top: "15%", right: "30%" }} />
 
       {/* ── Main grid ── */}
-      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-20 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-10 lg:gap-20 items-center">
 
         {/* ── Left: Text content ── */}
         <div className="space-y-6 md:space-y-10">
@@ -211,6 +211,7 @@ export function Hero() {
         /* ── Orbiting border ring ── */
         .hero-orbit-ring {
           border: 1px solid transparent;
+          border-radius: 20px;
           background: linear-gradient(#050507, #050507) padding-box,
             conic-gradient(from var(--ring-angle, 0deg), #a78bfa, #22d3ee, #6366f1, #a78bfa) border-box;
           animation: ringRotate 6s linear infinite;
@@ -267,14 +268,17 @@ export function Hero() {
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
         .hero-img-frame {
           position: absolute;
-          inset: 0;
+          inset: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
+          border-radius: 16px;
+          overflow: hidden;
           perspective: 1200px;
           perspective-origin: 50% 50%;
           transform-style: preserve-3d;
-          overflow: hidden;
+          background: rgba(5,5,7,0.6);
+          border: 1px solid rgba(167,139,250,0.12);
         }
 
         /* ── Product image — FIXED: contain inside frame, no overflow ── */
@@ -282,14 +286,13 @@ export function Hero() {
           display: block;
           width: 100%;
           height: 100%;
-          object-fit: contain;
-          border-radius: 16px;
+          object-fit: cover;
+          object-position: center;
+          border-radius: 0;
           transform-origin: center center;
           animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
           will-change: transform;
           transition: filter 0.4s ease;
-          max-width: 100%;
-          max-height: 100%;
         }
 
         @media (min-width: 768px) {
@@ -424,16 +427,18 @@ export function Hero() {
         /* ── Mobile — FIXED ── */
         @media (max-width: 767px) {
           .hero-img-wrapper {
-            aspect-ratio: 1 / 1;
+            aspect-ratio: 3 / 4;
             width: 100%;
             max-height: none;
           }
           .hero-img-frame {
+            inset: 6px;
             border-radius: 12px;
           }
           .hero-product-premium {
             animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
-            border-radius: 12px !important;
+            border-radius: 0 !important;
+            object-fit: cover !important;
           }
         }
 
