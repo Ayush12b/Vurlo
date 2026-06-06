@@ -159,7 +159,7 @@ export function Hero() {
           <div className="antigrav-particle antigrav-8 absolute z-30 w-[2px] h-[2px] rounded-full bg-white/40" />
 
           {/* Image frame — perspective container */}
-          <div className="hero-img-frame z-10">
+          <div className="hero-img-frame relative z-10">
             {/* Scanline sweep */}
             <div className="hero-scanline-wrap absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-2xl">
               <div className="hero-scanline" />
@@ -265,7 +265,7 @@ export function Hero() {
           align-self: center;
           min-width: 0;
           max-width: 100%;
-          contain: paint;
+          overflow: visible;
         }
 
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
