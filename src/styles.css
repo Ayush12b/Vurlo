@@ -158,6 +158,20 @@
   }
 }
 
+/* ── Staggered card entrance ── */
+.pcard-enter {
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--card-delay, 0ms);
+}
+.pcard-enter.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 /* Scroll Reveal Animation Styles */
 .reveal-fade-in {
   opacity: 0;
@@ -417,13 +431,15 @@
   transform-origin: center center;
   will-change: transform, filter;
   filter: brightness(0.92) saturate(1.05) contrast(1.02);
+  transform: scale(1) translate(var(--img-px, 0px), var(--img-py, 0px));
   transition:
-    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
     filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .pcard:hover .pcard__img {
   filter: brightness(1.04) saturate(1.12) contrast(1);
+  transform: scale(1.07) translate(var(--img-px, 0px), var(--img-py, 0px));
 }
 
 /* Vignette for cinematic depth */
@@ -770,10 +786,10 @@
   opacity: 1;
   animation-play-state: running;
 }
-.pcard__spark-tl { top: -4px; left: -4px; width: 7px; height: 7px; color: rgba(var(--accent-rgb), 0.9); animation-delay: 0s; }
-.pcard__spark-tr { top: -4px; right: -4px; width: 5px; height: 5px; color: rgba(255,255,255,0.7); animation-delay: 0.5s; }
-.pcard__spark-br { bottom: -4px; right: -4px; width: 7px; height: 7px; color: rgba(var(--accent-rgb), 0.9); animation-delay: 1s; }
-.pcard__spark-bl { bottom: -4px; left: -4px; width: 5px; height: 5px; color: rgba(255,255,255,0.7); animation-delay: 1.5s; }
+.pcard__spark-tl { top: 6px; left: 6px; width: 7px; height: 7px; color: rgba(var(--accent-rgb), 0.9); animation-delay: 0s; }
+.pcard__spark-tr { top: 6px; right: 6px; width: 5px; height: 5px; color: rgba(255,255,255,0.7); animation-delay: 0.5s; }
+.pcard__spark-br { bottom: 6px; right: 6px; width: 7px; height: 7px; color: rgba(var(--accent-rgb), 0.9); animation-delay: 1s; }
+.pcard__spark-bl { bottom: 6px; left: 6px; width: 5px; height: 5px; color: rgba(255,255,255,0.7); animation-delay: 1.5s; }
 @keyframes pcardSparkPulse {
   0%, 100% { transform: scale(1); opacity: 0.5; }
   50%       { transform: scale(1.7); opacity: 1; }

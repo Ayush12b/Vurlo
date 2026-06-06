@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { ShoppingBag, ArrowUpRight, Loader2, Heart } from "lucide-react";
-import { usePremiumTilt, useMagnetic } from "@/hooks/use-premium-interactions";
+import { usePremiumTilt, useMagnetic, useScrollReveal } from "@/hooks/use-premium-interactions";
 import { useCart } from "@/hooks/use-cart";
 import { resolveProductImage, formatPrice, getAdjustmentStyle } from "@/hooks/use-products";
 import { Link } from "@tanstack/react-router";
@@ -77,6 +77,7 @@ export function ProductCard({
     p.originalPrice !== undefined && p.originalPrice !== null && !isNaN(Number(p.originalPrice));
 
   const [adding, setAdding] = useState(false);
+  const enterRef = useRef<HTMLDivElement>(null);
   const tilt = usePremiumTilt<HTMLElement, HTMLDivElement, HTMLDivElement>({
     rotateX: 6,
     rotateY: 8,
@@ -85,6 +86,8 @@ export function ProductCard({
   const viewBtn = useMagnetic<HTMLButtonElement>({ strength: 3, scale: 1.01 });
   const cartBtn = useMagnetic<HTMLButtonElement>({ strength: 3, scale: 1.02 });
   const { addToCart } = useCart();
+
+  useScrollReveal(enterRef, index * 80);
 
   const mainImage = (() => {
     if (Array.isArray(p.images)) {
@@ -105,7 +108,7 @@ export function ProductCard({
   }, [mainImage, p.name]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div ref={enterRef} className="flex flex-col h-full pcard-enter" style={{ "--card-delay": `${index * 80}ms` } as React.CSSProperties}>
       <Link
         to="/product/$slug"
         params={{ slug: p.slug }}
@@ -129,8 +132,19 @@ export function ProductCard({
           ref={tilt.cardRef}
           className={`pcard group flex flex-col h-full p-4 sm:p-5 ${isSelected ? "selected" : ""}`}
           onPointerEnter={tilt.onPointerEnter}
-          onPointerMove={tilt.onPointerMove}
-          onPointerLeave={tilt.onPointerLeave}
+          onPointerMove={(e) => {
+            tilt.onPointerMove(e);
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width - 0.5) * 6;
+            const y = ((e.clientY - rect.top) / rect.height - 0.5) * 6;
+            e.currentTarget.style.setProperty("--img-px", `${x}px`);
+            e.currentTarget.style.setProperty("--img-py", `${y}px`);
+          }}
+          onPointerLeave={(e) => {
+            tilt.onPointerLeave(e);
+            e.currentTarget.style.setProperty("--img-px", "0px");
+            e.currentTarget.style.setProperty("--img-py", "0px");
+          }}
           style={
             {
               "--accent": p.accent,
