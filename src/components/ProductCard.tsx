@@ -177,10 +177,6 @@ export function ProductCard({
             </div>
 
             {/* Corner sparks */}
-            <div className="pcard__spark pcard__spark-tl" />
-            <div className="pcard__spark pcard__spark-tr" />
-            <div className="pcard__spark pcard__spark-br" />
-            <div className="pcard__spark pcard__spark-bl" />
 
             {/* Antigrav dust particles */}
             <div className="pcard__dust pcard__dust-1" />
