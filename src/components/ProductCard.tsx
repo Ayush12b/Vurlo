@@ -157,6 +157,24 @@ export function ProductCard({
               />
             </div>
 
+            {/* Scanline sweep */}
+            <div className="pcard__scanline-wrap">
+              <div className="pcard__scanline" />
+            </div>
+
+            {/* Corner sparks */}
+            <div className="pcard__spark pcard__spark-tl" />
+            <div className="pcard__spark pcard__spark-tr" />
+            <div className="pcard__spark pcard__spark-br" />
+            <div className="pcard__spark pcard__spark-bl" />
+
+            {/* Antigrav dust particles */}
+            <div className="pcard__dust pcard__dust-1" />
+            <div className="pcard__dust pcard__dust-2" />
+            <div className="pcard__dust pcard__dust-3" />
+            <div className="pcard__dust pcard__dust-4" />
+            <div className="pcard__dust pcard__dust-5" />
+
             {/* Vignette overlay for depth */}
             <div className="pcard__vignette" />
             <div className="pcard__img-glow" />
