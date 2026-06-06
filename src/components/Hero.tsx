@@ -309,11 +309,11 @@ export function Hero() {
         }
 
         @keyframes antigravFloat3D {
-          0%   { transform: perspective(1200px) rotateY(-4deg) rotateX(2deg) translateY(0px); }
-          25%  { transform: perspective(1200px) rotateY(-5deg) rotateX(1deg) translateY(-3px); }
-          50%  { transform: perspective(1200px) rotateY(-3deg) rotateX(3deg) translateY(-6px); }
-          75%  { transform: perspective(1200px) rotateY(-5deg) rotateX(1.5deg) translateY(-3px); }
-          100% { transform: perspective(1200px) rotateY(-4deg) rotateX(2deg) translateY(0px); }
+          0%   { transform: translateY(0px); }
+          25%  { transform: translateY(-3px); }
+          50%  { transform: translateY(-8px); }
+          75%  { transform: translateY(-3px); }
+          100% { transform: translateY(0px); }
         }
 
         /* ── Antigravity dust particles ── */
