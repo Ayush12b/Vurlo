@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { useHeroParallax, useMagnetic, useScrollReveal } from "@/hooks/use-premium-interactions";
 
@@ -12,6 +12,33 @@ export function Hero() {
   const ctasRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
 
+  // Typewriter for "Upgrade Your Vibe."
+  const VIBE_TEXT = "Upgrade Your Vibe.";
+  const [typed, setTyped] = useState("");
+  const [showCursor, setShowCursor] = useState(true);
+  useEffect(() => {
+    let i = 0;
+    const delay = 900; // start after 900ms
+    const speed = 52; // ms per character
+    const timer = setTimeout(() => {
+      const interval = setInterval(() => {
+        i++;
+        setTyped(VIBE_TEXT.slice(0, i));
+        if (i >= VIBE_TEXT.length) {
+          clearInterval(interval);
+          // blink cursor 4 times then hide
+          let blinks = 0;
+          const blink = setInterval(() => {
+            setShowCursor(v => !v);
+            blinks++;
+            if (blinks >= 8) { clearInterval(blink); setShowCursor(false); }
+          }, 350);
+        }
+      }, speed);
+    }, delay);
+    return () => clearTimeout(timer);
+  }, []);
+
   useScrollReveal(headingRef, 0);
   useScrollReveal(subtextRef, 150);
   useScrollReveal(ctasRef, 300);
@@ -24,6 +51,9 @@ export function Hero() {
       onPointerMove={hero.onPointerMove}
       onPointerLeave={hero.onPointerLeave}
     >
+      {/* Grain texture overlay */}
+      <div className="hero-grain absolute inset-0 z-[1] pointer-events-none" />
+
       {/* Ambient glows */}
       <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] max-w-full h-[800px] bg-purple-600 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
       <div className="hero-ambient-secondary absolute top-1/3 left-2/3 w-[500px] max-w-full h-[500px] bg-cyan-500 blur-[120px] rounded-full" />
@@ -41,7 +71,7 @@ export function Hero() {
 
       {/* Floating particles */}
       <div className="hero-particle hero-particle-1 absolute w-1.5 h-1.5 rounded-full bg-violet-400/80 blur-[1px] z-10" style={{ top: "22%", left: "12%" }} />
-      <div className="hero-particle hero-particle-2 absolute w-1 h-1 rounded-full bg-cyan-400/70 blur-[1px] z-10" style={{ top: "58%", left: "42%" }} />
+      <div className="hero-particle hero-particle-2 absolute w-1.5 h-1.5 rounded-full bg-cyan-400/70 blur-[1px] z-10" style={{ top: "58%", left: "42%" }} />
       <div className="hero-particle hero-particle-3 absolute w-2 h-2 rounded-full bg-indigo-400/60 blur-[1px] z-10" style={{ top: "30%", right: "8%" }} />
       <div className="hero-particle hero-particle-4 absolute w-1 h-1 rounded-full bg-violet-300/60 blur-[1px] z-10" style={{ top: "75%", left: "25%" }} />
       <div className="hero-particle hero-particle-5 absolute w-1.5 h-1.5 rounded-full bg-cyan-300/50 blur-[1px] z-10" style={{ top: "15%", right: "30%" }} />
@@ -74,7 +104,10 @@ export function Hero() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              Upgrade Your Vibe.
+              {typed}
+              {showCursor && (
+                <span style={{ WebkitTextFillColor: "#a78bfa", opacity: 1 }}>|</span>
+              )}
             </span>
           </h1>
 
@@ -183,6 +216,14 @@ export function Hero() {
       </div>
 
       <style>{`
+        /* ── Grain texture ── */
+        .hero-grain {
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+          background-size: 180px 180px;
+          opacity: 0.032;
+          mix-blend-mode: overlay;
+        }
+
         /* ── Grid parallax ── */
         .hero-grid-parallax {
           transform: translate3d(var(--hero-grid-x, 0px), var(--hero-grid-y, 0px), 0);
