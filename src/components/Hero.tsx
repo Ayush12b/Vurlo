@@ -261,21 +261,16 @@ export function Hero() {
         .hero-img-wrapper {
           position: relative;
           width: 100%;
-          aspect-ratio: 4 / 3;
+          padding-bottom: 75%;
           align-self: center;
-          overflow: hidden;
-          border-radius: 18px;
         }
 
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
         .hero-img-frame {
           position: absolute;
-          inset: 0;
+          inset: 14px;
           border-radius: 18px;
           overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
 
         /* ── Product image — FIXED: contain inside frame, no overflow ── */
@@ -286,7 +281,7 @@ export function Hero() {
           object-fit: cover;
           object-position: center center;
           border-radius: 0;
-          transform-origin: center center;
+          transform-origin: center bottom;
           animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
           will-change: transform;
           transition: filter 0.4s ease;
@@ -306,15 +301,15 @@ export function Hero() {
         /* ── Antigravity float keyframes ── */
         @keyframes antigravFloat {
           0%   { transform: translateY(0px); }
-          50%  { transform: translateY(-10px); }
+          50%  { transform: translateY(-8px); }
           100% { transform: translateY(0px); }
         }
 
         @keyframes antigravFloat3D {
           0%   { transform: perspective(1200px) rotateY(-4deg) rotateX(2deg) translateY(0px); }
-          25%  { transform: perspective(1200px) rotateY(-5deg) rotateX(1deg) translateY(-6px); }
-          50%  { transform: perspective(1200px) rotateY(-3deg) rotateX(3deg) translateY(-12px); }
-          75%  { transform: perspective(1200px) rotateY(-5deg) rotateX(1.5deg) translateY(-6px); }
+          25%  { transform: perspective(1200px) rotateY(-5deg) rotateX(1deg) translateY(-3px); }
+          50%  { transform: perspective(1200px) rotateY(-3deg) rotateX(3deg) translateY(-6px); }
+          75%  { transform: perspective(1200px) rotateY(-5deg) rotateX(1.5deg) translateY(-3px); }
           100% { transform: perspective(1200px) rotateY(-4deg) rotateX(2deg) translateY(0px); }
         }
 
