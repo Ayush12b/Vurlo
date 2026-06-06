@@ -274,6 +274,17 @@ export function Hero() {
           inset: 0;
           border-radius: 18px;
           overflow: hidden;
+          animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+        }
+
+        @media (min-width: 768px) {
+          .hero-img-frame {
+            animation: antigravFloat3D 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          }
+          .hero-img-frame:hover {
+            animation: none !important;
+            transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateY(-8px) !important;
+          }
         }
 
         /* ── Product image — FIXED: contain inside frame, no overflow ── */
@@ -284,21 +295,10 @@ export function Hero() {
           object-fit: cover;
           object-position: center center;
           border-radius: 0;
-          transform-origin: center bottom;
-          animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          transform-origin: center center;
+          animation: none;
           will-change: transform;
           transition: filter 0.4s ease;
-        }
-
-        @media (min-width: 768px) {
-          .hero-product-premium {
-            animation: antigravFloat3D 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-          }
-          .hero-product-premium:hover {
-            animation: none !important;
-            transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateY(-8px) !important;
-            filter: drop-shadow(0 60px 100px rgba(109,40,217,0.7)) drop-shadow(0 20px 40px rgba(0,0,0,0.8)) !important;
-          }
         }
 
         /* ── Antigravity float keyframes ── */
