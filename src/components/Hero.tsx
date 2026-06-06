@@ -134,7 +134,7 @@ export function Hero() {
         </div>
 
         {/* ── Right: Hero image ── */}
-        <div className="hero-img-wrapper relative flex justify-center items-center">
+        <div className="hero-img-wrapper relative flex justify-center items-center min-w-0">
 
           {/* Rotating border ring */}
           <div className="hero-orbit-ring absolute inset-0 rounded-2xl z-0" />
@@ -261,14 +261,15 @@ export function Hero() {
         .hero-img-wrapper {
           position: relative;
           width: 100%;
-          padding-bottom: 75%;
+          aspect-ratio: 4 / 3;
           align-self: center;
+          min-width: 0;
         }
 
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
         .hero-img-frame {
           position: absolute;
-          inset: 14px;
+          inset: 0;
           border-radius: 18px;
           overflow: hidden;
         }
