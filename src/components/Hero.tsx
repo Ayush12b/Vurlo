@@ -47,7 +47,7 @@ export function Hero() {
       <div className="hero-particle hero-particle-5 absolute w-1.5 h-1.5 rounded-full bg-cyan-300/50 blur-[1px] z-10" style={{ top: "15%", right: "30%" }} />
 
       {/* ── Main grid ── */}
-      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-8 lg:gap-16 items-center overflow-hidden">
+      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-8 lg:gap-16 items-center">
 
         {/* ── Left: Text content ── */}
         <div className="space-y-6 md:space-y-10">
@@ -265,7 +265,7 @@ export function Hero() {
           align-self: center;
           min-width: 0;
           max-width: 100%;
-          contain: layout;
+          contain: size layout;
         }
 
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
