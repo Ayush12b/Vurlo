@@ -52,7 +52,7 @@ export function Hero() {
       onPointerLeave={hero.onPointerLeave}
     >
       {/* Grain texture overlay */}
-      <div className="hero-grain absolute inset-0 z-[1] pointer-events-none" />
+      <div className="hero-grain absolute inset-0 z-[15] pointer-events-none" />
 
       {/* Ambient glows */}
       <div className="hero-ambient-primary absolute top-1/2 left-1/2 w-[800px] max-w-full h-[800px] bg-purple-600 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2" />
@@ -106,7 +106,7 @@ export function Hero() {
             >
               {typed}
               {showCursor && (
-                <span style={{ WebkitTextFillColor: "#a78bfa", opacity: 1 }}>|</span>
+                <span style={{ WebkitTextFillColor: "#a78bfa", opacity: 1, display: "inline" }}>|</span>
               )}
             </span>
           </h1>
@@ -220,7 +220,7 @@ export function Hero() {
         .hero-grain {
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
           background-size: 180px 180px;
-          opacity: 0.032;
+          opacity: 0.055;
           mix-blend-mode: overlay;
         }
 
