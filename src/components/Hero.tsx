@@ -62,7 +62,7 @@ export function Hero() {
           <h1
             ref={headingRef}
             className="font-display leading-[1.05] tracking-tight hero-heading"
-            style={{ fontSize: "clamp(1.1rem, 4.5vw, 6rem)", fontWeight: 800 }}
+            style={{ fontSize: "clamp(2rem, 4.5vw, 6rem)", fontWeight: 800 }}
           >
             <span className="sr-only">Vurlo - Premium Lighting & Decor</span>
             <span className="block text-white/90">Upgrade Your Room.</span>
@@ -266,7 +266,6 @@ export function Hero() {
           min-width: 0;
           max-width: 100%;
           overflow: visible;
-          padding-bottom: 10px;
         }
 
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
