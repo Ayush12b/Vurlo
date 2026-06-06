@@ -213,7 +213,7 @@ export function Hero() {
           border: 1px solid transparent;
           border-radius: 20px;
           background: linear-gradient(#050507, #050507) padding-box,
-            conic-gradient(from var(--ring-angle, 0deg), #a78bfa, #22d3ee, #6366f1, #a78bfa) border-box;
+            conic-gradient(from var(--ring-angle, 0deg), rgba(167,139,250,0.4), rgba(34,211,238,0.3), rgba(99,102,241,0.4), rgba(167,139,250,0.4)) border-box;
           animation: ringRotate 6s linear infinite;
           pointer-events: none;
         }
@@ -271,7 +271,7 @@ export function Hero() {
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
         .hero-img-frame {
           position: absolute;
-          inset: 0;
+          inset: 0 0 10px 0;
           border-radius: 18px;
           overflow: hidden;
           animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
