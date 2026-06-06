@@ -261,10 +261,11 @@ export function Hero() {
         .hero-img-wrapper {
           position: relative;
           width: 100%;
-          aspect-ratio: 4 / 3;
-          min-height: 0;
-          max-height: 540px;
-          align-self: stretch;
+          aspect-ratio: 3 / 4;
+          align-self: center;
+          max-height: min(80vh, 620px);
+          overflow: hidden;
+          border-radius: 18px;
         }
 
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
@@ -276,9 +277,6 @@ export function Hero() {
           display: flex;
           align-items: center;
           justify-content: center;
-          perspective: 1200px;
-          perspective-origin: 50% 50%;
-          transform-style: preserve-3d;
         }
 
         /* ── Product image — FIXED: contain inside frame, no overflow ── */
@@ -301,28 +299,24 @@ export function Hero() {
           }
           .hero-product-premium:hover {
             animation: none !important;
-            transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateY(-14px) scale(1.03) !important;
+            transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateY(-8px) !important;
             filter: drop-shadow(0 60px 100px rgba(109,40,217,0.7)) drop-shadow(0 20px 40px rgba(0,0,0,0.8)) !important;
           }
         }
 
         /* ── Antigravity float keyframes ── */
         @keyframes antigravFloat {
-          0%   { transform: translateY(0px) scale(1); }
-          20%  { transform: translateY(-6px) scale(1.005); }
-          50%  { transform: translateY(-14px) scale(1.01); }
-          80%  { transform: translateY(-6px) scale(1.005); }
-          100% { transform: translateY(0px) scale(1); }
+          0%   { transform: translateY(0px); }
+          50%  { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
         }
 
         @keyframes antigravFloat3D {
-          0%   { transform: perspective(1200px) rotateY(-5deg) rotateX(2deg) translateY(0px) scale(1); }
-          15%  { transform: perspective(1200px) rotateY(-6.5deg) rotateX(1deg) translateY(-5px) scale(1.005); }
-          35%  { transform: perspective(1200px) rotateY(-4deg) rotateX(3deg) translateY(-12px) scale(1.012); }
-          50%  { transform: perspective(1200px) rotateY(-3deg) rotateX(1.5deg) translateY(-18px) scale(1.015); }
-          65%  { transform: perspective(1200px) rotateY(-5.5deg) rotateX(3deg) translateY(-12px) scale(1.01); }
-          80%  { transform: perspective(1200px) rotateY(-6deg) rotateX(2.5deg) translateY(-5px) scale(1.005); }
-          100% { transform: perspective(1200px) rotateY(-5deg) rotateX(2deg) translateY(0px) scale(1); }
+          0%   { transform: perspective(1200px) rotateY(-4deg) rotateX(2deg) translateY(0px); }
+          25%  { transform: perspective(1200px) rotateY(-5deg) rotateX(1deg) translateY(-6px); }
+          50%  { transform: perspective(1200px) rotateY(-3deg) rotateX(3deg) translateY(-12px); }
+          75%  { transform: perspective(1200px) rotateY(-5deg) rotateX(1.5deg) translateY(-6px); }
+          100% { transform: perspective(1200px) rotateY(-4deg) rotateX(2deg) translateY(0px); }
         }
 
         /* ── Antigravity dust particles ── */
