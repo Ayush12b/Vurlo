@@ -212,8 +212,8 @@ export function Hero() {
         .hero-orbit-ring {
           border: 1px solid transparent;
           border-radius: 20px;
-          background: linear-gradient(#050507, #050507) padding-box,
-            conic-gradient(from var(--ring-angle, 0deg), rgba(167,139,250,0.4), rgba(34,211,238,0.3), rgba(99,102,241,0.4), rgba(167,139,250,0.4)) border-box;
+          background: transparent padding-box,
+            conic-gradient(from var(--ring-angle, 0deg), transparent 0deg, rgba(167,139,250,0.6) 60deg, rgba(34,211,238,0.5) 120deg, rgba(99,102,241,0.6) 180deg, transparent 240deg) border-box;
           animation: ringRotate 6s linear infinite;
           pointer-events: none;
         }
