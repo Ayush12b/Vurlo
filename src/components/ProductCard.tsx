@@ -102,6 +102,7 @@ export function ProductCard({
     return p.img || "";
   })();
   const [imgSrc, setImgSrc] = useState(() => resolveProductImage(mainImage, p.name));
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   useEffect(() => {
     setImgSrc(resolveProductImage(mainImage, p.name));
@@ -166,8 +167,14 @@ export function ProductCard({
                 alt={p.name}
                 loading="lazy"
                 className="pcard__img absolute inset-0 w-full h-full object-cover"
-                style={getAdjustmentStyle(mainImage)}
-                onError={() => setImgSrc(resolveProductImage("", p.name))}
+                style={{
+                  ...getAdjustmentStyle(mainImage),
+                  filter: imgLoaded ? "blur(0px)" : "blur(8px)",
+                  transform: imgLoaded ? "scale(1)" : "scale(1.04)",
+                  transition: "filter 0.5s ease, transform 0.5s ease",
+                }}
+                onLoad={() => setImgLoaded(true)}
+                onError={() => { setImgSrc(resolveProductImage("", p.name)); setImgLoaded(true); }}
               />
             </div>
 
@@ -343,6 +350,16 @@ export function ProductCard({
                   onPointerMove={cartBtn.onPointerMove}
                   onPointerLeave={cartBtn.onPointerLeave}
                   onClick={async (e) => {
+                    // Ripple
+                    const btn = e.currentTarget;
+                    const ripple = document.createElement("span");
+                    ripple.className = "pcard__cart-ripple";
+                    const r = btn.getBoundingClientRect();
+                    ripple.style.left = `${e.clientX - r.left - 4}px`;
+                    ripple.style.top = `${e.clientY - r.top - 4}px`;
+                    btn.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 500);
+
                     e.stopPropagation();
                     if (adding || p.stock === 0) return;
                     setAdding(true);

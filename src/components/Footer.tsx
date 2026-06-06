@@ -17,9 +17,20 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border mt-12 bg-black/[0.02]">
+    <footer className="border-t border-border mt-12 bg-black/[0.02]" style={{ position: "relative", overflow: "hidden" }}>
+      {/* Grain texture */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        zIndex: 0,
+        backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.018) 1px, rgba(255,255,255,0.018) 2px), repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.012) 1px, rgba(255,255,255,0.012) 2px)`,
+        backgroundSize: "3px 3px",
+        mixBlendMode: "overlay" as const,
+      }} />
+
       {/* Trust Elements Bar */}
-      <div className="border-b border-border">
+      <div className="border-b border-border" style={{ position: "relative", zIndex: 1 }}>
         <div className="mx-auto max-w-7xl px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-wrap justify-center md:justify-start items-center gap-6 sm:gap-8 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
             <div className="flex items-center gap-2.5">
@@ -47,7 +58,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 py-16 grid md:grid-cols-5 gap-10">
+      <div className="mx-auto max-w-7xl px-6 py-16 grid md:grid-cols-5 gap-10" style={{ position: "relative", zIndex: 1 }}>
         <div className="md:col-span-2">
           <Link to="/" className="font-display text-2xl font-bold">
             VU<span className="text-gradient-brand">RLO</span>
@@ -88,7 +99,7 @@ export function Footer() {
           </div>
         ))}
       </div>
-      <div className="border-t border-border">
+      <div className="border-t border-border" style={{ position: "relative", zIndex: 1 }}>
         <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col sm:flex-row justify-between gap-3 text-xs text-muted-foreground">
           <p>© 2026 VURLO. All rights reserved.</p>
           <div className="flex gap-6">

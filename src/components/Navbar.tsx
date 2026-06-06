@@ -154,6 +154,31 @@ export function Navbar() {
           font-family: 'Inter', sans-serif;
         }
 
+        .vurlo-grain {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          border-radius: 16px;
+          background-image: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 1px,
+            rgba(255,255,255,0.018) 1px,
+            rgba(255,255,255,0.018) 2px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 1px,
+            rgba(255,255,255,0.012) 1px,
+            rgba(255,255,255,0.012) 2px
+          );
+          background-size: 3px 3px;
+          opacity: 1;
+          mix-blend-mode: overlay;
+        }
+
         .vurlo-logo {
           font-family: 'Syne', sans-serif;
         }
@@ -311,7 +336,8 @@ export function Navbar() {
 
       <div className="vurlo-wrapper vurlo-navbar" role="banner">
         <div className="vurlo-inner">
-          <header className="vurlo-glass">
+          <header className="vurlo-glass" style={{ position: "relative" }}>
+            <div className="vurlo-grain" />
             <nav className="flex items-center justify-between px-6 h-[60px]">
               {/* Logo */}
               <Link to="/" className="vurlo-logo-text">

@@ -69,6 +69,37 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 import { WishlistProvider } from "@/hooks/use-wishlist";
 import { NotificationsProvider } from "@/hooks/use-notifications";
+import { useEffect, useState } from "react";
+
+function ScrollProgressBar() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const el = document.documentElement;
+      const scrolled = el.scrollTop;
+      const total = el.scrollHeight - el.clientHeight;
+      setProgress(total > 0 ? (scrolled / total) * 100 : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        height: "2px",
+        width: `${progress}%`,
+        background: "linear-gradient(90deg, #8a2eff, #00e5ff)",
+        zIndex: 9999,
+        transition: "width 0.1s linear",
+        pointerEvents: "none",
+        boxShadow: "0 0 8px rgba(138,46,255,0.8), 0 0 4px rgba(0,229,255,0.6)",
+      }}
+    />
+  );
+}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -79,6 +110,7 @@ function RootComponent() {
         <CartProvider>
           <WishlistProvider>
             <NotificationsProvider>
+              <ScrollProgressBar />
               <Outlet />
               <Toaster />
             </NotificationsProvider>

@@ -47,7 +47,16 @@ export function Newsletter() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-12 md:p-16 text-center">
-        <div className="absolute inset-0 bg-gradient-brand opacity-10 blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-brand blur-3xl" style={{
+          opacity: 0.12,
+          animation: "newsletterGlow 4s ease-in-out infinite",
+        }} />
+        <style>{`
+          @keyframes newsletterGlow {
+            0%, 100% { opacity: 0.08; transform: scale(1); }
+            50% { opacity: 0.18; transform: scale(1.04); }
+          }
+        `}</style>
         <div className="relative">
           <h2 className="font-display text-4xl md:text-5xl font-bold">First to know.</h2>
           <p className="mt-4 text-muted-foreground max-w-md mx-auto">
