@@ -47,7 +47,7 @@ export function Hero() {
       <div className="hero-particle hero-particle-5 absolute w-1.5 h-1.5 rounded-full bg-cyan-300/50 blur-[1px] z-10" style={{ top: "15%", right: "30%" }} />
 
       {/* ── Main grid ── */}
-      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-10 lg:gap-20 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-8 lg:gap-16 items-center">
 
         {/* ── Left: Text content ── */}
         <div className="space-y-6 md:space-y-10">
@@ -261,24 +261,24 @@ export function Hero() {
         .hero-img-wrapper {
           position: relative;
           width: 100%;
-          aspect-ratio: 1 / 1;
-          max-height: 520px;
+          aspect-ratio: 4 / 3;
+          min-height: 0;
+          max-height: 540px;
+          align-self: stretch;
         }
 
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
         .hero-img-frame {
           position: absolute;
-          inset: 8px;
+          inset: 0;
+          border-radius: 18px;
+          overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 16px;
-          overflow: hidden;
           perspective: 1200px;
           perspective-origin: 50% 50%;
           transform-style: preserve-3d;
-          background: rgba(5,5,7,0.6);
-          border: 1px solid rgba(167,139,250,0.12);
         }
 
         /* ── Product image — FIXED: contain inside frame, no overflow ── */
@@ -287,7 +287,7 @@ export function Hero() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: center;
+          object-position: center top;
           border-radius: 0;
           transform-origin: center center;
           animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
@@ -432,13 +432,14 @@ export function Hero() {
             max-height: none;
           }
           .hero-img-frame {
-            inset: 6px;
-            border-radius: 12px;
+            border-radius: 14px;
+            inset: 0;
           }
           .hero-product-premium {
             animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
             border-radius: 0 !important;
             object-fit: cover !important;
+            object-position: center top !important;
           }
         }
 
