@@ -31,7 +31,7 @@ export function Hero() {
           const blink = setInterval(() => {
             setShowCursor(v => !v);
             blinks++;
-            if (blinks >= 8) { clearInterval(blink); setShowCursor(false); }
+            if (blinks >= 6) { clearInterval(blink); setShowCursor(false); }
           }, 350);
         }
       }, speed);
@@ -218,10 +218,22 @@ export function Hero() {
       <style>{`
         /* ── Grain texture ── */
         .hero-grain {
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-          background-size: 180px 180px;
-          opacity: 0.055;
-          mix-blend-mode: overlay;
+          background-image: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 1px,
+            rgba(255,255,255,0.015) 1px,
+            rgba(255,255,255,0.015) 2px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 1px,
+            rgba(255,255,255,0.01) 1px,
+            rgba(255,255,255,0.01) 2px
+          );
+          background-size: 3px 3px;
+          opacity: 1;
         }
 
         /* ── Grid parallax ── */
