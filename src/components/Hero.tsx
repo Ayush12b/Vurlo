@@ -47,7 +47,7 @@ export function Hero() {
       <div className="hero-particle hero-particle-5 absolute w-1.5 h-1.5 rounded-full bg-cyan-300/50 blur-[1px] z-10" style={{ top: "15%", right: "30%" }} />
 
       {/* ── Main grid ── */}
-      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-2 gap-3 md:gap-8 lg:gap-16 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-8 md:px-20 pt-4 pb-6 md:pt-20 md:pb-24 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-16 items-center">
 
         {/* ── Left: Text content ── */}
         <div className="space-y-6 md:space-y-10">
@@ -62,7 +62,7 @@ export function Hero() {
           <h1
             ref={headingRef}
             className="font-display leading-[1.05] tracking-tight hero-heading"
-            style={{ fontSize: "clamp(2.5rem, 3.8vw, 5rem)", fontWeight: 800 }}
+            style={{ fontSize: "clamp(2rem, 8vw, 5rem)", fontWeight: 800 }}
           >
             <span className="sr-only">Vurlo - Premium Lighting & Decor</span>
             <span className="block text-white/90">Upgrade Your Room.</span>
@@ -142,8 +142,8 @@ export function Hero() {
           {/* Corner accent sparks */}
           <div className="hero-spark hero-spark-tl absolute top-[-6px] left-[-6px] w-3 h-3 rounded-full bg-violet-400 z-20" />
           <div className="hero-spark hero-spark-tr absolute top-[-6px] right-[-6px] w-2 h-2 rounded-full bg-cyan-400 z-20" />
-          <div className="hero-spark hero-spark-br absolute bottom-[-6px] right-[-6px] w-3 h-3 rounded-full bg-indigo-400 z-20" />
-          <div className="hero-spark hero-spark-bl absolute bottom-[-6px] left-[-6px] w-2 h-2 rounded-full bg-violet-300 z-20" />
+          <div className="hero-spark hero-spark-br absolute bottom-[10px] right-[-6px] w-3 h-3 rounded-full bg-indigo-400 z-20" />
+          <div className="hero-spark hero-spark-bl absolute bottom-[10px] left-[-6px] w-2 h-2 rounded-full bg-violet-300 z-20" />
 
           {/* Glow behind image */}
           <div className="hero-product-glow absolute w-[75%] h-[75%] bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 opacity-60 blur-[100px] rounded-full z-0" />
