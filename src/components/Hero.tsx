@@ -266,12 +266,13 @@ export function Hero() {
           min-width: 0;
           max-width: 100%;
           overflow: visible;
+          padding-bottom: 10px;
         }
 
         /* ── Image frame — FIXED: fills wrapper, clip overflow ── */
         .hero-img-frame {
           position: absolute;
-          inset: 0 0 10px 0;
+          inset: 0;
           border-radius: 18px;
           overflow: hidden;
           animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
@@ -304,14 +305,14 @@ export function Hero() {
         /* ── Antigravity float keyframes ── */
         @keyframes antigravFloat {
           0%   { transform: translateY(0px); }
-          50%  { transform: translateY(-8px); }
+          50%  { transform: translateY(-6px); }
           100% { transform: translateY(0px); }
         }
 
         @keyframes antigravFloat3D {
           0%   { transform: translateY(0px); }
           25%  { transform: translateY(-3px); }
-          50%  { transform: translateY(-8px); }
+          50%  { transform: translateY(-6px); }
           75%  { transform: translateY(-3px); }
           100% { transform: translateY(0px); }
         }
