@@ -261,9 +261,8 @@ export function Hero() {
         .hero-img-wrapper {
           position: relative;
           width: 100%;
-          aspect-ratio: 3 / 4;
+          aspect-ratio: 4 / 3;
           align-self: center;
-          max-height: min(80vh, 620px);
           overflow: hidden;
           border-radius: 18px;
         }
@@ -285,7 +284,7 @@ export function Hero() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: center top;
+          object-position: center center;
           border-radius: 0;
           transform-origin: center center;
           animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
@@ -421,9 +420,9 @@ export function Hero() {
         /* ── Mobile — FIXED ── */
         @media (max-width: 767px) {
           .hero-img-wrapper {
-            aspect-ratio: 3 / 4;
+            aspect-ratio: 4 / 3;
             width: 100%;
-            max-height: none;
+            max-height: 240px;
           }
           .hero-img-frame {
             border-radius: 14px;
@@ -433,7 +432,7 @@ export function Hero() {
             animation: antigravFloat 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
             border-radius: 0 !important;
             object-fit: cover !important;
-            object-position: center top !important;
+            object-position: center center !important;
           }
         }
 
