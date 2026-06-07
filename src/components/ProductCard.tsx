@@ -356,15 +356,13 @@ export function ProductCard({
                   onClick={async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Ripple
-                    const btn = e.currentTarget;
+                    // Ripple — fixed position relative to viewport
                     const ripple = document.createElement("span");
                     ripple.className = "pcard__cart-ripple";
-                    const r = btn.getBoundingClientRect();
-                    ripple.style.left = `${e.clientX - r.left - 4}px`;
-                    ripple.style.top = `${e.clientY - r.top - 4}px`;
-                    btn.appendChild(ripple);
-                    setTimeout(() => ripple.remove(), 500);
+                    ripple.style.left = `${e.clientX - 3}px`;
+                    ripple.style.top = `${e.clientY - 3}px`;
+                    document.body.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
                     if (adding || p.stock === 0) return;
                     setAdding(true);
                     try {

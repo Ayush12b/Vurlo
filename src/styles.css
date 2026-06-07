@@ -160,16 +160,12 @@
 
 /* ── Staggered card entrance ── */
 .pcard-enter {
-  opacity: 0;
-  transform: translateY(28px) scale(0.97);
-  transition:
-    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: var(--card-delay, 0ms);
+  animation: cardEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--card-delay, 0ms);
 }
-.pcard-enter.is-visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Scroll Reveal Animation Styles */
@@ -838,20 +834,22 @@
 /* ── Cart ripple ── */
 .pcard__cart {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 .pcard__cart-ripple {
-  position: absolute;
+  position: fixed;
   border-radius: 50%;
-  width: 8px;
-  height: 8px;
-  background: rgba(255,255,255,0.5);
+  width: 6px;
+  height: 6px;
+  background: rgba(var(--accent-rgb), 0.7);
   transform: scale(0);
-  animation: cartRipple 0.5s ease-out forwards;
+  animation: cartRipple 0.6s ease-out forwards;
   pointer-events: none;
+  z-index: 9999;
 }
 @keyframes cartRipple {
-  to { transform: scale(20); opacity: 0; }
+  0%   { transform: scale(0); opacity: 1; }
+  100% { transform: scale(14); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

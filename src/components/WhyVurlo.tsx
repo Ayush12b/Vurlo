@@ -1,5 +1,4 @@
 import { ShieldCheck, Truck, Rocket } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
 
 const features = [
   {
@@ -23,14 +22,9 @@ export function WhyVurlo() {
   return (
     <section className="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
       <style>{`
-        .whyvurlo-card {
-          opacity: 0;
-          transform: translateY(24px);
-          transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
-        }
-        .whyvurlo-card.visible {
-          opacity: 1;
-          transform: translateY(0);
+        @keyframes whyVurloEnter {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
       <div className="text-center mb-12 max-w-2xl mx-auto">
@@ -42,22 +36,11 @@ export function WhyVurlo() {
         </h2>
       </div>
       <div className="grid md:grid-cols-3 gap-6">
-        {features.map(({ icon: Icon, title, desc }, i) => {
-          const ref = useRef<HTMLDivElement>(null);
-          useEffect(() => {
-            const el = ref.current; if (!el) return;
-            const obs = new IntersectionObserver(([entry]) => {
-              if (entry?.isIntersecting) { el.classList.add("visible"); obs.disconnect(); }
-            }, { threshold: 0.15 });
-            obs.observe(el);
-            return () => obs.disconnect();
-          }, []);
-          return (
+        {features.map(({ icon: Icon, title, desc }, i) => (
           <div
             key={title}
-            ref={ref}
-            className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 card-glow-hover flex flex-col justify-between whyvurlo-card"
-            style={{ transitionDelay: `${i * 120}ms` }}
+            className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 card-glow-hover flex flex-col justify-between"
+            style={{ animation: `whyVurloEnter 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 120}ms both` }}
           >
             <div>
               <div className="relative mb-6 w-12 h-12">
@@ -70,8 +53,7 @@ export function WhyVurlo() {
               <p className="text-xs text-gray-400 leading-relaxed">{desc}</p>
             </div>
           </div>
-          );
-        })}
+        ))}
       </div>
     </section>
   );
