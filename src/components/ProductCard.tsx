@@ -105,7 +105,11 @@ export function ProductCard({
   const [imgLoaded, setImgLoaded] = useState(false);
 
   useEffect(() => {
-    setImgSrc(resolveProductImage(mainImage, p.name));
+    const next = resolveProductImage(mainImage, p.name);
+    if (next !== imgSrc) {
+      setImgLoaded(false);
+      setImgSrc(next);
+    }
   }, [mainImage, p.name]);
 
   return (
@@ -350,6 +354,8 @@ export function ProductCard({
                   onPointerMove={cartBtn.onPointerMove}
                   onPointerLeave={cartBtn.onPointerLeave}
                   onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     // Ripple
                     const btn = e.currentTarget;
                     const ripple = document.createElement("span");
@@ -359,8 +365,6 @@ export function ProductCard({
                     ripple.style.top = `${e.clientY - r.top - 4}px`;
                     btn.appendChild(ripple);
                     setTimeout(() => ripple.remove(), 500);
-
-                    e.stopPropagation();
                     if (adding || p.stock === 0) return;
                     setAdding(true);
                     try {
