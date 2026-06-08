@@ -4,8 +4,9 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
+    "dev": "vite",
     "dev:api": "vercel dev --listen 3001",
-    "dev": "vercel dev",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "build": "node ./scripts/generate-sitemap.js && vite build",
     "preview": "vite preview",
     "lint": "eslint .",

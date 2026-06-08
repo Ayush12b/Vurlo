@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+ 
 node_modules
 dist
 dist-ssr
@@ -15,11 +15,11 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
-
+ 
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
-
+ 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -30,12 +30,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
+ 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-
+ 
+# Vercel
 .vercel
+ 
+# Scratch / one-off migration scripts (not for production)
+scratch/
+ 
+# Archives
+*.zip

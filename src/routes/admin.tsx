@@ -15,6 +15,8 @@ import {
   ShieldCheck,
   Heart,
   MessageSquare,
+  Bell,
+  Tag,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -96,6 +98,8 @@ function AdminLayout() {
     { to: "/admin/orders", label: "Orders", icon: Receipt },
     { to: "/admin/wishlists", label: "Wishlists", icon: Heart },
     { to: "/admin/contacts", label: "Contacts", icon: MessageSquare },
+    { to: "/admin/stock-requests", label: "Stock Requests", icon: Bell },
+    { to: "/admin/coupons", label: "Coupons", icon: Tag },
   ];
 
   const handleLogout = async () => {
