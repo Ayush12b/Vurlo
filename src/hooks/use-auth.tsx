@@ -53,8 +53,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (data.savedAddress) setSavedAddress(data.savedAddress);
           } else {
             try { await currentUser.reload(); } catch {}
-            setProfileName(currentUser.displayName || "User");
-            setProfilePhoto(currentUser.photoURL || DEFAULT_AVATAR);
+            const displayName = currentUser.displayName || "User";
+            const photoURL = currentUser.photoURL || DEFAULT_AVATAR;
+            setProfileName(displayName);
+            setProfilePhoto(photoURL);
+            // Self-heal: create missing Firestore doc for users who signed up before the fix
+            try {
+              await setDoc(doc(db, "users", currentUser.uid), {
+                name: displayName,
+                email: currentUser.email || "",
+                photoURL,
+                createdAt: serverTimestamp(),
+              });
+            } catch (healErr) {
+              console.warn("Self-heal Firestore doc failed:", healErr);
+            }
           }
         } catch (e) {
           console.warn("Error fetching user profile from Firestore:", e);

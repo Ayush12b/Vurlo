@@ -71,6 +71,8 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       },
       (error) => {
         console.error("Notifications listener error:", error);
+        // If index missing, error.code === "failed-precondition" — check Firebase Console > Indexes
+        setNotifications([]);
       }
     );
 

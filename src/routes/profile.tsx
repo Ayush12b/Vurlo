@@ -44,8 +44,10 @@ function ProfileContent() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (profileName) {
+    if (profileName && profileName !== "User") {
       setName(profileName);
+    } else if (profileName === "User" && !name) {
+      setName("");  // keep field empty so user is prompted to enter real name
     }
   }, [profileName]);
 

@@ -125,6 +125,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error("Error merging cart on login:", error);
+        localStorage.removeItem("vurlo_local_cart"); // prevent infinite retry
+        toast.error("Could not merge guest cart. Please re-add items.");
       }
     };
 
