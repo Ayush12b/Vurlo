@@ -52,11 +52,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setProfilePhoto(data.photoURL || currentUser.photoURL || DEFAULT_AVATAR);
             if (data.savedAddress) setSavedAddress(data.savedAddress);
           } else {
+            try { await currentUser.reload(); } catch {}
             setProfileName(currentUser.displayName || "User");
             setProfilePhoto(currentUser.photoURL || DEFAULT_AVATAR);
           }
         } catch (e) {
-          console.error("Error fetching user profile:", e);
+          console.warn("Error fetching user profile from Firestore:", e);
+          try { await currentUser.reload(); } catch {}
           setProfileName(currentUser.displayName || "User");
           setProfilePhoto(currentUser.photoURL || DEFAULT_AVATAR);
         }
@@ -97,24 +99,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await currentUser.getIdToken(true);
     await new Promise(r => setTimeout(r, 300));
 
-    // Save to Firestore users collection
-    let attempts = 0;
-    while (attempts < 3) {
-      try {
-        await setDoc(doc(db, "users", currentUser.uid), {
-          name: sanitizedName,
-          email,
-          photoURL: defaultAvatar,
-          createdAt: serverTimestamp(),
-        });
-        break;
-      } catch (e: any) {
-        if (e?.code === "permission-denied" && attempts < 2) {
-          attempts++;
-          await new Promise(r => setTimeout(r, 500));
-          await currentUser.getIdToken(true);
-        } else throw e;
+    // Save to Firestore users collection (non-fatal — auth already succeeded)
+    try {
+      let attempts = 0;
+      while (attempts < 3) {
+        try {
+          await setDoc(doc(db, "users", currentUser.uid), {
+            name: sanitizedName,
+            email,
+            photoURL: defaultAvatar,
+            createdAt: serverTimestamp(),
+          });
+          break;
+        } catch (e: any) {
+          if (e?.code === "permission-denied" && attempts < 2) {
+            attempts++;
+            await new Promise(r => setTimeout(r, 500));
+            await currentUser.getIdToken(true);
+          } else throw e;
+        }
       }
+    } catch (firestoreErr) {
+      console.warn("[signup] Firestore profile write failed (non-fatal):", firestoreErr);
     }
 
     setProfileName(sanitizedName);
