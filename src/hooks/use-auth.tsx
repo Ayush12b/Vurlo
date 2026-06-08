@@ -94,13 +94,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       photoURL: defaultAvatar,
     });
 
+    await currentUser.getIdToken(true);
+
     // Save to Firestore users collection
-    await setDoc(doc(db, "users", currentUser.uid), {
-      name: sanitizedName,
-      email,
-      photoURL: defaultAvatar,
-      createdAt: serverTimestamp(),
-    });
+    let attempts = 0;
+    while (attempts < 3) {
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+          name: sanitizedName,
+          email,
+          photoURL: defaultAvatar,
+          createdAt: serverTimestamp(),
+        });
+        break;
+      } catch (e: any) {
+        if (e?.code === "permission-denied" && attempts < 2) {
+          attempts++;
+          await new Promise(r => setTimeout(r, 500));
+          await currentUser.getIdToken(true);
+        } else throw e;
+      }
+    }
 
     setProfileName(sanitizedName);
     setProfilePhoto(defaultAvatar);
