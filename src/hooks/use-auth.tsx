@@ -95,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     await currentUser.getIdToken(true);
+    await new Promise(r => setTimeout(r, 300));
 
     // Save to Firestore users collection
     let attempts = 0;
