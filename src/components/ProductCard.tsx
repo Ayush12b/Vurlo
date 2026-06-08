@@ -372,6 +372,7 @@ export function ProductCard({
                         price:
                           typeof p.price === "number" ? p.price : parseFloat(String(p.price)) || 0,
                         image: mainImage,
+                        stock: p.stock,
                       });
                     } finally {
                       setAdding(false);

@@ -23,12 +23,13 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  stock?: number;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
   cartCount: number;
-  addToCart: (product: Omit<CartItem, "quantity">) => Promise<void>;
+  addToCart: (product: Omit<CartItem, "quantity"> & { stock?: number }) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   placeOrder: (shippingDetails: {
@@ -158,19 +159,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, [user]);
 
-  const addToCart = async (product: Omit<CartItem, "quantity">) => {
+  const addToCart = async (product: Omit<CartItem, "quantity"> & { stock?: number }) => {
     const MAX_QTY = 10;
     // 1. Fetch current product stock
-    let stock = 10;
-    try {
-      const productRef = doc(db, "products", product.productId);
-      const productSnap = await getDoc(productRef);
-      if (productSnap.exists()) {
-        const data = productSnap.data();
-        stock = data.stock !== undefined ? Number(data.stock) : 10;
+    let stock = product.stock !== undefined ? product.stock : 10;
+    if (product.stock === undefined) {
+      try {
+        const productSnap = await getDoc(doc(db, "products", product.productId));
+        if (productSnap.exists()) {
+          const data = productSnap.data();
+          stock = data.stock !== undefined ? Number(data.stock) : 10;
+        }
+      } catch (e) {
+        console.error("Error fetching product stock:", e);
       }
-    } catch (e) {
-      console.error("Error fetching product stock:", e);
     }
 
     if (stock <= 0) {
