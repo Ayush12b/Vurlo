@@ -1,5 +1,16 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
+import admin from "firebase-admin";
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  });
+}
 
 interface ProductItem {
   name: string;
@@ -220,8 +231,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true });
   }
 
-  const secret = req.headers["x-internal-secret"];
-  if (secret !== process.env.INTERNAL_API_SECRET) {
+  const idToken = req.headers["x-firebase-token"] as string;
+  if (!idToken) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  try {
+    await admin.auth().verifyIdToken(idToken);
+  } catch {
     return res.status(401).json({ error: "Unauthorized" });
   }
 

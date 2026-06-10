@@ -252,19 +252,47 @@ function CheckoutPage() {
           name: "Vurlo",
           description: "Ambient Lighting Order",
           order_id: razorpayOrderId,
-          handler: async function () {
-            // Payment successful
-            if (!usingSavedAddress) {
-              await saveAddress({
-                name: name.trim(),
-                address: address.trim(),
-                city: city.trim(),
-                state: state.trim(),
-                pinCode: pinCode.trim(),
-                phone: phone.trim(),
+          handler: async function (response: {
+            razorpay_payment_id: string;
+            razorpay_order_id: string;
+            razorpay_signature: string;
+          }) {
+            try {
+              // Verify payment signature server-side before proceeding
+              const verifyRes = await fetch("/api/verify-razorpay-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                  orderId,
+                }),
               });
+
+              if (!verifyRes.ok) {
+                toast.error("Payment verification failed. Please contact support.");
+                setPlacingOrder(false);
+                return;
+              }
+
+              // Verification passed — save address and navigate
+              if (!usingSavedAddress) {
+                await saveAddress({
+                  name: name.trim(),
+                  address: address.trim(),
+                  city: city.trim(),
+                  state: state.trim(),
+                  pinCode: pinCode.trim(),
+                  phone: phone.trim(),
+                });
+              }
+              navigate({ to: "/order-success", search: { orderId } });
+            } catch (e) {
+              console.error(e);
+              toast.error("Payment verification failed. Please contact support.");
+              setPlacingOrder(false);
             }
-            navigate({ to: "/order-success", search: { orderId } });
           },
           prefill: {
             name: name.trim(),

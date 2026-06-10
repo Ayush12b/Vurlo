@@ -545,11 +545,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       // Trigger Resend Order Confirmation email in the background (non-blocking)
       try {
+        const idToken = await user.getIdToken();
         fetch("/api/send-order-email", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-internal-secret": import.meta.env.VITE_INTERNAL_API_SECRET,
+            "x-firebase-token": idToken,
           },
           body: JSON.stringify({
             orderId: orderDocRef.id,

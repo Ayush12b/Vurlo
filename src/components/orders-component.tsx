@@ -32,6 +32,7 @@ interface Order {
   items: OrderItem[];
   totalAmount: number;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  paymentStatus?: string;
   createdAt?: {
     seconds: number;
     nanoseconds: number;
@@ -173,11 +174,13 @@ export default function AdminOrders() {
           const destEmail = orderObj?.userEmail || customerProfile?.email || null;
 
           if (typeof destEmail === "string" && destEmail.includes("@") && destEmail !== "No email") {
+            const { auth } = await import("@/lib/firebase");
+            const idToken = await auth.currentUser?.getIdToken();
             fetch("/api/send-delivery-email", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "x-internal-secret": import.meta.env.VITE_INTERNAL_API_SECRET,
+                "x-firebase-token": idToken || "",
               },
               body: JSON.stringify({
                 orderId: orderObj.id,
@@ -414,6 +417,24 @@ export default function AdminOrders() {
                     >
                       {order.status}
                     </span>
+
+                    {order.paymentStatus && (
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                          order.paymentStatus === "paid"
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                            : order.paymentStatus === "upi_pending"
+                              ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                              : "bg-white/[0.04] border-white/10 text-white/40"
+                        }`}
+                      >
+                        {order.paymentStatus === "paid"
+                          ? "UPI Paid"
+                          : order.paymentStatus === "upi_pending"
+                            ? "UPI Pending"
+                            : order.paymentStatus}
+                      </span>
+                    )}
 
                     <div className="relative">
                       <select
