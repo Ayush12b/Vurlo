@@ -10,7 +10,7 @@ import { getProductImage } from "@/utils/product";
 import { Loader2, ShoppingBag, MapPin, CreditCard, ChevronRight, Check, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export const Route = createFileRoute("/checkout")({
@@ -21,7 +21,7 @@ type PaymentMethod = "cod" | "upi";
 
 function CheckoutPage() {
   const { user, loading, savedAddress, saveAddress } = useAuth();
-  const { cartItems, placeOrder } = useCart();
+  const { cartItems, placeOrder, reserveStockAndGetTotal, commitUpiOrder, releaseStock } = useCart();
   const navigate = useNavigate();
 
   // Shipping fields
@@ -216,22 +216,14 @@ function CheckoutPage() {
   const handlePlaceOrder = async () => {
     if (paymentMethod === "upi") {
       setPlacingOrder(true);
+      let reservedItems: any[] = [];
       try {
-        // Step 1: Create Firestore order first to get orderId
-        const orderId = await placeOrder(
-          {
-            name: name.trim(),
-            address: address.trim(),
-            city: city.trim(),
-            state: state.trim(),
-            pinCode: pinCode.trim(),
-            phone: phone.trim(),
-          },
-          discount,
-          appliedCoupon?.code,
-          appliedCoupon?.id,
-          "upi_pending" // payment status
-        );
+        // Step 1: Reserve stock and get items
+        const { fetchedItems } = await reserveStockAndGetTotal();
+        reservedItems = fetchedItems;
+
+        // Generate client-side order ID upfront
+        const orderId = doc(collection(db, "orders")).id;
 
         // Step 2: Create Razorpay order
         const response = await fetch("/api/create-razorpay-order", {
@@ -239,7 +231,6 @@ function CheckoutPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             amount: finalTotal,
-            orderId,
           }),
         });
         const { razorpayOrderId } = await response.json();
@@ -272,9 +263,29 @@ function CheckoutPage() {
 
               if (!verifyRes.ok) {
                 toast.error("Payment verification failed. Please contact support.");
+                // Release stock since verification failed
+                await releaseStock(reservedItems);
                 setPlacingOrder(false);
                 return;
               }
+
+              // Signature verified — create the order, clear cart, send email
+              await commitUpiOrder(
+                reservedItems,
+                finalTotal,
+                {
+                  name: name.trim(),
+                  address: address.trim(),
+                  city: city.trim(),
+                  state: state.trim(),
+                  pinCode: pinCode.trim(),
+                  phone: phone.trim(),
+                },
+                discount,
+                appliedCoupon?.code,
+                appliedCoupon?.id,
+                orderId
+              );
 
               // Verification passed — save address and navigate
               if (!usingSavedAddress) {
@@ -291,6 +302,7 @@ function CheckoutPage() {
             } catch (e) {
               console.error(e);
               toast.error("Payment verification failed. Please contact support.");
+              await releaseStock(reservedItems);
               setPlacingOrder(false);
             }
           },
@@ -303,8 +315,9 @@ function CheckoutPage() {
           },
           modal: {
             ondismiss: async function () {
-              // Payment cancelled — delete the pending order from Firestore
+              // Payment cancelled — release the reserved stock back
               toast.error("Payment cancelled.");
+              await releaseStock(reservedItems);
               setPlacingOrder(false);
             },
           },
@@ -315,6 +328,9 @@ function CheckoutPage() {
       } catch (e) {
         console.error(e);
         toast.error("Payment failed. Please try again.");
+        if (reservedItems.length > 0) {
+          await releaseStock(reservedItems);
+        }
         setPlacingOrder(false);
       }
       return;

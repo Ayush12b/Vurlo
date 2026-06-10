@@ -48,6 +48,24 @@ interface CartContextType {
     paymentStatus?: string
   ) => Promise<string | undefined>;
   addMultipleToCart: (items: CartItem[]) => Promise<void>;
+  reserveStockAndGetTotal: () => Promise<{ fetchedItems: any[]; totalAmount: number }>;
+  commitUpiOrder: (
+    fetchedItems: any[],
+    totalAmount: number,
+    shippingDetails: {
+      name: string;
+      address: string;
+      city: string;
+      state: string;
+      pinCode: string;
+      phone: string;
+    },
+    discount?: number,
+    couponCode?: string,
+    couponId?: string,
+    orderId?: string
+  ) => Promise<string>;
+  releaseStock: (fetchedItems: any[]) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -614,6 +632,212 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const reserveStockAndGetTotal = async (): Promise<{
+    fetchedItems: any[];
+    totalAmount: number;
+  }> => {
+    if (!user || cartItems.length === 0) {
+      throw new Error("No user or cart items");
+    }
+
+    const updatedProducts: { productId: string; quantity: number }[] = [];
+    const fetchedItems: any[] = [];
+
+    try {
+      for (const item of cartItems) {
+        const freshItem = await runTransaction(db, async (transaction) => {
+          const productRef = doc(db, "products", item.productId);
+          const productSnap = await transaction.get(productRef);
+          if (!productSnap.exists()) {
+            throw new Error(`Product "${item.name}" was not found in our catalog.`);
+          }
+          const productData = productSnap.data();
+          const freshPrice = productData.price ?? 0;
+          const stock = productData.stock !== undefined ? Number(productData.stock) : 10;
+
+          if (stock < item.quantity) {
+            throw new Error(`Product "${item.name}" only has ${stock} items left in stock.`);
+          }
+
+          transaction.update(productRef, {
+            stock: stock - item.quantity,
+          });
+
+          return {
+            productId: item.productId,
+            name: productData.name || item.name,
+            price: freshPrice,
+            image: getProductImage(productData) || item.image,
+            quantity: item.quantity,
+          };
+        });
+
+        fetchedItems.push(freshItem);
+        updatedProducts.push({ productId: item.productId, quantity: item.quantity });
+      }
+
+      const baseTotal = fetchedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+      return { fetchedItems, totalAmount: baseTotal };
+    } catch (error) {
+      console.error("Error reserving stock:", error);
+      // Rollback stock reserved in this call
+      for (const updated of updatedProducts) {
+        try {
+          await runTransaction(db, async (transaction) => {
+            const productRef = doc(db, "products", updated.productId);
+            const productSnap = await transaction.get(productRef);
+            if (productSnap.exists()) {
+              const currentStock =
+                productSnap.data().stock !== undefined ? Number(productSnap.data().stock) : 10;
+              transaction.update(productRef, {
+                stock: currentStock + updated.quantity,
+              });
+            }
+          });
+        } catch (rollbackError) {
+          console.error(`Rollback failed for product ${updated.productId}:`, rollbackError);
+        }
+      }
+      const message =
+        error instanceof Error ? error.message : "Failed to reserve items. Please try again.";
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const commitUpiOrder = async (
+    fetchedItems: any[],
+    totalAmount: number,
+    shippingDetails: {
+      name: string;
+      address: string;
+      city: string;
+      state: string;
+      pinCode: string;
+      phone: string;
+    },
+    discount?: number,
+    couponCode?: string,
+    couponId?: string,
+    orderId?: string
+  ): Promise<string> => {
+    if (!user) throw new Error("No authenticated user");
+
+    // Perform batch writes
+    const batch = writeBatch(db);
+
+    // Use the existing orderId or generate a new one
+    const orderDocRef = orderId ? doc(db, "orders", orderId) : doc(collection(db, "orders"));
+
+    batch.set(
+      orderDocRef,
+      {
+        userId: user.uid,
+        userEmail: user.email || "",
+        items: fetchedItems,
+        totalAmount,
+        discount: discount ?? 0,
+        couponCode: couponCode || null,
+        status: "pending",
+        paymentStatus: "paid",
+        shippingDetails,
+        createdAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    // Increment coupon usage count if couponId was passed
+    if (couponId) {
+      const couponRef = doc(db, "coupons", couponId);
+      batch.update(couponRef, {
+        usageCount: increment(1),
+      });
+    }
+
+    // Clear cart items
+    cartItems.forEach((item) => {
+      const itemRef = doc(db, "users", user.uid, "cart", item.productId);
+      batch.delete(itemRef);
+    });
+
+    // Add Order Placement Notification
+    const notifColRef = collection(db, "notifications");
+    const notifDocRef = doc(notifColRef);
+    batch.set(notifDocRef, {
+      userId: user.uid,
+      message: `Your order #${orderDocRef.id.slice(0, 8).toUpperCase()} has been placed successfully!`,
+      type: "order",
+      read: false,
+      timestamp: serverTimestamp(),
+      link: "/orders",
+    });
+
+    await batch.commit();
+
+    // Trigger Resend Order Confirmation email in the background (non-blocking)
+    try {
+      const idToken = await user.getIdToken();
+      fetch("/api/send-order-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-firebase-token": idToken,
+        },
+        body: JSON.stringify({
+          orderId: orderDocRef.id,
+          customerName: shippingDetails.name,
+          customerEmail: user.email || "",
+          products: fetchedItems.map((item) => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          totalAmount,
+          deliveryAddress: `${shippingDetails.address}, ${shippingDetails.city}, ${shippingDetails.state} - ${shippingDetails.pinCode}`,
+          estimatedDelivery: "3-5 business days",
+        }),
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error("API failed");
+          let data: any = null;
+          try {
+            data = await res.json();
+          } catch {}
+          if (!data?.success) throw new Error("API failed");
+        })
+        .catch((err) => console.error("Order confirmation dispatch failed:", err));
+    } catch (err) {
+      console.error("Order email call failed:", err);
+    }
+
+    toast.success("Order placed successfully!", {
+      description: "Thank you for your purchase.",
+      duration: 3000,
+    });
+
+    return orderDocRef.id;
+  };
+
+  const releaseStock = async (fetchedItems: any[]): Promise<void> => {
+    for (const item of fetchedItems) {
+      try {
+        await runTransaction(db, async (transaction) => {
+          const productRef = doc(db, "products", item.productId);
+          const productSnap = await transaction.get(productRef);
+          if (productSnap.exists()) {
+            const currentStock =
+              productSnap.data().stock !== undefined ? Number(productSnap.data().stock) : 10;
+            transaction.update(productRef, {
+              stock: currentStock + item.quantity,
+            });
+          }
+        });
+      } catch (rollbackError) {
+        console.error(`Rollback failed for product ${item.productId}:`, rollbackError);
+      }
+    }
+  };
+
   const addMultipleToCart = async (items: CartItem[]) => {
     if (!user) {
       // Guest User cart loading from local storage
@@ -685,6 +909,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeFromCart,
         placeOrder,
         addMultipleToCart,
+        reserveStockAndGetTotal,
+        commitUpiOrder,
+        releaseStock,
       }}
     >
       {children}

@@ -37,11 +37,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Signature valid — update Firestore order paymentStatus to "paid"
   try {
-    await adminDb.collection("orders").doc(orderId).update({
+    await adminDb.collection("orders").doc(orderId).set({
       paymentStatus: "paid",
       razorpayPaymentId: razorpay_payment_id,
       razorpayOrderId: razorpay_order_id,
-    });
+    }, { merge: true });
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Firestore update error:", error);

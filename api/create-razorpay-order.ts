@@ -4,10 +4,10 @@ import Razorpay from "razorpay";
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { amount, orderId } = req.body;
+  const { amount } = req.body;
 
-  if (!amount || !orderId) {
-    return res.status(400).json({ error: "Missing amount or orderId" });
+  if (!amount) {
+    return res.status(400).json({ error: "Missing amount" });
   }
 
   const razorpay = new Razorpay({
@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100), // paise
       currency: "INR",
-      receipt: orderId,
+      receipt: `rcpt_${Date.now()}`,
     });
     return res.status(200).json({ razorpayOrderId: order.id });
   } catch (error) {

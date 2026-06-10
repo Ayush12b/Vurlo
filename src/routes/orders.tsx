@@ -42,6 +42,7 @@ interface Order {
   items: OrderItem[];
   totalAmount: number;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  paymentStatus?: string;
   createdAt?: {
     seconds: number;
     nanoseconds: number;
@@ -439,11 +440,15 @@ function OrdersContent() {
   };
 
   // Stats Calculations
-  const totalOrders = orders?.length || 0;
+  const visibleOrders = (orders ?? []).filter(
+    (o) => !(o.paymentStatus === "upi_pending" && o.status === "pending")
+  );
+
+  const totalOrders = visibleOrders.length;
   const totalSpent =
-    orders?.reduce((acc, o) => (o.status !== "cancelled" ? acc + o.totalAmount : acc), 0) || 0;
+    visibleOrders.reduce((acc, o) => (o.status !== "cancelled" ? acc + o.totalAmount : acc), 0);
   const activeOrdersCount =
-    orders?.filter((o) => ["pending", "confirmed", "shipped"].includes(o.status)).length || 0;
+    visibleOrders.filter((o) => ["pending", "confirmed", "shipped"].includes(o.status)).length;
 
   const tabs = [
     { id: "all", label: "All Orders", count: totalOrders },
@@ -451,18 +456,18 @@ function OrdersContent() {
     {
       id: "completed",
       label: "Completed",
-      count: orders?.filter((o) => o.status === "delivered").length || 0,
+      count: visibleOrders.filter((o) => o.status === "delivered").length,
     },
     {
       id: "cancelled",
       label: "Cancelled",
-      count: orders?.filter((o) => o.status === "cancelled").length || 0,
+      count: visibleOrders.filter((o) => o.status === "cancelled").length,
     },
   ] as const;
 
   // Filter & Paginate
   const filteredOrders =
-    orders?.filter((order) => {
+    visibleOrders.filter((order) => {
       if (activeTab === "all") return true;
       if (activeTab === "active") {
         return ["pending", "confirmed", "shipped"].includes(order.status);
@@ -474,7 +479,7 @@ function OrdersContent() {
         return order.status === "cancelled";
       }
       return true;
-    }) || [];
+    });
 
   const paginatedOrders = filteredOrders.slice(0, visibleCount);
 
@@ -502,7 +507,7 @@ function OrdersContent() {
         </div>
 
         {/* Premium Stats Grid */}
-        {orders && orders.length > 0 && (
+        {visibleOrders && visibleOrders.length > 0 && (
           <div className="grid grid-cols-3 gap-4 border border-white/[0.06] bg-white/[0.02] rounded-2xl p-4 min-w-[280px] md:min-w-[360px]">
             <div className="text-center">
               <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Orders</p>
@@ -556,7 +561,7 @@ function OrdersContent() {
         <div className="border border-red-500/20 bg-red-500/5 rounded-2xl p-6 text-center text-sm text-red-400">
           An error occurred while loading your orders. Please refresh.
         </div>
-      ) : !orders || orders.length === 0 ? (
+      ) : !visibleOrders || visibleOrders.length === 0 ? (
         <div className="border border-white/[0.06] bg-white/[0.01] rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
           <div className="w-12 h-12 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/30">
             <ShoppingBag size={20} />
