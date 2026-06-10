@@ -50,6 +50,7 @@ function ShopPage() {
   const [sortBy, setSortBy] = useState<string>(sort);
   const [maxPrice, setMaxPrice] = useState<number>(5000);
   const [activeCategory, setActiveCategory] = useState<string>(category || "All");
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const { data: dbProducts = [], isLoading } = useProducts();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -71,6 +72,8 @@ function ShopPage() {
     if (sortBy === "newest") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
     return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
   });
+
+  const visibleProducts = sorted.slice(0, visibleCount);
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col justify-between page-transition">
@@ -107,7 +110,7 @@ function ShopPage() {
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => { setActiveCategory(cat); setVisibleCount(12); }}
                 className={`text-[11px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all duration-200 cursor-pointer ${
                   activeCategory === cat
                     ? "border-violet-500/60 bg-violet-500/15 text-violet-300"
@@ -125,7 +128,7 @@ function ShopPage() {
               <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Sort</span>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => { setSortBy(e.target.value); setVisibleCount(12); }}
                 className="bg-transparent text-white/80 text-xs font-semibold focus:outline-none cursor-pointer"
               >
                 <option value="featured" className="bg-[#0f0f18]">Featured</option>
@@ -145,14 +148,14 @@ function ShopPage() {
                 max={5000}
                 step={100}
                 value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                onChange={(e) => { setMaxPrice(Number(e.target.value)); setVisibleCount(12); }}
                 className="w-24 accent-violet-500 cursor-pointer"
               />
             </div>
 
             {(sortBy !== "featured" || maxPrice < 5000 || activeCategory !== "All") && (
               <button
-                onClick={() => { setSortBy("featured"); setMaxPrice(5000); setActiveCategory("All"); }}
+                onClick={() => { setSortBy("featured"); setMaxPrice(5000); setActiveCategory("All"); setVisibleCount(12); }}
                 className="text-[10px] font-bold text-white/40 hover:text-white/80 uppercase tracking-widest border border-white/[0.06] px-3 py-2 rounded-xl transition-colors cursor-pointer"
               >
                 Reset
@@ -172,49 +175,62 @@ function ShopPage() {
               <p className="text-sm font-bold text-white">No products found</p>
               <p className="text-xs text-gray-400">Try adjusting your filters.</p>
               <button
-                onClick={() => { setSortBy("featured"); setMaxPrice(5000); setActiveCategory("All"); }}
+                onClick={() => { setSortBy("featured"); setMaxPrice(5000); setActiveCategory("All"); setVisibleCount(12); }}
                 className="text-xs font-bold uppercase tracking-wider h-10 px-6 rounded-xl text-white bg-gradient-to-r from-violet-600 to-cyan-600 hover:brightness-110 transition-all cursor-pointer"
               >
                 Clear Filters
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-in fade-in duration-300">
-              {sorted.map((p, i) => (
-                <ProductCard
-                  key={p.id}
-                  product={{
-                    id: p.id,
-                    name: p.name,
-                    displayName: p.displayName,
-                    seoTitle: p.seoTitle,
-                    slug: p.slug,
-                    price: p.price,
-                    img: getProductImage(p),
-                    images: p.images,
-                    tag: p.tag || null,
-                    accent: p.accent || ACCENT_PALETTES[i % ACCENT_PALETTES.length].accent,
-                    accentRgb: p.accentRgb || ACCENT_PALETTES[i % ACCENT_PALETTES.length].accentRgb,
-                    description: p.description,
-                    originalPrice: p.originalPrice,
-                    discountPercentage: p.discountPercentage,
-                    discountPercent: p.discountPercent,
-                    isOnSale: p.isOnSale,
-                    onSale: p.onSale,
-                    isFeatured: p.isFeatured,
-                    isNew: p.isNew,
-                    rating: p.rating,
-                    reviewsCount: p.reviewsCount,
-                    badge: p.badge,
-                  }}
-                  index={i}
-                  isSelected={selectedProduct?.id === p.id}
-                  onSelect={() => setSelectedProduct(p)}
-                  isWishlisted={isWishlisted}
-                  toggleWishlist={toggleWishlist}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-in fade-in duration-300">
+                {visibleProducts.map((p, i) => (
+                  <ProductCard
+                    key={p.id}
+                    product={{
+                      id: p.id,
+                      name: p.name,
+                      displayName: p.displayName,
+                      seoTitle: p.seoTitle,
+                      slug: p.slug,
+                      price: p.price,
+                      img: getProductImage(p),
+                      images: p.images,
+                      tag: p.tag || null,
+                      accent: p.accent || ACCENT_PALETTES[i % ACCENT_PALETTES.length].accent,
+                      accentRgb: p.accentRgb || ACCENT_PALETTES[i % ACCENT_PALETTES.length].accentRgb,
+                      description: p.description,
+                      originalPrice: p.originalPrice,
+                      discountPercentage: p.discountPercentage,
+                      discountPercent: p.discountPercent,
+                      isOnSale: p.isOnSale,
+                      onSale: p.onSale,
+                      isFeatured: p.isFeatured,
+                      isNew: p.isNew,
+                      rating: p.rating,
+                      reviewsCount: p.reviewsCount,
+                      badge: p.badge,
+                    }}
+                    index={i}
+                    isSelected={selectedProduct?.id === p.id}
+                    onSelect={() => setSelectedProduct(p)}
+                    isWishlisted={isWishlisted}
+                    toggleWishlist={toggleWishlist}
+                  />
+                ))}
+              </div>
+
+              {sorted.length > visibleCount && (
+                <div className="flex justify-center mt-10">
+                  <button
+                    onClick={() => setVisibleCount((prev) => prev + 8)}
+                    className="bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-white/80 rounded-full px-6 py-2 text-xs font-semibold tracking-wider uppercase transition-colors cursor-pointer"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
       </div>

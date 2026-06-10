@@ -3,6 +3,11 @@ import { ArrowRight } from "lucide-react";
 import { useHeroParallax, useMagnetic, useScrollReveal } from "@/hooks/use-premium-interactions";
 
 export function Hero() {
+  const isLowEnd = typeof navigator !== 'undefined' && (
+    navigator.hardwareConcurrency <= 4 ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+
   const hero = useHeroParallax<HTMLElement>();
   const primaryCta = useMagnetic<HTMLAnchorElement>({ strength: 7, scale: 1.045 });
   const secondaryCta = useMagnetic<HTMLAnchorElement>({ strength: 5, scale: 1.025 });
@@ -72,8 +77,12 @@ export function Hero() {
       {/* Floating particles */}
       <div className="hero-particle hero-particle-1 absolute w-1.5 h-1.5 rounded-full bg-violet-400/80 blur-[1px] z-10" style={{ top: "22%", left: "12%" }} />
       <div className="hero-particle hero-particle-2 absolute w-1.5 h-1.5 rounded-full bg-cyan-400/70 blur-[1px] z-10" style={{ top: "58%", left: "42%" }} />
-      <div className="hero-particle hero-particle-3 absolute w-2 h-2 rounded-full bg-indigo-400/60 blur-[1px] z-10" style={{ top: "30%", right: "8%" }} />
-      <div className="hero-particle hero-particle-4 absolute w-1 h-1 rounded-full bg-violet-300/60 blur-[1px] z-10" style={{ top: "75%", left: "25%" }} />
+      {!isLowEnd && (
+        <>
+          <div className="hero-particle hero-particle-3 absolute w-2 h-2 rounded-full bg-indigo-400/60 blur-[1px] z-10" style={{ top: "30%", right: "8%" }} />
+          <div className="hero-particle hero-particle-4 absolute w-1 h-1 rounded-full bg-violet-300/60 blur-[1px] z-10" style={{ top: "75%", left: "25%" }} />
+        </>
+      )}
       <div className="hero-particle hero-particle-5 absolute w-1.5 h-1.5 rounded-full bg-cyan-300/50 blur-[1px] z-10" style={{ top: "15%", right: "30%" }} />
 
       {/* ── Main grid ── */}
@@ -186,10 +195,14 @@ export function Hero() {
           <div className="antigrav-particle antigrav-2 absolute z-30 w-[3px] h-[3px] rounded-full bg-cyan-300/80" />
           <div className="antigrav-particle antigrav-3 absolute z-30 w-[2px] h-[2px] rounded-full bg-white/60" />
           <div className="antigrav-particle antigrav-4 absolute z-30 w-1 h-1 rounded-full bg-indigo-300/70" />
-          <div className="antigrav-particle antigrav-5 absolute z-30 w-[3px] h-[3px] rounded-full bg-violet-200/60" />
-          <div className="antigrav-particle antigrav-6 absolute z-30 w-[2px] h-[2px] rounded-full bg-cyan-200/70" />
-          <div className="antigrav-particle antigrav-7 absolute z-30 w-1 h-1 rounded-full bg-purple-300/50" />
-          <div className="antigrav-particle antigrav-8 absolute z-30 w-[2px] h-[2px] rounded-full bg-white/40" />
+          {!isLowEnd && (
+            <>
+              <div className="antigrav-particle antigrav-5 absolute z-30 w-[3px] h-[3px] rounded-full bg-violet-200/60" />
+              <div className="antigrav-particle antigrav-6 absolute z-30 w-[2px] h-[2px] rounded-full bg-cyan-200/70" />
+              <div className="antigrav-particle antigrav-7 absolute z-30 w-1 h-1 rounded-full bg-purple-300/50" />
+              <div className="antigrav-particle antigrav-8 absolute z-30 w-[2px] h-[2px] rounded-full bg-white/40" />
+            </>
+          )}
 
           {/* Image frame — perspective container */}
           <div className="hero-img-frame relative z-10">
