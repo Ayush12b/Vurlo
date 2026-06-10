@@ -109,6 +109,9 @@ export function Footer() {
             <Link to="/contact" className="hover:text-foreground">
               Terms of Service
             </Link>
+            <Link to="/refund-policy" className="hover:text-foreground">
+              Return & Refund Policy
+            </Link>
           </div>
         </div>
       </div>
