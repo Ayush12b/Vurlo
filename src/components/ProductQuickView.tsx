@@ -264,7 +264,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
                   })}
                 </div>
                 <span className="font-bold text-amber-400">{product.rating}</span>
-                {product.reviewsCount !== undefined && (
+                {product.reviewsCount !== undefined && product.reviewsCount > 0 && (
                   <span className="text-white/35 font-medium">
                     ({product.reviewsCount} reviews)
                   </span>

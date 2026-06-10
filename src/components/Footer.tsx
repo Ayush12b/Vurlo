@@ -12,6 +12,7 @@ const cols = [
   ]},
   { title: "Support", links: [
     { label: "Contact Us", href: "/contact" },
+    { label: "Return & Refund Policy", href: "/refund-policy" },
   ]},
 ];
 
