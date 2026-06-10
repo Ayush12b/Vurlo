@@ -44,7 +44,8 @@ interface CartContextType {
     },
     discount?: number,
     couponCode?: string,
-    couponId?: string
+    couponId?: string,
+    paymentStatus?: string
   ) => Promise<string | undefined>;
   addMultipleToCart: (items: CartItem[]) => Promise<void>;
 }
@@ -443,7 +444,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     },
     discount?: number,
     couponCode?: string,
-    couponId?: string
+    couponId?: string,
+    paymentStatus?: string
   ): Promise<string | undefined> => {
     if (!user || cartItems.length === 0) return;
 
@@ -508,6 +510,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         discount: discount ?? 0,
         couponCode: couponCode || null,
         status: "pending",
+        paymentStatus: paymentStatus || "cod",
         shippingDetails,
         createdAt: serverTimestamp(),
       });

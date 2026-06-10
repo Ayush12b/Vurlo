@@ -215,9 +215,80 @@ function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (paymentMethod === "upi") {
-      // UPI placeholder — Razorpay will go here later
-      // For now show a coming soon toast and do nothing
-      toast.info("UPI payments coming soon! Please use Cash on Delivery for now.");
+      setPlacingOrder(true);
+      try {
+        // Step 1: Create Firestore order first to get orderId
+        const orderId = await placeOrder(
+          {
+            name: name.trim(),
+            address: address.trim(),
+            city: city.trim(),
+            state: state.trim(),
+            pinCode: pinCode.trim(),
+            phone: phone.trim(),
+          },
+          discount,
+          appliedCoupon?.code,
+          appliedCoupon?.id,
+          "upi_pending" // payment status
+        );
+
+        // Step 2: Create Razorpay order
+        const response = await fetch("/api/create-razorpay-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: finalTotal,
+            orderId,
+          }),
+        });
+        const { razorpayOrderId } = await response.json();
+
+        // Step 3: Open Razorpay checkout
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: Math.round(finalTotal * 100),
+          currency: "INR",
+          name: "Vurlo",
+          description: "Ambient Lighting Order",
+          order_id: razorpayOrderId,
+          handler: async function () {
+            // Payment successful
+            if (!usingSavedAddress) {
+              await saveAddress({
+                name: name.trim(),
+                address: address.trim(),
+                city: city.trim(),
+                state: state.trim(),
+                pinCode: pinCode.trim(),
+                phone: phone.trim(),
+              });
+            }
+            navigate({ to: "/order-success", search: { orderId } });
+          },
+          prefill: {
+            name: name.trim(),
+            contact: phone.trim(),
+          },
+          theme: {
+            color: "#7c3aed",
+          },
+          modal: {
+            ondismiss: async function () {
+              // Payment cancelled — delete the pending order from Firestore
+              toast.error("Payment cancelled.");
+              setPlacingOrder(false);
+            },
+          },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      } catch (e) {
+        console.error(e);
+        toast.error("Payment failed. Please try again.");
+        setPlacingOrder(false);
+      }
       return;
     }
 
@@ -454,7 +525,7 @@ function CheckoutPage() {
                   icon="📲"
                   label="UPI Payment"
                   description="Pay instantly via any UPI app — GPay, PhonePe, Paytm."
-                  badge="Coming Soon"
+                  badge={null}
                 />
 
                 {/* UPI ID input — only show if UPI selected */}
@@ -470,9 +541,6 @@ function CheckoutPage() {
                       onChange={(e) => setUpiId(e.target.value)}
                       className={inputCls}
                     />
-                    <p className="text-[10px] text-amber-400/70 mt-1">
-                      UPI payments are coming soon. Use COD for now.
-                    </p>
                   </div>
                 )}
 
@@ -489,7 +557,7 @@ function CheckoutPage() {
                       Placing Order...
                     </>
                   ) : (
-                    <>{paymentMethod === "cod" ? "Place Order — COD" : "Pay with UPI"}</>
+                    <>{paymentMethod === "cod" ? "Place Order — COD" : "Pay Now — UPI"}</>
                   )}
                 </button>
 
