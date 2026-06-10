@@ -561,7 +561,7 @@ function OrdersContent() {
         <div className="border border-red-500/20 bg-red-500/5 rounded-2xl p-6 text-center text-sm text-red-400">
           An error occurred while loading your orders. Please refresh.
         </div>
-      ) : !visibleOrders || visibleOrders.length === 0 ? (
+      ) : !orders || orders.length === 0 ? (
         <div className="border border-white/[0.06] bg-white/[0.01] rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
           <div className="w-12 h-12 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/30">
             <ShoppingBag size={20} />

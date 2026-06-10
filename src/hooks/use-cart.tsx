@@ -548,59 +548,65 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       });
 
       // Add Order Placement Notification
-      const notifColRef = collection(db, "notifications");
-      const notifDocRef = doc(notifColRef);
-      batch.set(notifDocRef, {
-        userId: user.uid,
-        message: `Your order #${orderDocRef.id.slice(0, 8).toUpperCase()} has been placed successfully!`,
-        type: "order",
-        read: false,
-        timestamp: serverTimestamp(),
-        link: "/orders",
-      });
+      if (!paymentStatus || paymentStatus === "cod") {
+        const notifColRef = collection(db, "notifications");
+        const notifDocRef = doc(notifColRef);
+        batch.set(notifDocRef, {
+          userId: user.uid,
+          message: `Your order #${orderDocRef.id.slice(0, 8).toUpperCase()} has been placed successfully!`,
+          type: "order",
+          read: false,
+          timestamp: serverTimestamp(),
+          link: "/orders",
+        });
+      }
 
       await batch.commit();
 
       // Trigger Resend Order Confirmation email in the background (non-blocking)
-      try {
-        const idToken = await user.getIdToken();
-        fetch("/api/send-order-email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-firebase-token": idToken,
-          },
-          body: JSON.stringify({
-            orderId: orderDocRef.id,
-            customerName: shippingDetails.name,
-            customerEmail: user.email || "",
-            products: fetchedItems.map((item) => ({
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-            })),
-            totalAmount,
-            deliveryAddress: `${shippingDetails.address}, ${shippingDetails.city}, ${shippingDetails.state} - ${shippingDetails.pinCode}`,
-            estimatedDelivery: "3-5 business days",
-          }),
-        })
-          .then(async (res) => {
-            if (!res.ok) throw new Error("API failed");
-            let data: any = null;
-            try {
-              data = await res.json();
-            } catch {}
-            if (!data?.success) throw new Error("API failed");
+      if (!paymentStatus || paymentStatus === "cod") {
+        try {
+          const idToken = await user.getIdToken();
+          fetch("/api/send-order-email", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-firebase-token": idToken,
+            },
+            body: JSON.stringify({
+              orderId: orderDocRef.id,
+              customerName: shippingDetails.name,
+              customerEmail: user.email || "",
+              products: fetchedItems.map((item) => ({
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+              })),
+              totalAmount,
+              deliveryAddress: `${shippingDetails.address}, ${shippingDetails.city}, ${shippingDetails.state} - ${shippingDetails.pinCode}`,
+              estimatedDelivery: "3-5 business days",
+            }),
           })
-          .catch((err) => console.error("Order confirmation dispatch failed:", err));
-      } catch (err) {
-        console.error("Order email call failed:", err);
+            .then(async (res) => {
+              if (!res.ok) throw new Error("API failed");
+              let data: any = null;
+              try {
+                data = await res.json();
+              } catch {}
+              if (!data?.success) throw new Error("API failed");
+            })
+            .catch((err) => console.error("Order confirmation dispatch failed:", err));
+        } catch (err) {
+          console.error("Order email call failed:", err);
+        }
       }
 
-      toast.success("Order placed successfully!", {
-        description: "Thank you for your purchase.",
-        duration: 3000,
-      });
+      if (!paymentStatus || paymentStatus === "cod") {
+        toast.success("Order placed successfully!", {
+          description: "Thank you for your purchase.",
+          duration: 3000,
+        });
+      }
 
       return orderDocRef.id;
     } catch (error) {
