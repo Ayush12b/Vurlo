@@ -7,9 +7,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { resolveProductImage, formatPrice } from "@/hooks/use-products";
 import { getProductImage } from "@/utils/product";
-import { Loader2, ShoppingBag, MapPin, CreditCard, ChevronRight, Check } from "lucide-react";
+import { Loader2, ShoppingBag, MapPin, CreditCard, ChevronRight, Check, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -39,6 +41,12 @@ function CheckoutPage() {
   const [shippingDone, setShippingDone] = useState(false);
   const [usingSavedAddress, setUsingSavedAddress] = useState(true);
 
+  // Coupon states
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
   useEffect(() => {
     if (savedAddress && usingSavedAddress) {
       setName(savedAddress.name);
@@ -59,6 +67,105 @@ function CheckoutPage() {
   }, [savedAddress, usingSavedAddress]);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  // Coupon calculations
+  let discount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === "percentage") {
+      discount = Math.round((subtotal * appliedCoupon.value) / 100);
+    } else if (appliedCoupon.type === "fixed") {
+      discount = Math.min(appliedCoupon.value, subtotal);
+    }
+  }
+
+  const finalTotal = subtotal - discount;
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponCode.trim()) return;
+
+    setCouponLoading(true);
+    setCouponError(null);
+
+    try {
+      const q = query(
+        collection(db, "coupons"),
+        where("code", "==", couponCode.trim().toUpperCase())
+      );
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        setCouponError("Invalid coupon code.");
+        setAppliedCoupon(null);
+        toast.error("Invalid coupon code.");
+        setCouponLoading(false);
+        return;
+      }
+
+      const couponDoc = snap.docs[0];
+      const couponData = { id: couponDoc.id, ...couponDoc.data() } as any;
+
+      // Validate status
+      if (!couponData.isActive) {
+        setCouponError("This coupon is inactive.");
+        setAppliedCoupon(null);
+        toast.error("This coupon is inactive.");
+        setCouponLoading(false);
+        return;
+      }
+
+      // Validate expiration
+      if (couponData.expiryDate) {
+        const expiry = new Date(couponData.expiryDate);
+        const now = new Date();
+        // Set now to start of day for accurate comparison
+        now.setHours(0, 0, 0, 0);
+        const expiryDateObj = new Date(expiry);
+        expiryDateObj.setHours(23, 59, 59, 999);
+        if (expiryDateObj < now) {
+          setCouponError("This coupon has expired.");
+          setAppliedCoupon(null);
+          toast.error("This coupon has expired.");
+          setCouponLoading(false);
+          return;
+        }
+      }
+
+      // Validate min order
+      if (couponData.minOrder && subtotal < couponData.minOrder) {
+        setCouponError(`Minimum purchase requirement of ₹${couponData.minOrder} is not met.`);
+        setAppliedCoupon(null);
+        toast.error(`Minimum purchase requirement of ₹${couponData.minOrder} is not met.`);
+        setCouponLoading(false);
+        return;
+      }
+
+      // Validate usage limit
+      if (couponData.usageLimit && (couponData.usageCount || 0) >= couponData.usageLimit) {
+        setCouponError("This coupon usage limit has been reached.");
+        setAppliedCoupon(null);
+        toast.error("This coupon usage limit has been reached.");
+        setCouponLoading(false);
+        return;
+      }
+
+      setAppliedCoupon(couponData);
+      toast.success(`Coupon "${couponData.code}" applied successfully!`);
+    } catch (err) {
+      console.error("Error applying coupon:", err);
+      setCouponError("Failed to apply coupon.");
+      toast.error("Failed to apply coupon.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError(null);
+    toast.success("Coupon removed.");
+  };
 
   const checkoutFiredRef = useRef(false);
 
@@ -114,17 +221,22 @@ function CheckoutPage() {
       return;
     }
 
-    // COD flow — calls existing placeOrder() unchanged
+    // COD flow
     setPlacingOrder(true);
     try {
-      const orderId = await placeOrder({
-        name: name.trim(),
-        address: address.trim(),
-        city: city.trim(),
-        state: state.trim(),
-        pinCode: pinCode.trim(),
-        phone: phone.trim(),
-      });
+      const orderId = await placeOrder(
+        {
+          name: name.trim(),
+          address: address.trim(),
+          city: city.trim(),
+          state: state.trim(),
+          pinCode: pinCode.trim(),
+          phone: phone.trim(),
+        },
+        discount,
+        appliedCoupon?.code,
+        appliedCoupon?.id
+      );
       if (!usingSavedAddress) {
         await saveAddress({
           name: name.trim(),
@@ -412,12 +524,68 @@ function CheckoutPage() {
                 </span>
                 <span className="text-xs font-bold text-emerald-400">FREE</span>
               </div>
+              {/* Promo Code section */}
+              <div className="border-t border-white/[0.06] pt-4 pb-1">
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">
+                  Promo / Coupon Code
+                </p>
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between bg-violet-500/10 border border-violet-500/30 rounded-xl px-3 py-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-violet-400 font-bold">
+                      <Tag size={12} className="shrink-0" />
+                      <span>{appliedCoupon.code}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-[10px] text-white/40 hover:text-white/80 cursor-pointer font-bold uppercase transition"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="ENTER CODE"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError(null);
+                      }}
+                      className="flex-1 bg-white/[0.02] border border-white/[0.06] focus:border-violet-500/50 text-white rounded-xl placeholder:text-white/20 h-9 px-3 text-xs uppercase font-semibold focus:outline-none transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      disabled={couponLoading || !couponCode.trim()}
+                      className="h-9 px-3.5 rounded-xl border border-white/10 bg-white/[0.03] text-[10px] font-bold uppercase tracking-wider hover:bg-white/[0.08] text-white shrink-0 cursor-pointer disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center"
+                    >
+                      {couponLoading ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        "Apply"
+                      )}
+                    </button>
+                  </form>
+                )}
+                {couponError && (
+                  <p className="text-[10px] text-red-400 mt-1.5 font-medium pl-1">
+                    {couponError}
+                  </p>
+                )}
+              </div>
+              {discount > 0 && (
+                <div className="border-t border-white/[0.06] pt-3 flex justify-between items-center text-xs">
+                  <span className="font-semibold text-violet-400">Coupon Discount</span>
+                  <span className="font-bold text-violet-400">- ₹{formatPrice(discount)}</span>
+                </div>
+              )}
               <div className="border-t border-white/[0.06] pt-3 flex justify-between items-center">
                 <span className="text-sm font-bold text-white/90 uppercase tracking-wider">
                   Total
                 </span>
                 <span className="text-lg font-extrabold text-white/90">
-                  ₹{formatPrice(subtotal)}
+                  ₹{formatPrice(finalTotal)}
                 </span>
               </div>
               {paymentMethod === "cod" && (

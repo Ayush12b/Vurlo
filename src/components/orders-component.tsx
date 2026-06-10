@@ -43,6 +43,8 @@ interface Order {
     pinCode: string;
     phone: string;
   };
+  trackingNumber?: string;
+  courierName?: string;
 }
 
 interface UserProfile {
@@ -54,6 +56,38 @@ export default function AdminOrders() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Tracking number states
+  const [trackingInputs, setTrackingInputs] = useState<Record<string, { trackingNumber: string; courierName: string }>>({});
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+
+  // Save tracking details mutation
+  const saveTrackingMutation = useMutation({
+    mutationFn: async ({
+      orderId,
+      trackingNumber,
+      courierName,
+    }: {
+      orderId: string;
+      trackingNumber: string;
+      courierName: string;
+    }) => {
+      await updateDoc(doc(db, "orders", orderId), {
+        trackingNumber: trackingNumber.trim(),
+        courierName: courierName.trim(),
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.success("Tracking information saved successfully!");
+      setEditingOrderId(null);
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error("Failed to save tracking information.");
+    },
+  });
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -441,6 +475,124 @@ export default function AdminOrders() {
                         {order.shippingDetails.pinCode}
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {/* Tracking Details Box (for Shipped & Delivered Orders) */}
+                {["shipped", "delivered"].includes(order.status) && (
+                  <div className="border-b border-white/[0.04] bg-violet-500/[0.01] px-6 py-4 text-xs border-l-2 border-l-violet-500/30">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-[9px] font-bold text-violet-400 uppercase tracking-widest flex items-center gap-1">
+                        <Truck className="h-3 w-3" /> Shipment Tracking Info
+                      </p>
+                      {editingOrderId !== order.id && (
+                        <button
+                          onClick={() => {
+                            setEditingOrderId(order.id);
+                            setTrackingInputs((prev) => ({
+                              ...prev,
+                              [order.id]: {
+                                trackingNumber: order.trackingNumber || "",
+                                courierName: order.courierName || "",
+                              },
+                            }));
+                          }}
+                          className="text-[10px] text-violet-400 hover:text-violet-300 font-semibold cursor-pointer transition uppercase"
+                        >
+                          {order.trackingNumber ? "Edit" : "Add Details"}
+                        </button>
+                      )}
+                    </div>
+
+                    {editingOrderId === order.id ? (
+                      <div className="space-y-3 mt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-white/35 uppercase tracking-wider">
+                              Courier / Service Partner
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="E.G. Delhivery, Bluedart"
+                              value={trackingInputs[order.id]?.courierName || ""}
+                              onChange={(e) =>
+                                setTrackingInputs((prev) => ({
+                                  ...prev,
+                                  [order.id]: {
+                                    ...prev[order.id],
+                                    courierName: e.target.value,
+                                  },
+                                }))
+                              }
+                              className="w-full bg-black/40 border border-white/10 focus:border-violet-500/50 text-white rounded-lg h-8 px-2.5 text-xs focus:outline-none transition-colors"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-white/35 uppercase tracking-wider">
+                              Tracking AWB Number
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="E.G. 1234567890"
+                              value={trackingInputs[order.id]?.trackingNumber || ""}
+                              onChange={(e) =>
+                                setTrackingInputs((prev) => ({
+                                  ...prev,
+                                  [order.id]: {
+                                    ...prev[order.id],
+                                    trackingNumber: e.target.value,
+                                  },
+                                }))
+                              }
+                              className="w-full bg-black/40 border border-white/10 focus:border-violet-500/50 text-white rounded-lg h-8 px-2.5 text-xs focus:outline-none transition-colors"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 justify-end pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setEditingOrderId(null)}
+                            className="px-3 py-1 rounded-lg border border-white/10 bg-transparent text-[10px] font-bold uppercase tracking-wider hover:bg-white/[0.02] text-white/60 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={saveTrackingMutation.isPending}
+                            onClick={() => {
+                              const input = trackingInputs[order.id];
+                              if (!input?.trackingNumber.trim()) {
+                                toast.error("Tracking number is required.");
+                                return;
+                              }
+                              saveTrackingMutation.mutate({
+                                orderId: order.id,
+                                trackingNumber: input.trackingNumber,
+                                courierName: input.courierName,
+                              });
+                            }}
+                            className="px-3 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
+                          >
+                            {saveTrackingMutation.isPending ? "Saving..." : "Save"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : order.trackingNumber ? (
+                      <div className="text-white/70 space-y-0.5">
+                        <p>
+                          <span className="text-white/40">Courier:</span>{" "}
+                          <span className="font-semibold text-white/90">{order.courierName || "Standard Delivery"}</span>
+                        </p>
+                        <p>
+                          <span className="text-white/40">AWB/Tracking ID:</span>{" "}
+                          <span className="font-mono text-white/80 select-all font-semibold">{order.trackingNumber}</span>
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-white/30 italic text-[11px] py-1">
+                        No shipment tracking info added yet. Click "Add Details" to set courier & tracking ID.
+                      </p>
+                    )}
                   </div>
                 )}
 

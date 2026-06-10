@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   getDoc,
   runTransaction,
+  increment,
 } from "firebase/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
@@ -32,14 +33,19 @@ interface CartContextType {
   addToCart: (product: Omit<CartItem, "quantity"> & { stock?: number }) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
-  placeOrder: (shippingDetails: {
-    name: string;
-    address: string;
-    city: string;
-    state: string;
-    pinCode: string;
-    phone: string;
-  }) => Promise<string | undefined>;
+  placeOrder: (
+    shippingDetails: {
+      name: string;
+      address: string;
+      city: string;
+      state: string;
+      pinCode: string;
+      phone: string;
+    },
+    discount?: number,
+    couponCode?: string,
+    couponId?: string
+  ) => Promise<string | undefined>;
   addMultipleToCart: (items: CartItem[]) => Promise<void>;
 }
 
@@ -426,14 +432,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const placeOrder = async (shippingDetails: {
-    name: string;
-    address: string;
-    city: string;
-    state: string;
-    pinCode: string;
-    phone: string;
-  }): Promise<string | undefined> => {
+  const placeOrder = async (
+    shippingDetails: {
+      name: string;
+      address: string;
+      city: string;
+      state: string;
+      pinCode: string;
+      phone: string;
+    },
+    discount?: number,
+    couponCode?: string,
+    couponId?: string
+  ): Promise<string | undefined> => {
     if (!user || cartItems.length === 0) return;
 
     const updatedProducts: { productId: string; quantity: number }[] = [];
@@ -479,7 +490,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updatedProducts.push({ productId: item.productId, quantity: item.quantity });
       }
 
-      const totalAmount = fetchedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+      const baseTotal = fetchedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+      const totalAmount = Math.max(0, baseTotal - (discount ?? 0));
 
       // Perform batch writes
       const batch = writeBatch(db);
@@ -493,10 +505,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         userEmail: user.email || "",
         items: fetchedItems,
         totalAmount,
+        discount: discount ?? 0,
+        couponCode: couponCode || null,
         status: "pending",
         shippingDetails,
         createdAt: serverTimestamp(),
       });
+
+      // Increment coupon usage count if couponId was passed
+      if (couponId) {
+        const couponRef = doc(db, "coupons", couponId);
+        batch.update(couponRef, {
+          usageCount: increment(1),
+        });
+      }
 
       // Clear cart items
       cartItems.forEach((item) => {

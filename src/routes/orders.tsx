@@ -53,6 +53,8 @@ interface Order {
     pinCode: string;
     phone: string;
   };
+  trackingNumber?: string;
+  courierName?: string;
 }
 
 function OrdersPage() {
@@ -797,6 +799,29 @@ function OrdersContent() {
                 {isExpanded && (
                   <div className="border-t border-white/[0.06] bg-white/[0.005] px-6 py-6 transition-all duration-300">
                     <OrderStatusTimeline status={order.status} />
+
+                    {order.trackingNumber && (
+                      <div className="mt-6 border border-violet-500/20 bg-violet-500/5 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div className="space-y-0.5">
+                          <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest">
+                            Courier Partner / Shipment Details
+                          </p>
+                          <p className="text-xs font-semibold text-white/90">
+                            {order.courierName || "Standard Delivery"} &middot; {order.trackingNumber}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(order.trackingNumber!);
+                            toast.success("Tracking number copied!");
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/10 text-[10px] font-bold text-white hover:bg-white/[0.1] hover:text-white transition-all cursor-pointer"
+                        >
+                          <Copy className="h-3 w-3" />
+                          Copy Tracking ID
+                        </button>
+                      </div>
+                    )}
 
                     {/* Logistics History Scan */}
                     <div className="mt-6 border-t border-white/[0.04] pt-5">
