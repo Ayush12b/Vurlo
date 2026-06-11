@@ -34,7 +34,6 @@ function CheckoutPage() {
 
   // Payment
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
-  const [upiId, setUpiId] = useState("");
 
   // UI state
   const [placingOrder, setPlacingOrder] = useState(false);
@@ -654,22 +653,6 @@ function CheckoutPage() {
                   badge={null}
                 />
 
-                {/* UPI ID input — only show if UPI selected */}
-                {paymentMethod === "upi" && (
-                  <div className="mt-2 space-y-1 animate-in fade-in duration-200">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                      Your UPI ID
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="yourname@upi"
-                      value={upiId}
-                      onChange={(e) => setUpiId(e.target.value)}
-                      className={inputCls}
-                    />
-                  </div>
-                )}
-
                 {/* Place Order Button */}
                 <button
                   onClick={handlePlaceOrder}
@@ -683,7 +666,7 @@ function CheckoutPage() {
                       Placing Order...
                     </>
                   ) : (
-                    <>{paymentMethod === "cod" ? "Place Order — COD" : "Pay Now — UPI"}</>
+                    <>{paymentMethod === "cod" ? "Place Order" : "Pay Now"}</>
                   )}
                 </button>
 
@@ -892,7 +875,7 @@ function PaymentOption({
           selected ? "border-violet-400" : "border-white/20"
         }`}
       >
-        {selected && <div className="w-2 h-2 rounded-full bg-violet-400" />}
+        {selected && <div className="w-2 h-2 rounded-full bg-violet-400 animate-in zoom-in-50 duration-150" />}
       </div>
 
       {/* Icon */}
