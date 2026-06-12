@@ -104,10 +104,10 @@ export function Footer() {
         <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col sm:flex-row justify-between gap-3 text-xs text-muted-foreground">
           <p>© 2026 VURLO. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link to="/contact" className="hover:text-foreground">
+            <Link to="/privacy-policy" className="hover:text-foreground">
               Privacy Policy
             </Link>
-            <Link to="/contact" className="hover:text-foreground">
+            <Link to="/terms-of-service" className="hover:text-foreground">
               Terms of Service
             </Link>
             <Link to="/refund-policy" className="hover:text-foreground">

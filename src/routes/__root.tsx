@@ -101,8 +101,17 @@ function ScrollProgressBar() {
   );
 }
 
+import { CookieConsent } from "@/components/CookieConsent";
+import { loadAnalytics } from "@/lib/load-analytics";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (localStorage.getItem("cookie-consent") === "accepted") {
+      loadAnalytics();
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -113,6 +122,7 @@ function RootComponent() {
               <ScrollProgressBar />
               <Outlet />
               <Toaster />
+              <CookieConsent />
             </NotificationsProvider>
           </WishlistProvider>
         </CartProvider>

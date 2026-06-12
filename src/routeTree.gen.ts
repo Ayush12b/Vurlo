@@ -10,11 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -35,6 +37,11 @@ import { Route as AdminContactsRouteImport } from './routes/admin/contacts'
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
+  id: '/terms-of-service',
+  path: '/terms-of-service',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -60,6 +67,11 @@ const RefundPolicyRoute = RefundPolicyRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrdersRoute = OrdersRouteImport.update({
@@ -151,11 +163,13 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/order-success': typeof OrderSuccessRoute
   '/orders': typeof OrdersRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/profile': typeof ProfileRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/wishlist': typeof WishlistRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -175,11 +189,13 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/order-success': typeof OrderSuccessRoute
   '/orders': typeof OrdersRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/profile': typeof ProfileRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/wishlist': typeof WishlistRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -200,11 +216,13 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/order-success': typeof OrderSuccessRoute
   '/orders': typeof OrdersRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/profile': typeof ProfileRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/wishlist': typeof WishlistRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -226,11 +244,13 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/order-success'
     | '/orders'
+    | '/privacy-policy'
     | '/profile'
     | '/refund-policy'
     | '/reset-password'
     | '/search'
     | '/shop'
+    | '/terms-of-service'
     | '/wishlist'
     | '/admin/contacts'
     | '/admin/coupons'
@@ -250,11 +270,13 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/order-success'
     | '/orders'
+    | '/privacy-policy'
     | '/profile'
     | '/refund-policy'
     | '/reset-password'
     | '/search'
     | '/shop'
+    | '/terms-of-service'
     | '/wishlist'
     | '/admin/contacts'
     | '/admin/coupons'
@@ -274,11 +296,13 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/order-success'
     | '/orders'
+    | '/privacy-policy'
     | '/profile'
     | '/refund-policy'
     | '/reset-password'
     | '/search'
     | '/shop'
+    | '/terms-of-service'
     | '/wishlist'
     | '/admin/contacts'
     | '/admin/coupons'
@@ -299,11 +323,13 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   OrdersRoute: typeof OrdersRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ProfileRoute: typeof ProfileRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   ShopRoute: typeof ShopRoute
+  TermsOfServiceRoute: typeof TermsOfServiceRoute
   WishlistRoute: typeof WishlistRoute
   ProductSlugRoute: typeof ProductSlugRoute
 }
@@ -315,6 +341,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-of-service': {
+      id: '/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof TermsOfServiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -350,6 +383,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/orders': {
@@ -499,11 +539,13 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   OrdersRoute: OrdersRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   ProfileRoute: ProfileRoute,
   RefundPolicyRoute: RefundPolicyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   ShopRoute: ShopRoute,
+  TermsOfServiceRoute: TermsOfServiceRoute,
   WishlistRoute: WishlistRoute,
   ProductSlugRoute: ProductSlugRoute,
 }
