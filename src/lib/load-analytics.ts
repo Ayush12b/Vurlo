@@ -10,6 +10,10 @@ export function loadAnalytics() {
     };
   }
 
+  // Queue these BEFORE script loads — dataLayer captures them
+  (window as any).gtag("js", new Date());
+  (window as any).gtag("config", GA_ID);
+
   const scriptId = "google-analytics-gtag";
   if (!document.getElementById(scriptId)) {
     const script = document.createElement("script");
@@ -18,7 +22,4 @@ export function loadAnalytics() {
     script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
     document.head.appendChild(script);
   }
-
-  (window as any).gtag("js", new Date());
-  (window as any).gtag("config", GA_ID);
 }
