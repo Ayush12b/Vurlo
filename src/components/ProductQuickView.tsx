@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { ShoppingBag, Loader2, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/use-cart";
-import { formatPrice, resolveProductImage } from "@/hooks/use-products";
+import { useProducts, formatPrice, resolveProductImage } from "@/hooks/use-products";
+import { RecommendedProducts } from "./RecommendedProducts";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore";
 
@@ -13,6 +14,7 @@ interface ProductQuickViewProps {
 
 export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
   const { addToCart } = useCart();
+  const { data: allProducts = [] } = useProducts();
   const [addingToCart, setAddingToCart] = useState(false);
 
   // RULE 2 — hasVariants DETECTION
@@ -147,7 +149,7 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl max-h-[90dvh] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0d0d16] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8),0_0_50px_rgba(138,46,255,0.08)] flex flex-col md:flex-row relative my-auto"
+        className="w-full max-w-4xl max-h-[90dvh] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#0d0d16] shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8),0_0_50px_rgba(138,46,255,0.08)] flex flex-col relative my-auto"
         onClick={(e) => e.stopPropagation()}
         style={
           {
@@ -164,6 +166,8 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
         >
           <X size={15} />
         </button>
+
+        <div className="flex flex-col md:flex-row w-full">
 
         {/* Product Image Section */}
         <div className="w-full h-56 sm:h-72 md:h-auto md:w-2/5 md:min-h-[420px] relative bg-white/[0.01] border-b md:border-b-0 md:border-r border-white/[0.06] flex flex-col p-4 sm:p-5 shrink-0 overflow-hidden">
@@ -415,6 +419,9 @@ export function ProductQuickView({ product, onClose }: ProductQuickViewProps) {
             )}
           </div>
         </div>
+        </div>
+
+        <RecommendedProducts currentProduct={product} allProducts={allProducts} isModal={true} />
       </div>
     </div>
   );

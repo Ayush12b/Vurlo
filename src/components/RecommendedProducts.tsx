@@ -8,6 +8,7 @@ import { getProductImage } from "@/utils/product";
 interface RecommendedProductsProps {
   currentProduct: FirestoreProduct;
   allProducts: FirestoreProduct[];
+  isModal?: boolean;
 }
 
 const ACCENT_PALETTES = [
@@ -18,6 +19,7 @@ const ACCENT_PALETTES = [
 export function RecommendedProducts({
   currentProduct,
   allProducts,
+  isModal,
 }: RecommendedProductsProps) {
   const { recommendations } = useRecommendations(currentProduct, allProducts);
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -27,7 +29,7 @@ export function RecommendedProducts({
   }
 
   return (
-    <section className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 md:py-20 border-t border-white/[0.06] mt-16">
+    <section className={`relative px-4 py-10 sm:px-6 sm:py-16 md:py-20 border-t border-white/[0.06] ${isModal ? "mt-8" : "mx-auto max-w-7xl mt-16"}`}>
       {/* Background glow overlay */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div
