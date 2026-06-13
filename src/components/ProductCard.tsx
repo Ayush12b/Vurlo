@@ -126,9 +126,9 @@ export function ProductCard({
             });
           }
           const isModifiedClick = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
-          if (!isModifiedClick) {
+          if (!isModifiedClick && onSelect) {
             e.preventDefault();
-            onSelect?.();
+            onSelect();
           }
         }}
       >

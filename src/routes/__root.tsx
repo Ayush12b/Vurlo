@@ -69,7 +69,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 import { WishlistProvider } from "@/hooks/use-wishlist";
 import { NotificationsProvider } from "@/hooks/use-notifications";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
@@ -104,6 +104,8 @@ function ScrollProgressBar() {
 import { CookieConsent } from "@/components/CookieConsent";
 import { loadAnalytics } from "@/lib/load-analytics";
 
+const ChatWidget = lazy(() => import("@/components/ChatWidget"));
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -121,6 +123,9 @@ function RootComponent() {
               <Outlet />
               <Toaster />
               <CookieConsent />
+              <Suspense fallback={null}>
+                <ChatWidget />
+              </Suspense>
             </NotificationsProvider>
           </WishlistProvider>
         </CartProvider>
