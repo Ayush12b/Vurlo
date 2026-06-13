@@ -5,6 +5,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useProducts, resolveProductImage, formatPrice } from "@/hooks/use-products";
 import { PRODUCT_SEO_DATA } from "@/utils/seo-data";
+import { RecommendedProducts } from "@/components/RecommendedProducts";
 import {
   ShoppingBag,
   Loader2,
@@ -665,6 +666,8 @@ function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        <RecommendedProducts currentProduct={product} allProducts={dbProducts} />
 
         {/* ── SEO Content + FAQs + Related Products ──────────────────────── */}
         {seoData && (

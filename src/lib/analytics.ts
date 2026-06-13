@@ -1,5 +1,5 @@
 export function trackEvent(name: string, params: Record<string, unknown>) {
-  if (typeof window === "undefined" || localStorage.getItem("cookie-consent") !== "accepted") {
+  if (typeof window === "undefined") {
     return;
   }
 

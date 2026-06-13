@@ -12,7 +12,10 @@ export function loadAnalytics() {
 
   // Queue these BEFORE script loads — dataLayer captures them
   (window as any).gtag("js", new Date());
-  (window as any).gtag("config", GA_ID);
+  (window as any).gtag("config", GA_ID, {
+    transport_url: "/api/collect",
+    first_party_collection: true,
+  });
 
   const scriptId = "google-analytics-gtag";
   if (!document.getElementById(scriptId)) {

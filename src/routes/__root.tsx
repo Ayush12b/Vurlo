@@ -108,9 +108,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
-    if (localStorage.getItem("cookie-consent") === "accepted") {
-      loadAnalytics();
-    }
+    loadAnalytics();
   }, []);
 
   return (
