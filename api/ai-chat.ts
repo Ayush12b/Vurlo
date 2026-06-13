@@ -68,6 +68,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("Gemini API error:", response.status, errorBody);
         return res.status(200).json({ reply: null, source: "none" });
       }
 
