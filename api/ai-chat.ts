@@ -31,9 +31,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Limit history to the last 10 messages
-    const slicedHistory: HistoryMessage[] = Array.isArray(history)
+    let slicedHistory: HistoryMessage[] = Array.isArray(history)
       ? history.slice(-10)
       : [];
+
+    // Defensively ensure contents array starts with a "user" role
+    while (slicedHistory.length > 0 && slicedHistory[0].role === "model") {
+      slicedHistory.shift();
+    }
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 

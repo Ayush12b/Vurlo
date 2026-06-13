@@ -56,8 +56,9 @@ export function ChatWidget() {
     setIsTyping(true);
 
     try {
-      // Limit history to the last 10 messages
-      const history = messages.slice(-10);
+      // Limit history to the last 10 messages, excluding the initial welcome greeting
+      const userExchanges = messages.slice(1);
+      const history = userExchanges.slice(-10);
 
       const response = await fetch("/api/ai-chat", {
         method: "POST",
